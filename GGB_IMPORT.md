@@ -1073,6 +1073,27 @@ cause.
       la précèdent, comme GeoGebra les peint dans l'ordre. **+4 figures**
       (261 → 265), éléments non importés 2968 → 2890. Moteur inchangé,
       import +1,0 Ko.
+- [x] **62. Échantillons aléatoires, `CountIf`, `BinomialDist`** :
+      `Intervalle_confiance_estimation.ggb` (intervalles de confiance de N
+      échantillons de taille n), malgré la statistique écartée ci-dessous,
+      à la demande. Fait : une commande (`Sequence`, `CountIf`,
+      `BinomialDist`) qu'une formule ne sait pas lire, faute de boucles,
+      est calculée par le script d'une expression cachée : suites
+      imbriquées (matrices), `CountIf(condition en x, liste)`,
+      `BinomialDist(n, p, k, true|false)`, `Random(a, b)` ; ses listes se
+      lisent par leur nom, dessinées par une `Sequence` de leurs éléments si
+      GeoGebra les dessine. Une suite tirée au hasard garde les valeurs
+      enregistrées et tire les autres (n ou N plus grands) avec un
+      générateur à graine fixe, pour que la figure et l'état d'un élève se
+      rouvrent à l'identique. `Element(m, i, j)` d'une liste de listes,
+      `Sum` comme commande. Une formule lit un nom comme la variable
+      locale qu'il désigne avant l'objet du même nom (les côtés `i` et `k`
+      du carré masquaient les variables des suites). Une case à cocher sans
+      étiquette (`show label="false"`) n'écrit pas sa légende ; un `%` d'un
+      texte LaTeX, que KaTeX lit comme un commentaire, est écrit. Aucune
+      figure du corpus gagnée (265), éléments non importés 2890 → 2885.
+      Moteur inchangé, import +3,0 Ko. Recalcul en 0,15 s quand n change
+      (n × N lois binomiales).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

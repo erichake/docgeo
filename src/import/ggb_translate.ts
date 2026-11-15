@@ -1242,7 +1242,7 @@ export function translateGgb(
             (kinds.includes("expression") &&
                 (segments.has(word) || is(word, ["angle"])));
         const known = objects.get(source);
-        if (known && !vectors.has(source))
+        if (known && !vectors.has(source) && !locals.has(source))
             return readable(source) ? known.variable : null;
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
@@ -1458,10 +1458,16 @@ export function translateGgb(
         switch (name) {
             case "If":
                 return ifFormula(args, kinds, locals);
+            // Element(m, i, j…) of a list of lists.
             case "Element": {
-                const list = args.length === 2 && listFormula(args[0], locals);
-                const n = formula(args[1], VALUE_KINDS, locals);
-                const item = list && n !== null && list.item(n);
+                const indices = args
+                    .slice(1)
+                    .map((arg) => formula(arg, VALUE_KINDS, locals));
+                let list = args.length > 1 && listFormula(args[0], locals);
+                if (!list || indices.includes(null)) return null;
+                for (const n of indices.slice(0, -1))
+                    if (!(list = list.sub?.(n!) ?? null)) return null;
+                const item = list.item(indices.at(-1)!);
                 return item ? `(${item})` : null;
             }
             // Summed by a hidden Expression's script, whose own variable
@@ -1899,6 +1905,200 @@ export function translateGgb(
             );
         }
         return null;
+    };
+
+    // GeoGebra's value as a hidden Expression's script computes it, loops
+    // included, which a formula has none: the statements it needs first,
+    // then its formula, of lists `depth` deep. A Sequence's variable and a
+    // CountIf's x are the script's own variables. A Sequence GeoGebra drew
+    // at random keeps the items it saved (`saved`, the array at this
+    // depth, as long as `guard`). Its other items are drawn by a
+    // generator of fixed seed (Park and Miller's, its state `$qs`), so that
+    // the figure, and a student's state, open again the same.
+    interface Scripted {
+        code: string;
+        value: string;
+        depth: number;
+    }
+    interface Saved {
+        array: string;
+        guard: string;
+    }
+    const SCRIPTED = /\b(Sequence|CountIf|BinomialDist|Random)\(/;
+    const scripted = (
+        source: string,
+        locals: Map<string, string>,
+        fresh: () => string,
+        saved?: Saved,
+    ): Scripted | null => {
+        let text = normalizeBrackets(source.trim());
+        const call = commandCall(text);
+        if (call && SCRIPTED.test(`${call[0]}(`))
+            return scriptedCall(call, locals, fresh, saved);
+        let code = "";
+        const inner = new Map(locals);
+        for (let match; (match = SCRIPTED.exec(text));) {
+            const end =
+                matchingBracket(text, match.index + match[1].length, 1) + 1;
+            const part = commandCall(text.slice(match.index, end));
+            const value = part && scriptedCall(part, locals, fresh);
+            if (!value || value.depth) return null;
+            const name = fresh();
+            code += `${value.code}var ${name}=${value.value};`;
+            inner.set(name, name);
+            text = text.slice(0, match.index) + name + text.slice(end);
+        }
+        const value = formula(text, VALUE_KINDS, inner);
+        return value === null ? null : { code, value, depth: 0 };
+    };
+    const scriptedCall = (
+        [name, args]: [string, string[]],
+        locals: Map<string, string>,
+        fresh: () => string,
+        saved?: Saved,
+    ): Scripted | null => {
+        const values = (sources: string[]) => {
+            const parts = sources.map((source) =>
+                scripted(source, locals, fresh),
+            );
+            return parts.every((part) => part && !part.depth)
+                ? (parts as Scripted[])
+                : null;
+        };
+        if (name === "Random" && args.length === 2) {
+            const bounds = values(args);
+            if (!bounds) return null;
+            const [a, b] = bounds.map(({ value }) => `(${value})`);
+            return {
+                code: `${bounds.map(({ code }) => code).join("")}$qs=$qs*16807%2147483647;`,
+                value: `floor(${a}+$qs/2147483647*(${b}-${a}+1))`,
+                depth: 0,
+            };
+        }
+        // P(X ≤ k) or P(X = k), X following the binomial law B(n, p).
+        if (
+            name === "BinomialDist" &&
+            args.length === 4 &&
+            ["true", "false"].includes(args[3])
+        ) {
+            const parts = values(args.slice(0, 3));
+            if (!parts) return null;
+            const [n, p, k] = parts.map(({ value }) => `(${value})`);
+            const [sum, binomial, j, term] = [
+                fresh(),
+                fresh(),
+                fresh(),
+                fresh(),
+            ];
+            return {
+                code: `${parts.map(({ code }) => code).join("")}var ${sum}=0,${binomial}=1,${term}=0;for(var ${j}=0;${j}<=floor(${k});${j}++){${term}=${binomial}*pow(${p},${j})*pow(1-${p},${n}-${j});${sum}=${sum}+${term};${binomial}=${binomial}*(${n}-${j})/(${j}+1)};`,
+                value: args[3] === "true" ? sum : term,
+                depth: 0,
+            };
+        }
+        if (name === "CountIf" && args.length === 2) {
+            const [condition, source] = args;
+            const list = listFormula(source, locals);
+            const items = list ? null : scripted(source, locals, fresh);
+            if (!list && items?.depth !== 1) return null;
+            const [count, index] = [fresh(), fresh()];
+            const x = list ? list.item(index) : `${items!.value}[${index}-1]`;
+            const test =
+                x === null
+                    ? null
+                    : scripted(
+                          condition,
+                          new Map([...locals, ["x", x]]),
+                          fresh,
+                      );
+            if (!test || test.depth) return null;
+            return {
+                code: `${items?.code ?? ""}var ${count}=0;for(var ${index}=1;${index}<=${list ? list.count : `${items!.value}.length`};${index}++){${test.code}if(${test.value}){${count}=${count}+1}};`,
+                value: count,
+                depth: 0,
+            };
+        }
+        if (name === "Sequence" && args.length >= 4 && args.length <= 5) {
+            const [expression, variable, ...range] = args;
+            const bounds = values(range);
+            if (!bounds || !IDENTIFIER.test(variable)) return null;
+            const [a, b, step = "1"] = bounds.map(({ value }) => `(${value})`);
+            const [items, at] = [fresh(), fresh()];
+            const here = saved && {
+                array: `${saved.array}[${items}.length]`,
+                guard: `${saved.guard}&&${items}.length<${saved.array}.length`,
+            };
+            const item = scripted(
+                expression,
+                new Map([...locals, [variable, at]]),
+                fresh,
+                here,
+            );
+            if (!item) return null;
+            const value =
+                here && !item.depth
+                    ? `(${here.guard})?${here.array}:(${item.value})`
+                    : item.value;
+            return {
+                code: `${bounds.map(({ code }) => code).join("")}var ${items}=[];for(var ${at}=${a};${at}<=${b}+0.000001;${at}=${at}+${step}){${item.code}${items}.push(${value})};`,
+                value: items,
+                depth: item.depth + 1,
+            };
+        }
+        return null;
+    };
+
+    // A command that only a script computes, as a hidden Expression, its
+    // list read by name, drawn as a Sequence of its items if GeoGebra draws
+    // it.
+    const scriptCommand = (
+        name: string,
+        sources: string[],
+        [label]: string[],
+        random?: string,
+    ): boolean => {
+        const element = elements.get(label);
+        const type = element?.getAttribute("type");
+        if (
+            !SCRIPTED.test(`${name}(`) ||
+            (type !== "list" && type !== "numeric")
+        )
+            return false;
+        let counter = 0;
+        const fresh = () => `$q${++counter}`;
+        const values =
+            random && /^[-\d.,\s{}eE]*$/.test(random)
+                ? hiddenExpression(
+                      random.replace(/\{/g, "[").replace(/\}/g, "]"),
+                  )
+                : null;
+        const value = scripted(
+            `${name}(${sources.join(",")})`,
+            new Map(),
+            fresh,
+            values ? { array: values, guard: "true" } : undefined,
+        );
+        if (!value || (type === "list") !== value.depth > 0) return false;
+        const program = `var $qs=1;${value.code}${value.value}`;
+        if (type === "numeric") {
+            hiddenExpression(program, label);
+            return true;
+        }
+        const drawn = attribute(element!, "show", "object") === "true";
+        const array = hiddenExpression(program, drawn ? auxiliary() : label);
+        lists.set(label, named(array, value.depth));
+        if (!drawn) return true;
+        return define(
+            label,
+            "list",
+            "Sequence",
+            [
+                "point",
+                JSON.stringify([["n", "1", `${array}.length`]]),
+                JSON.stringify([`${array}[n-1]`]),
+            ].map(literal),
+            `${objectStyle(element!, "list")};s:${attribute(element!, "pointSize", "val") ?? 5}`,
+        );
     };
 
     // A list read by name, of lists `depth` deep.
@@ -4043,6 +4243,7 @@ export function translateGgb(
             return true;
         },
         Length: formulaCommand("Length"),
+        Sum: formulaCommand("Sum"),
         UnitVector: formulaCommand("UnitVector"),
         UnitOrthogonalVector: formulaCommand("UnitOrthogonalVector"),
         OrthogonalVector: formulaCommand("OrthogonalVector"),
@@ -4564,7 +4765,7 @@ export function translateGgb(
     // line break is a space. A bold text's lines are each a \boldsymbol, as
     // GeoGebra's, its \text a \textbf; a sans serif one's \text is \textsf
     // (KaTeX can't make it bold too without its closing brace, which a
-    // formula may write).
+    // formula may write). GeoGebra writes a "%", a comment for KaTeX.
     const inlineTeX = (
         tex: string,
         breaks: boolean,
@@ -4578,6 +4779,7 @@ export function translateGgb(
                 sans ? "\\textsf{" : bold ? "\\textbf{" : "$&",
             )
             .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
+            .replace(/(^|[^\\])%/g, "$1\\%")
             .replace(/\\\\|\\?\$|\n/g, (match) => {
                 const line = bold ? "}\\\\\\boldsymbol{" : "\\\\";
                 if (match === "\\\\") return breaks ? line : match;
@@ -4908,7 +5110,9 @@ export function translateGgb(
                 "expression",
                 "Expression",
                 [
-                    caption(element, label),
+                    attribute(element, "show", "label") === "false"
+                        ? ""
+                        : caption(element, label),
                     "",
                     "",
                     value && !isConstant(value)
@@ -5215,11 +5419,13 @@ export function translateGgb(
             // A random list (Shuffle, a Sequence of random numbers…) keeps
             // the value GeoGebra saved; a list command is read from its own
             // sources.
-            const random = child(node, "output")?.getAttribute("randomResult");
+            const result = child(node, "output")?.getAttribute("randomResult");
+            const random =
+                result && RANDOM_LIST.test(`${name}(${sources})`)
+                    ? result
+                    : undefined;
             const list =
-                (random && RANDOM_LIST.test(`${name}(${sources})`)
-                    ? random
-                    : undefined) ??
+                random ??
                 (LIST_COMMANDS.has(name) ||
                 (name === "Sequence" && sources.length < 3)
                     ? `${name}(${sources.join(",")})`
@@ -5231,7 +5437,8 @@ export function translateGgb(
                 outputs.some(Boolean) &&
                 !(list && element
                     ? defineList(outputs[0], element, list)
-                    : handler?.(inputs(name, sources), outputs))
+                    : handler?.(inputs(name, sources), outputs)) &&
+                !scriptCommand(name, sources, outputs, random)
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);
             outputs.forEach((output) => translated.add(output));

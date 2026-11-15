@@ -4263,6 +4263,40 @@ while (k < 1) {
         expectClose(coords("I'"), coords("I"));
     });
 
+    it("computes counts and binomial laws of random samples by scripts", async () => {
+        const c = createConstruction();
+        const response = await fetch(
+            figure("Intervalle_confiance_estimation.ggb"),
+        );
+        expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
+        const get = (name: string) => c.getObj(name) as expression_object;
+        // The N samples of size n GeoGebra drew and its saved values.
+        const samples = () => get("matrice1").value as number[][];
+        expect([samples().length, samples()[0].length]).toEqual([270, 47]);
+        expect(samples()[0].slice(0, 3)).toEqual([0.247, 0.045, 0.96]);
+        expect([get("a").value, get("o").value]).toEqual([10, 226]);
+        expect(get("q").value).toBeCloseTo(0.837037037037037, 12);
+        // BinomialDist(n, p, k, true), P(X ≤ k) for X following B(n, p).
+        const p = (get("liste2").value as number[])[0];
+        expect(p).toBeCloseTo(15 / 47, 12);
+        const cdf = (get("matrice2").value as number[][])[1][0];
+        expect(cdf).toBeCloseTo((1 - p) ** 47 + 47 * p * (1 - p) ** 46, 12);
+        // Larger samples: the saved items, then others drawn anew, which
+        // CountIf counts.
+        const n = get("n");
+        n.value = 60;
+        c.invalidateGeometry(n);
+        c.flush();
+        const [row] = samples();
+        expect(row.slice(0, 3)).toEqual([0.247, 0.045, 0.96]);
+        expect(row).toHaveLength(60);
+        expect((get("liste2").value as number[])[0]).toBe(
+            row.filter((x) => x <= 0.25).length / 60,
+        );
+        // Its points drawn as GeoGebra's list.
+        expect((c.getObj("liste1") as list_object).count).toBe(270);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(
