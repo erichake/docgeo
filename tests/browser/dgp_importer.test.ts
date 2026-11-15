@@ -1052,7 +1052,7 @@ STL(M,"mg:[A,20],[B,20],[a,5000]");`,
         expect(distanceToSegment(s2, m.coords)).toBeLessThan(1e-6);
     });
 
-    it("traces point movement without joining magnet switches or reprojections", async () => {
+    it("traces point movement without joining magnet switches, attached to space", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("trace.dgp"));
         c.OBJS.update();
@@ -1082,10 +1082,29 @@ STL(M,"mg:[A,20],[B,20],[a,5000]");`,
         expect(beforeProjection.match(/M/g)).toHaveLength(2);
         expect(beforeProjection.match(/L/g)).toHaveLength(3);
 
+        const traced = [
+            pointAt(s1, 0.35),
+            pointAt(s1, 0.45),
+            pointAt(s1, 0.55),
+            pointAt(s2, 0.4),
+            pointAt(s2, 0.5),
+        ];
         c.GRID.PHI += 0.1;
         c.invalidateProjection();
         c.OBJS.update();
-        expect(path.getAtt("d")).toBe(beforeProjection);
+        const afterProjection = path.getAtt("d")!;
+        expect(afterProjection).not.toBe(beforeProjection);
+        expect(afterProjection.match(/M/g)).toHaveLength(2);
+        expect(afterProjection.match(/L/g)).toHaveLength(3);
+        const screens = afterProjection.match(/-?[\d.e-]+ -?[\d.e-]+/g)!;
+        expect(screens).toHaveLength(traced.length);
+        screens.forEach((xy, i) =>
+            xy
+                .split(" ")
+                .forEach((v, k) =>
+                    expect(+v).toBeCloseTo(c.pt3D(traced[i])[k], 6),
+                ),
+        );
 
         moveTo(pointAt(s2, 0.6));
         expect(path.getAtt("d")!.match(/M/g)).toHaveLength(3);

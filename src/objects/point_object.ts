@@ -102,13 +102,16 @@ export class point_object extends construction_object {
     // magnetized onto its exact position (see createSVG).
     moveable = true;
     private traceCoords: Vec3;
-    private traceScreen: Vec2 | null = null;
+    private traceFrom: Vec3 | null = null;
     private traceData = "";
+    // traceData's subpaths in space, to draw it again when the view changes.
+    private traceSegs: Vec3[][] = [];
     private traceOpen = false;
     private traceBreak = false;
     private traceEpoch = 0;
+    private traceView = 0;
     // Its trace before it changed color or stopped, kept as it was drawn.
-    private traceKept: DOMElement[] = [];
+    private traceKept: { path: DOMElement; segs: Vec3[][] }[] = [];
     // DGPad's magnetism ("mg" style): while dragging, the point snaps onto
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
@@ -378,55 +381,79 @@ export class point_object extends construction_object {
         if (this.traceEpoch !== this.C.traceEpoch) {
             this.traceEpoch = this.C.traceEpoch;
             this.traceData = "";
+            this.traceSegs = [];
             this.tracePath?.att("d", "");
             this.traceOpen = false;
-            this.traceKept.forEach((path) => path.dispose());
+            this.traceKept.forEach(({ path }) => path.dispose());
             this.traceKept = [];
         }
+        if (this.traceView !== this.C.viewEpoch) {
+            this.traceView = this.C.viewEpoch;
+            this.traceKept.forEach(({ path, segs }) =>
+                path.att("d", this.traceD(segs)),
+            );
+            if (this.traceData) {
+                this.traceData = this.traceD(this.traceSegs);
+                this.tracePath?.att("d", this.traceData);
+            }
+            this.traceOpen = false;
+        }
         if (!this.defined || !this.projectionDefined) {
-            this.traceScreen = null;
+            this.traceFrom = null;
             this.traceOpen = false;
             this.traceBreak = false;
             return;
         }
-        if (!moved) {
-            if (
-                this.traceScreen &&
-                (this.traceScreen[0] !== this.sx ||
-                    this.traceScreen[1] !== this.sy)
-            )
-                this.traceOpen = false;
-            this.traceScreen = [this.sx, this.sy];
-            return;
-        }
+        const from = this.traceFrom;
+        this.traceFrom = this.coords;
+        if (!moved) return;
         if (this.traceDots && this.tracePath) {
+            this.traceSegs.push([this.coords]);
             this.traceData += `M${this.sx} ${this.sy}h0`;
             this.tracePath.att("d", this.traceData);
-        } else if (
-            this.tracePath &&
-            this.traceScreen &&
-            !this.traceBreak &&
-            (this.traceScreen[0] !== this.sx || this.traceScreen[1] !== this.sy)
-        ) {
-            this.traceData += this.traceOpen
-                ? ` L${this.sx} ${this.sy}`
-                : `M${this.traceScreen[0]} ${this.traceScreen[1]} L${this.sx} ${this.sy}`;
+        } else if (this.tracePath && from && !this.traceBreak) {
+            const [x, y] = this.C.pt3D(from);
+            if (this.traceOpen) {
+                this.traceSegs[this.traceSegs.length - 1].push(this.coords);
+                this.traceData += ` L${this.sx} ${this.sy}`;
+            } else if (x !== this.sx || y !== this.sy) {
+                this.traceSegs.push([from, this.coords]);
+                this.traceData += `M${x} ${y} L${this.sx} ${this.sy}`;
+                this.traceOpen = true;
+            }
             this.tracePath.att("d", this.traceData);
-            this.traceOpen = true;
         } else if (this.traceBreak) {
             this.traceOpen = false;
         }
-        this.traceScreen = [this.sx, this.sy];
         this.traceBreak = false;
+    }
+
+    private traceD(segs: Vec3[][]): string {
+        let d = "";
+        for (const seg of segs) {
+            let open = false;
+            for (const p of seg) {
+                const [x, y] = this.C.pt3D(p);
+                if (!vIsFinite([x, y])) open = false;
+                else {
+                    d += this.traceDots
+                        ? `M${x} ${y}h0`
+                        : `${open ? " L" : "M"}${x} ${y}`;
+                    open = true;
+                }
+            }
+        }
+        return d;
     }
 
     removeSVG(): void {
         super.removeSVG();
         this.tracePath?.dispose();
         this.tracePath = undefined;
-        this.traceKept.forEach((path) => path.dispose());
+        this.traceKept.forEach(({ path }) => path.dispose());
         this.traceKept = [];
         this.traceData = "";
+        this.traceSegs = [];
         this.traceOpen = false;
     }
 
@@ -450,10 +477,12 @@ export class point_object extends construction_object {
             );
 
         if (t.tracePath) {
-            if (t.traceData) t.traceKept.push(t.tracePath);
+            if (t.traceData)
+                t.traceKept.push({ path: t.tracePath, segs: t.traceSegs });
             else t.tracePath.dispose();
             t.tracePath = undefined;
             t.traceData = "";
+            t.traceSegs = [];
             t.traceOpen = false;
         }
         if (t.trace) {

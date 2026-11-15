@@ -58,8 +58,12 @@ export class construction {
     segmentsOverPolygons = false;
     // DGPad's degree mode (see FormulaView).
     degrees = false;
-    // Bumped by a pan or a zoom, which erase the traces as in DGPad.
+    // Bumped by a pan or a zoom of a plane figure, which erase the traces
+    // as in DGPad. GeoGebra's 3D view keeps them in space.
     traceEpoch = 0;
+    // Bumped by each change of the view, for traces drawn again from
+    // their positions in space.
+    viewEpoch = 0;
     // Set by an embedded lock: dragging the 2D view with the left mouse
     // button or a finger no longer pans it.
     panLocked = false;
@@ -146,7 +150,7 @@ export class construction {
             this.GRID.ORG[0] + (this.GRID.lockOy ? 0 : dx),
             this.GRID.ORG[1] + (this.GRID.lockOx ? 0 : dy),
         ];
-        this.traceEpoch++;
+        if (this.GRID.is2D) this.traceEpoch++;
         this.invalidateProjection();
     }
 
@@ -174,7 +178,7 @@ export class construction {
             y + (oy - y) * scale + (centerZoom || lockOx ? 0 : to[1] - from[1]),
         ];
         this.GRID.UNIT = [ux * scale, uy * scale, uz * scale];
-        this.traceEpoch++;
+        if (this.GRID.is2D) this.traceEpoch++;
         this.invalidateProjection();
     }
 
@@ -314,6 +318,7 @@ export class construction {
     }
 
     invalidateProjection(): void {
+        this.viewEpoch++;
         this.OBJS.V.forEach((object) => {
             if (object.readsView) this.OBJS.markGeometryDirty(object);
         });
