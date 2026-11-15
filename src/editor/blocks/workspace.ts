@@ -427,6 +427,22 @@ function defineBlocks(): void {
             style: "figure_blocks",
         },
         {
+            type: "dg_show_grid",
+            message0: msg("SHOW_GRID"),
+            args0: [{ type: "input_value", name: "SHOWN" }],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+        },
+        {
+            type: "dg_center_view",
+            message0: msg("CENTER_VIEW"),
+            args0: [{ type: "input_value", name: "POINT" }],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+        },
+        {
             type: "dg_show_axis",
             message0: msg("SHOW_AXIS"),
             args0: [
@@ -921,6 +937,17 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("dg_style_arrow", { W: num(16), H: num(5) }),
                     block("dg_show_axis", {
                         SHOWN: shadow("logic_boolean", { BOOL: "TRUE" }),
+                    }),
+                    block("dg_show_grid", {
+                        SHOWN: shadow("logic_boolean", { BOOL: "TRUE" }),
+                    }),
+                    block("dg_center_view", {
+                        POINT: {
+                            block: {
+                                type: "dg_point",
+                                inputs: { X: num(0), Y: num(0) },
+                            },
+                        },
                     }),
                     block("dg_view_direction", {
                         VECTOR: {

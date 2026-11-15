@@ -939,6 +939,16 @@ class Decompiler {
                 type: "dg_view_direction",
                 inputs: { VECTOR: value(this.value(node.args[0])) },
             };
+        if (node.kind === "call" && node.fn === "SHOW_GRID")
+            return {
+                type: "dg_show_grid",
+                inputs: { SHOWN: value(this.value(node.args[0])) },
+            };
+        if (node.kind === "call" && node.fn === "CENTER_VIEW")
+            return {
+                type: "dg_center_view",
+                inputs: { POINT: value(this.value(node.args[0])) },
+            };
         if (node.kind === "call" && node.fn === "SHOW_AXIS") {
             const axis = literal(node.args[0]);
             if (axis !== 0 && axis !== 1 && axis !== 2) unsupported();
@@ -1466,9 +1476,15 @@ const isStatement = (node: FormulaNode): boolean =>
     node.kind === "assignItem" ||
     node.kind === "turtle" ||
     (node.kind === "call" &&
-        ["ALERT", "WAIT", "ASK", "VIEW_DIRECTION", "SHOW_AXIS"].includes(
-            node.fn,
-        )) ||
+        [
+            "ALERT",
+            "WAIT",
+            "ASK",
+            "VIEW_DIRECTION",
+            "SHOW_AXIS",
+            "SHOW_GRID",
+            "CENTER_VIEW",
+        ].includes(node.fn)) ||
     (node.kind === "method" && node.method !== "concat");
 
 // ************************* BLOCKS → PROGRAM *************************
@@ -1913,6 +1929,10 @@ class Generator {
                 return call("WAIT", this.arg(block, "MS"));
             case "dg_view_direction":
                 return call("VIEW_DIRECTION", this.arg(block, "VECTOR"));
+            case "dg_show_grid":
+                return call("SHOW_GRID", this.arg(block, "SHOWN"));
+            case "dg_center_view":
+                return call("CENTER_VIEW", this.arg(block, "POINT"));
             case "dg_show_axis":
                 return call(
                     "SHOW_AXIS",

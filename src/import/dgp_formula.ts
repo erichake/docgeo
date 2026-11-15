@@ -63,7 +63,8 @@ export type FormulaFn =
 // DGPad's own names for its operators, also applying to lists, its view
 // restrictions (see restrictView), Blockly's message (see alert), a
 // button's wait, question and its answer (see programSteps), and DocGeo's
-// turn of the 3D view and show of an axis (see turnView, showAxis).
+// turn of the 3D view, show of an axis or of the grid and centering of the
+// view (see turnView, showAxis, showGrid, centerView).
 type ListFn =
     | "plus"
     | "minus"
@@ -78,7 +79,9 @@ type ListFn =
     | "ASK"
     | "ANSWER"
     | "VIEW_DIRECTION"
-    | "SHOW_AXIS";
+    | "SHOW_AXIS"
+    | "SHOW_GRID"
+    | "CENTER_VIEW";
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -140,6 +143,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     ANSWER: 0,
     VIEW_DIRECTION: 1,
     SHOW_AXIS: 2,
+    SHOW_GRID: 1,
+    CENTER_VIEW: 1,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -157,6 +162,8 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     ANSWER: null,
     VIEW_DIRECTION: null,
     SHOW_AXIS: null,
+    SHOW_GRID: null,
+    CENTER_VIEW: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -1741,6 +1748,9 @@ export interface FormulaEnv {
     // 2), run by a program.
     turnView?(direction: ScriptValue | null): void;
     showAxis?(axis: ScriptValue | null, shown: ScriptValue | null): void;
+    // GeoGebra's ShowGrid and CenterView.
+    showGrid?(shown: ScriptValue | null): void;
+    centerView?(point: ScriptValue | null): void;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -2662,6 +2672,10 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                         frame.env.turnView?.(values[0]);
                     else if (fn === "SHOW_AXIS")
                         frame.env.showAxis?.(values[0], values[1]);
+                    else if (fn === "SHOW_GRID")
+                        frame.env.showGrid?.(values[0]);
+                    else if (fn === "CENTER_VIEW")
+                        frame.env.centerView?.(values[0]);
                     else if (fn !== "WAIT" && fn !== "ASK")
                         frame.env.restrictView?.(
                             fn === "restrictTheta" ? "THETA" : "PHI",

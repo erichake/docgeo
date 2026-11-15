@@ -337,6 +337,18 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
             c.GRID[key] = shown !== 0;
             c.invalidateRender(c.GRID);
         },
+        // Shown without the axes GeoGebra didn't show.
+        showGrid: (shown) => {
+            if (typeof shown !== "number") return;
+            c.GRID.showGrid = shown !== 0;
+            if (shown) c.GRID.hidden = 0;
+            c.invalidateRender(c.GRID);
+        },
+        centerView: (point) => {
+            if (!Array.isArray(point) || typeof point[0] !== "number") return;
+            const [x, y] = c.pt3D([point[0], point[1] as number, 0]);
+            c.pan(null!, [c.width / 2 - x, c.height / 2 - y]);
+        },
     };
     const steps = programSteps(program, env);
     if (!steps) return void evaluateProgram(program, env);

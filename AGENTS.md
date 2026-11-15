@@ -183,9 +183,10 @@ Les scripts GeoGebra (GgbScript : boutons, clic, mise à jour) ne sont jamais
 exécutés tels quels. L'import traduit ceux qui n'emploient que des commandes
 reconnues (affectation, `SetValue`, `UpdateConstruction`…) en programmes DGP,
 lus par l'interpréteur de `src/import/dgp_formula.ts` avec les mêmes droits
-que ceux d'un bouton Blockly, plus celui de tourner la vue 3D et d'y montrer
-ou cacher un axe (`SetViewDirection`, `SetVisibleInView`), choix de l'auteur
-du projet. La traduction écrit ces programmes sous la forme
+que ceux d'un bouton Blockly, plus ceux de tourner la vue 3D, d'y montrer
+ou cacher un axe (`SetViewDirection`, `SetVisibleInView`), de montrer ou
+cacher la grille (`ShowGrid`) et de centrer la vue sur un point
+(`CenterView`), choix de l'auteur du projet. La traduction écrit ces programmes sous la forme
 que produit Blockly, pour qu'ils s'ouvrent en mode **Blocs** dans l'éditeur
 (voir « Quand une figure passe »). Un script contenant une commande non
 reconnue est ignoré et signalé, de même que tout script JavaScript. La

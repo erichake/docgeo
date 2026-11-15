@@ -3968,7 +3968,7 @@ r.setExpression(0);`);
 <element type="boolean" label="r"><value val="true"/></element>
 <element type="point" label="A"><show object="true" label="true"/><coords x="1" y="2" z="1"/></element>
 <element type="button" label="b"><labelOffset x="20" y="30"/><caption val="go"/>
-<ggbscript val="# StartAnimation[a]&#xa;If[r, Execute[{&quot;ShowLabel[A, false]&quot;, &quot;SetFilling[A, 0.4]&quot;}]];&#xa;SetColor[A, If[a &lt; 5, &quot;Lime&quot;, black]]&#xa;ZoomIn[1]&#xa;StartAnimation[a, r]"/></element>
+<ggbscript val="# StartAnimation[a]&#xa;If[r, Execute[{&quot;ShowLabel[A, false]&quot;, &quot;SetFilling[A, 0.4]&quot;}]];&#xa;SetColor[A, If[a &lt; 5, &quot;Lime&quot;, black]]&#xa;ZoomIn[1]&#xa;StartAnimation[a, r]&#xa;ShowGrid[1, ¬r]&#xa;CenterView[(1, 2)]"/></element>
 </construction></geogebra>`,
         );
         expect(unsupported).toEqual([]);
@@ -3987,7 +3987,9 @@ if (a < 5) {
 } else {
     A.setRGBColor(0, 0, 0);
 }
-a.setAnimated(r);`);
+a.setAnimated(r);
+SHOW_GRID(!r);
+CENTER_VIEW([1, 2]);`);
         const a = c.getObj("a") as expression_object;
         const point = c.getObj("A") as point_object;
         // Not playing until the button starts it.
@@ -4005,6 +4007,9 @@ a.setAnimated(r);`);
             point.stroke_color,
             a.animation!.stopped,
         ]).toEqual([false, 0.4, "rgb(191,255,0)", false]);
+        // The grid hidden, the view centered on (1, 2).
+        expect(c.GRID.showGrid).toBe(false);
+        expectClose(c.pt3D([1, 2, 0]), [c.width / 2, c.height / 2]);
     });
 
     it("computes with complex numbers and runs update scripts as GeoGebra", async () => {

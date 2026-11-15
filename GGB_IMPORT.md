@@ -128,6 +128,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 260 / 456 (57 %)   | 327,9 Ko | item 59 : traces, légendes de curseurs, fonctions dans un texte (+2) |
 | 2026-11-15 | 265 / 456 (58 %)   | 332,9 Ko | item 63 : repère 3D de GeoGebra, scripts de vue (+0)                 |
 | 2026-11-15 | 269 / 456 (59 %)   | 333,2 Ko | item 64 : scripts, `If`, `Execute`, styles, `StartAnimation` (+4)    |
+| 2026-11-15 | 271 / 456 (59 %)   | 333,6 Ko | item 65 : `ShowGrid`, `CenterView` dans les scripts (+2)             |
 
 ## À faire, par rapport gain / coût
 
@@ -1179,3 +1180,10 @@ cause.
       conique, un polygone ou une image, `StartAnimation()` global ; une
       dizaine de figures seulement ne sont plus bloquées que par leurs
       scripts.
+- [x] **65. Grille et centre de la vue dans les scripts** : droits étendus
+      par l'auteur du projet (`AGENTS.md`). `ShowGrid()`, `ShowGrid(b)`,
+      `ShowGrid(vue, b)` : instruction `SHOW_GRID(b)` (bloc « afficher la
+      grille »), qui montre la grille sans les axes que la figure cache ;
+      `CenterView(point)` : `CENTER_VIEW(point)` (bloc « centrer la vue
+      sur »), qui déplace la vue comme un glisser du fond. **+2 figures**
+      (269 → 271). Moteur +0,4 Ko, import +0,2 Ko.

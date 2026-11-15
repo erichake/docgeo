@@ -5807,6 +5807,22 @@ export function translateGgb(
                           return direction && `VIEW_DIRECTION(${direction});`;
                       })
                     : null;
+            // The graphics view's grid, the view (1) being the only one.
+            if (call?.[1] === "ShowGrid") {
+                const shown = args?.at(-1) || "true";
+                const condition =
+                    (args?.length ?? 0) < 3 && formula(shown, VALUE_KINDS);
+                return condition ? `SHOW_GRID(${condition});` : null;
+            }
+            if (call?.[1] === "CenterView")
+                return args?.length === 1
+                    ? branched(args[0], (value) => {
+                          const center = isPoint(value)
+                              ? formula(value, VALUE_KINDS)
+                              : null;
+                          return center && `CENTER_VIEW(${center});`;
+                      })
+                    : null;
             if (call?.[1] === "SetVisibleInView")
                 return args?.length === 3
                     ? showInView(args[0], args[1], args[2])
