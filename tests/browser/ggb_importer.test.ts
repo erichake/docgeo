@@ -4051,6 +4051,25 @@ r.setExpression(0);`);
         );
     });
 
+    it("writes an angle slider's value in degrees", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="angle" label="α"><value val="4.71238898038469"/><slider min="0" max="6.283185307179586" absoluteScreenLocation="true" width="180.0" x="337.0" y="55.0" fixed="true" horizontal="true"/><show object="true" label="true"/><animation step="90*°" speed="1" type="0" playing="false"/></element>
+</construction></geogebra>`,
+        );
+        const shown = async (from: construction) => {
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+            return (from.getObj("α") as expression_object).valueText.dom()
+                .textContent;
+        };
+        expect(await shown(c)).toBe("α = 270°");
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(await shown(restored)).toBe("α = 270°");
+    });
+
     it("translates scripts' conditions, styles and animations", async () => {
         const c = createConstruction();
         const unsupported = importGgb(

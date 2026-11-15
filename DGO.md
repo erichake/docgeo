@@ -1106,6 +1106,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `is` | `Ex`                     | pas du curseur                                                                             | 0                                 |
 | `cL` | `Ex`                     | longueur du curseur                                                                        | 200                               |
 | `cV` | `Ex`                     | curseur vertical                                                                           | 0                                 |
+| `cD` | `Ex`                     | valeur (en radians) écrite en degrés, comme un angle de GeoGebra                           | 0                                 |
 | `cN` | `Ex`                     | curseur sans nom ni valeur (2026-11-13)                                                    | 0                                 |
 | `cB` | `Ex`                     | case à cocher                                                                              | 0                                 |
 | `iB` | `Ex`                     | champ de saisie (largeur)                                                                  | 0                                 |

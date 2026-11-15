@@ -915,6 +915,7 @@ function validateObjectStyle(
             case "fx":
             case "nmi":
             case "cV":
+            case "cD":
             case "cN":
             case "cB":
             case "tx":
@@ -1257,6 +1258,10 @@ function applyObjectStyle(
             case "cV":
                 if (target instanceof expression_object)
                     target.vertical = propertyValue === "true";
+                break;
+            case "cD":
+                if (target instanceof expression_object)
+                    target.degrees = propertyValue === "true";
                 break;
             case "cN":
                 if (target instanceof expression_object)

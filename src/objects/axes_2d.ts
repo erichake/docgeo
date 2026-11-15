@@ -38,6 +38,19 @@ export function stepAtLeast(pixels: number, unit: number): Step {
     return step;
 }
 
+// GeoGebra's (relevé dans GeoGebra): at most one number every 100 pixels,
+// compared within its 1e-8 tolerance (a saved unit of 49.999999999999986
+// pixels has a number every unit).
+function geogebraStep(unit: number): Step {
+    const units = 100 / unit;
+    const exponent = Math.floor(Math.log10(units) + 1e-8);
+    const n = units / 10 ** exponent;
+    return {
+        mantissa: n > 5 + 1e-8 ? 5 : n > 2 + 1e-8 ? 2 : 1,
+        exponent,
+    };
+}
+
 // An axis's graduations: a number every `major`, `subdivisions` minor
 // graduations between two, in units of `factor` (π, or 1).
 interface Graduation {
@@ -60,10 +73,10 @@ function formatter(digits: number): Intl.NumberFormat {
 }
 
 // Five subdivisions of a 1 or 5 step, four of a 2 step, so that minor
-// ticks always fall on round values.
-const automatic = (step: Step, factor = 1): Graduation => ({
+// ticks always fall on round values; GeoGebra's halfway.
+const automatic = (step: Step, factor = 1, geogebra = false): Graduation => ({
     major: stepValue(step),
-    subdivisions: step.mantissa === 2 ? 4 : 5,
+    subdivisions: geogebra ? 2 : step.mantissa === 2 ? 4 : 5,
     format: formatter(Math.max(0, -step.exponent)),
     factor,
 });
@@ -196,9 +209,16 @@ export class axes_2d {
             );
             return Math.max(4 * fontSize, widest + 2 * fontSize);
         };
-        let xStep = stepAtLeast(4 * fontSize, ux);
-        while (stepValue(xStep) * ux < spacing(xStep)) xStep = nextStep(xStep);
-        const yStep = stepAtLeast(stepValue(xStep) * ux, uy);
+        const geogebra = grid.geogebraAxes;
+        let xStep = geogebra ? geogebraStep(ux) : stepAtLeast(4 * fontSize, ux);
+        while (
+            stepValue(xStep) * ux <
+            (geogebra ? spacing(xStep) - 1.5 * fontSize : spacing(xStep))
+        )
+            xStep = nextStep(xStep);
+        const yStep = geogebra
+            ? geogebraStep(uy)
+            : stepAtLeast(stepValue(xStep) * ux, uy);
         // Zoomed out until its numbers overlap, a fixed distance gives way
         // to DGPad's own; with a unit of π, to multiples of π/2 as far apart.
         const graduation = (
@@ -210,7 +230,7 @@ export class axes_2d {
             const distance = grid.tickDistances[axis] / factor;
             if (distance * unit * factor >= fontSize)
                 return fixed(distance, factor, unit);
-            if (factor === 1) return automatic(step);
+            if (factor === 1) return automatic(step, 1, geogebra);
             const pi = stepAtLeast(stepValue(step) * unit, unit * factor);
             return automatic(stepValue(pi) < 0.5 ? HALF : pi, factor);
         };
@@ -222,7 +242,6 @@ export class axes_2d {
         const xAxis = graduation(0, xStep, ux);
         const yAxis = graduation(1, yStep, uy);
         // GeoGebra's: no graduations over a grid at the same distance.
-        const geogebra = grid.geogebraAxes;
         const [xStyle, yStyle] = grid.tickStyles.map((style, axis) =>
             geogebra && grid.showGrid && !grid.gridDistances[axis] ? 2 : style,
         );

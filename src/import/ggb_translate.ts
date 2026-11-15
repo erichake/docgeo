@@ -4608,6 +4608,8 @@ export function translateGgb(
         }
         if (attribute(element, "slider", "horizontal") === "false")
             parts.push("cV:true");
+        if (slider && element.getAttribute("type") === "angle")
+            parts.push("cD:true");
         if (slider && attribute(element, "show", "label") === "false")
             parts.push("cN:true");
         const text = attribute(element, "caption", "val");

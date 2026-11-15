@@ -546,6 +546,8 @@ export class expression_object extends construction_object {
     vertical: boolean;
     // A slider without its name and value, as GeoGebra may draw it.
     unlabeled = false;
+    // GeoGebra's angle, its value in radians written in degrees.
+    degrees = false;
     // GeoGebra's bold text.
     bold = false;
     // The color of GeoGebra's background of a text, if any.
@@ -911,7 +913,9 @@ export class expression_object extends construction_object {
                     ? ""
                     : this.formula
                       ? this.formula.source
-                      : formatShown(this.value!, this.precision);
+                      : this.degrees && typeof this.value === "number"
+                        ? `${formatNumber((this.value * 180) / Math.PI, this.precision)}°`
+                        : formatShown(this.value!, this.precision);
             // GeoGebra's caption, "%v" standing for its value.
             if (this.caption !== null)
                 this.valueText.text(this.caption.replace(/%v/g, shown));
