@@ -138,6 +138,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-15 | 271 / 456 (59 %)   | 333,6 Ko | item 65 : `ShowGrid`, `CenterView` dans les scripts (+2)             |
 | 2026-11-15 | 275 / 456 (60 %)   | 333,8 Ko | item 66 : angles orientés, angle de deux droites, bissectrice (+4)   |
 | 2026-11-15 | 285 / 456 (63 %)   | 335,7 Ko | item 67 : foyers, sommets, directrices, excentricité, `LaTeX` (+10)  |
+| 2026-11-15 | 285 / 456 (63 %)   | 336,0 Ko | item 68 : graduations de GeoGebra, curseurs d'angle en degrés (+0)   |
 
 ## À faire, par rapport gain / coût
 
@@ -1235,3 +1236,17 @@ cause.
       **+10 figures** (275 → 285), aucune « sans perte » avec un écart.
       Moteur +1,9 Ko, import +2,1 Ko. Reste : DocGeo espace ses graduations
       d'au moins 64 pixels, GeoGebra en met une par unité dès 50 pixels.
+- [x] **68. Graduations de GeoGebra, curseurs d'angle en degrés** :
+      relevé dans GeoGebra, à toute échelle et que ses nombres soient
+      affichés ou non, au plus un nombre tous les 100 pixels, d'un pas de
+      1, 2 ou 5 × 10ᵏ (`units = 100 / échelle`, n = units / 10ᵏ : 5 si
+      n > 5, 2 si n > 2, 1 sinon, à sa tolérance de 1e-8 près : une échelle
+      enregistrée de 49,999999999999986 donne 1), une petite graduation à
+      mi-chemin. Les axes d'une figure de GeoGebra le suivent, ceux de DGPad
+      gardent leur pas. Un curseur d'angle écrit sa valeur en degrés
+      (« α = 270° », style `cD`, voir `DGO.md`) : 38 figures du corpus en
+      ont un visible, écrit en radians jusqu'ici. Aucune figure gagnée au
+      compte (285), mais deux écarts visibles de moins. Moteur +0,3 Ko.
+      Écartée : la symétrie par rapport à un plan (`Mirror(d, z = 0)`,
+      « seule cause » de 6 figures, toutes des copies d'une même figure qui
+      échoue aussi sur une surface z = f(x, y)).
