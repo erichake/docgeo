@@ -14,7 +14,11 @@ import {
 } from "../../src/figure_state";
 import { importGgbFromUrl } from "../../src/ggb_importer";
 import { circle1_object } from "../../src/objects/circle1_object";
-import { expression_object } from "../../src/objects/expression_object";
+import type { curve_object } from "../../src/objects/curve_object";
+import {
+    evaluateFunction,
+    expression_object,
+} from "../../src/objects/expression_object";
 import { free_vector_object } from "../../src/objects/free_vector_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
@@ -229,6 +233,60 @@ describe("state", () => {
         const c = createConstruction();
         readDgo(c, FIGURE);
         expect(() => stateFigure(c, FIGURE, state)).toThrow("Invalid state");
+    });
+});
+
+describe("function input box", () => {
+    // f(x) = k x, its input box, and g(x) = f(x) + 1.
+    const BOX = {
+        dgo: 1,
+        v: { o: [400, 300], u: 40, w: 800, h: 600 },
+        st: [{ iB: 10 }],
+        o: [
+            ["Ex", "k", { t: "", v: 2, mn: 0, mx: 10, xy: [20, 60] }],
+            ["Cur", "f", [["k*x", { k: 0 }], null, null]],
+            ["Ex", "b", { t: "f(x) =", s: ["f", { f: 1 }], xy: [20, 20] }, 0],
+            ["Cur", "g", [["f(x)+1", { f: 1 }], null, null]],
+        ],
+    };
+    const submit = (c: construction, typed: string) => {
+        const input = c.svg.find("input")!.dom() as HTMLInputElement;
+        input.value = typed;
+        input.dispatchEvent(new Event("change"));
+    };
+
+    it("redefines the function, enters the state, which rebuilds it", async () => {
+        const c = createConstruction();
+        readDgo(c, BOX, true);
+        await frame();
+        const [f, g] = ["f", "g"].map((name) => c.getObj(name) as curve_object);
+        const input = c.svg.find("input")!.dom() as HTMLInputElement;
+        expect(input.value).toBe("k*x");
+        const view = builtView(c);
+        const values = figureValues(c, view);
+        expect(figureState(c, values, view)).toEqual({});
+        // GeoGebra's notation, reading k.
+        submit(c, "f(x) = k x² - ln(e)");
+        await frame();
+        expect(f.formula.source).toBe("k x^2 - log(exp(1))");
+        expect(input.value).toBe("k x^2 - log(exp(1))");
+        const at = (curve: curve_object, x: number) =>
+            evaluateFunction(curve.formula, [x], () => c.formulaView());
+        expect(at(g, 3)).toBeCloseTo(18, 12);
+        const state = figureState(c, values, view);
+        expect(state).toEqual({ f: "k x^2 - log(exp(1))" });
+        const copy = createConstruction();
+        readDgo(copy, stateFigure(c, BOX, state), true);
+        await frame();
+        expect(figureState(copy, values, builtView(copy))).toEqual(state);
+        // Neither an unknown name, nor itself, nor an object built after it.
+        ["x^2 + zz", "f(x) + 1", "g(x)", "x +"].forEach((typed) => {
+            submit(c, typed);
+            expect(f.formula.source).toBe("k x^2 - log(exp(1))");
+        });
+        expect(() => stateFigure(c, BOX, { f: "g(x)" })).toThrow(
+            "Invalid state",
+        );
     });
 });
 

@@ -1,5 +1,6 @@
 import type { construction } from "./construction";
 import { circle1_object } from "./objects/circle1_object";
+import { curve_object, typedFormula } from "./objects/curve_object";
 import { figureObjects, type DgoFigure } from "./dgo";
 import type { construction_object } from "./objects/construction_object";
 import { expression_object } from "./objects/expression_object";
@@ -12,7 +13,7 @@ import { point_on_object } from "./objects/point_on_object";
 import { point_object } from "./objects/point_object";
 
 // See DGO.md, « État élève ».
-type Value = number | null | Value[];
+type Value = number | string | null | Value[];
 export type FigureState = Record<string, Value>;
 
 export interface Target {
@@ -27,7 +28,8 @@ type Stated =
     | expression_object
     | circle1_object
     | free_vector_object
-    | macro_object;
+    | macro_object
+    | curve_object;
 
 // The view a figure was built with, which pinned points' coordinates are
 // read in: a drag changes their window position, not the view, which isn't
@@ -60,14 +62,23 @@ const isReals = (value: unknown, min: number, max = min): boolean =>
 // What a manipulation changes: free points, pinned ones included, points on
 // objects (their parameter), numbers (sliders, checkboxes, what input boxes
 // and points defined by formulas change), the radii of circles that aren't
-// formulas and free vectors. Besides, the branch of an intersection whose solutions
+// formulas, free vectors and the functions that input boxes redefine. Besides, the branch of an intersection whose solutions
 // are followed as the figure moves (see intersection_object.groupAssign):
 // the same objects' values reached otherwise could lead to another one;
 // those of a macro's application, by its branches. A macro's final is
 // manipulated only along its support, as a point on object.
 function stated(c: construction): Stated[] {
-    return figureObjects(c).filter(
+    const objects = figureObjects(c);
+    const fields = new Set(
+        objects.flatMap((object) =>
+            object instanceof expression_object && object.inputLength
+                ? [object.fieldTarget()]
+                : [],
+        ),
+    );
+    return objects.filter(
         (object): object is Stated =>
+            (object instanceof curve_object && fields.has(object)) ||
             (object instanceof macro_object &&
                 object.branches.flat(Infinity).length > 0) ||
             object instanceof point_on_object ||
@@ -108,6 +119,7 @@ function stateValue(object: Stated, vec3: boolean, view: BuiltView): Value {
     if (object instanceof macro_object) return object.branches as Value;
     if (object instanceof intersection_object) return object.branch;
     if (object instanceof circle1_object) return json(object.radius as number);
+    if (object instanceof curve_object) return object.formula.source;
     if (object instanceof free_vector_object)
         return (vec3 ? object.P2.coords : object.P2.coords.slice(0, 2)).map(
             json,
@@ -180,6 +192,25 @@ export function stateFigure(
         } else if (object instanceof intersection_object) {
             check(Number.isInteger(value) && value >= 0 && value <= 3);
             changed = [...(parameters as unknown[]).slice(0, 2), value];
+        } else if (object instanceof curve_object) {
+            const formula =
+                typeof value === "string" && typedFormula(object, value);
+            check(formula);
+            const { source, refs } = formula;
+            changed = [
+                refs.size
+                    ? [
+                          source,
+                          Object.fromEntries(
+                              [...refs].map(([name, ref]) => [
+                                  name,
+                                  objects.indexOf(ref),
+                              ]),
+                          ),
+                      ]
+                    : source,
+                ...(parameters as unknown[]).slice(1),
+            ];
         } else if (object instanceof circle1_object) {
             check(isReal(value));
             const [center, , ...axis] = parameters as unknown[];

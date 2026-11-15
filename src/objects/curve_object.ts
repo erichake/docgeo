@@ -1,6 +1,12 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { realPart, type FormulaView } from "../import/dgp_formula";
+import {
+    formulaIdentifiers,
+    parseFormula,
+    realPart,
+    type FormulaNode,
+    type FormulaView,
+} from "../import/dgp_formula";
 import { GEOMETRY_EPSILON, vIsFinite, type Vec2, type Vec3 } from "../vec";
 import {
     construction_object,
@@ -26,6 +32,41 @@ const JUMP_DEPTH = 20;
 // A bound of x: a number, none, or a formula of other objects (DGPad's
 // "a*c/d").
 export type CurveBound = number | null | ExpressionFormula;
+
+// A formula typed in an input box, in GeoGebra's notation ("x²", "ln(x)",
+// "e^x", "f(x) = …"), of x and of objects built before the curve, so that
+// the figure keeps its order.
+export function typedFormula(
+    curve: curve_object,
+    typed: string,
+): ExpressionFormula | null {
+    const named = (name: string) => {
+        const object = curve.C.getObj(name);
+        return object && object.sequence < curve.sequence ? object : undefined;
+    };
+    const source = typed
+        .replace(/^\s*(?:y|[^=()]+\(\s*x\s*\))\s*=/, "")
+        .replace(/²/g, "^2")
+        .replace(/³/g, "^3")
+        .replace(/\bln\b/g, "log")
+        .replace(/\bpi\b/g, "π")
+        .replace(/\be\b/g, (e) => (named(e) ? e : "exp(1)"))
+        .trim();
+    let node: FormulaNode;
+    try {
+        node = parseFormula(source);
+    } catch {
+        return null;
+    }
+    const refs = new Map<string, construction_object>();
+    for (const name of formulaIdentifiers(node)) {
+        if (name === "x") continue;
+        const object = named(name);
+        if (!object) return null;
+        refs.set(name, object);
+    }
+    return { node, source, variables: ["x"], refs, vec3: curve.formula.vec3 };
+}
 
 export class curve_object extends construction_object {
     formula: ExpressionFormula;
@@ -59,13 +100,28 @@ export class curve_object extends construction_object {
         [this.min, this.max] = this.bounds.map((bound) =>
             typeof bound === "object" && bound ? NaN : bound,
         );
+        this.link();
+    }
+
+    private link(): void {
         this.addParents(
-            ...[formula, min, max].flatMap((value) =>
+            ...[this.formula, ...this.bounds].flatMap((value) =>
                 typeof value === "object" && value
                     ? [...value.refs.values()]
                     : [],
             ),
         );
+    }
+
+    // Drawn from now on, as GeoGebra's input box redefines a function.
+    redefine(formula: ExpressionFormula): void {
+        this.parents.forEach((parent) => {
+            parent.children = parent.children.filter((child) => child !== this);
+        });
+        this.parents = [];
+        this.formula = formula;
+        this.link();
+        this.C.invalidateGeometry(this);
     }
 
     dgo(context: DgoContext): [string, unknown] {

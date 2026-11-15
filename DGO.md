@@ -548,9 +548,15 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    `"mu": [choix…]` (liste non vide de textes) fait de l'`Ex` de valeur
    constante un menu déroulant de ces choix, sa valeur étant le numéro du
    choix, à partir de 1 ; le style `iB`, sur une `Ex` sans formule, en fait un
-   champ de saisie de sa propre valeur. Le texte `"t"` de l'un et de l'autre,
-   s'il n'est pas vide, est un label placé avant eux, comme celui, placé après,
-   d'une case à cocher : `"xy"` est alors le coin supérieur gauche de ce label.
+   champ de saisie de sa propre valeur, sur une `Ex` dont la formule ne lit
+   qu'un nombre ou une courbe `Cur`, celui de ce nombre ou de cette fonction.
+   L'`Ex` vaut alors le texte de la formule de la courbe ; une formule tapée,
+   en notation de GeoGebra (`x²`, `ln`, `e`, `pi`, `f(x) =` en tête), qui ne
+   lit que `x` et des objets déclarés avant la courbe, la redéfinit, comme
+   dans GeoGebra (choix de l'auteur du projet) ; une autre est refusée. Le
+   texte `"t"` de l'un et de l'autre, s'il n'est pas vide, est un label placé
+   avant eux, comme celui, placé après, d'une case à cocher : `"xy"` est alors
+   le coin supérieur gauche de ce label.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
    bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
    points définis borne une région, un point indéfini les séparant) ou
@@ -1227,15 +1233,16 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 { "M": [2.1, -0.4], "N": 0.35, "k": 31, "cb": 1, "I2": 3 }
 ```
 
-| Objet                                                  | Valeur                                                             |
-| ------------------------------------------------------ | ------------------------------------------------------------------ |
-| `Pt` (point libre), punaisé (`fl`) compris (3)         | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
-| `On` (point sur objet), final de macro compris         | son paramètre de `.dgo` : nombre, couple ou triplet (4)            |
-| `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
-| `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
-| `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
-| `VecF` (vecteur libre)                                 | ses coordonnées, comme un point libre (1)                          |
-| `Mac` qui a des branches                               | `branches`, sous sa forme de `.dgo` (note 25 des objets)           |
+| Objet                                                     | Valeur                                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------------ |
+| `Pt` (point libre), punaisé (`fl`) compris (3)            | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
+| `On` (point sur objet), final de macro compris            | son paramètre de `.dgo` : nombre, couple ou triplet (4)            |
+| `Ex` de valeur constante numérique (`"v"`)                | le nombre                                                          |
+| `Int` sans point P dont les solutions sont suivies (2)    | le numéro de branche de `.dgo` (note 3 des objets)                 |
+| `C1` à rayon numérique (non formule)                      | le rayon, qu'un glisser du cercle change                           |
+| `VecF` (vecteur libre)                                    | ses coordonnées, comme un point libre (1)                          |
+| `Mac` qui a des branches                                  | `branches`, sous sa forme de `.dgo` (note 25 des objets)           |
+| `Cur` qu'un champ de saisie redéfinit (note 6 des objets) | le texte de sa formule, ses objets désignés par leur nom           |
 
 Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 
@@ -1263,6 +1270,9 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.
+- Une courbe qu'un champ de saisie redéfinit y entre par sa formule, un
+  texte : appliquée, elle est relue comme une formule tapée dans le champ,
+  et refusée si elle n'en est pas une.
 - La vue (zoom, déplacement, rotation 3D) et les traces n'en font pas partie.
 - Les finaux d'une macro (`Out`) non plus, même un point sur objet ou une
   intersection : les branches sont celles de leur application.

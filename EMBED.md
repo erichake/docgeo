@@ -136,7 +136,8 @@ L'état est décrit dans `DGO.md` (section « État élève ») :
 - `getState` renvoie les valeurs des objets modifiables qui diffèrent de la
   figure de base : points, expressions, numéros de branche des intersections
   rayons des cercles `C1` de rayon numérique (celui qu'un glisser du
-  cercle change) et coordonnées des vecteurs libres, sous leur nom. Un point punaisé y figure par ses
+  cercle change), coordonnées des vecteurs libres et formules des fonctions
+  qu'un champ de saisie redéfinit (un texte), sous leur nom. Un point punaisé y figure par ses
   coordonnées dans la vue de base. Toute modification qu'une manipulation peut
   faire à la figure, hors vue et traces, s'y retrouve. État vide : figure non
   manipulée. La vue (zoom,

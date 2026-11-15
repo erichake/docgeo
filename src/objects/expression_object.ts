@@ -29,7 +29,7 @@ import {
     writeName,
 } from "./construction_object";
 import { angle_object } from "./angle_object";
-import { curve_object } from "./curve_object";
+import { curve_object, typedFormula } from "./curve_object";
 import { point_object } from "./point_object";
 import type { point_on_object } from "./point_on_object";
 import { scriptCenter } from "./primitive_quadric_object";
@@ -783,6 +783,9 @@ export class expression_object extends construction_object {
                 else styleObject(this.C, target, method, args);
             },
         });
+        // An input box of a function shows its formula.
+        const field = this.inputLength && this.fieldTarget();
+        if (field instanceof curve_object) this.value = field.formula.source;
         this.defined = this.value !== null;
     }
 
@@ -877,7 +880,7 @@ export class expression_object extends construction_object {
                 (control as HTMLInputElement).value =
                     typeof this.value === "number"
                         ? formatNumber(this.value, Math.max(this.precision, 0))
-                        : "";
+                        : String(this.value ?? "");
             return;
         }
 
@@ -962,12 +965,24 @@ export class expression_object extends construction_object {
         this.knob.att("cx", this.knobX).att("cy", trackY);
     }
 
+    // What its input box changes: itself, or the number or the function its
+    // formula reads.
+    fieldTarget(): construction_object {
+        return this.program ? [...this.program.refs.values()][0] : this;
+    }
+
     // The typed number, with a decimal point or comma, becomes its value, or
-    // that of the number its formula reads, within its slider's bounds.
+    // that of the number its formula reads, within its slider's bounds; a
+    // typed formula, that of the function it reads.
     private submit(typed: string): void {
-        const target = this.program
-            ? ([...this.program.refs.values()][0] as expression_object)
-            : this;
+        const field = this.fieldTarget();
+        if (field instanceof curve_object) {
+            const formula = typedFormula(field, typed);
+            if (formula) field.redefine(formula);
+            else this.C.invalidateGeometry(this);
+            return;
+        }
+        const target = field as expression_object;
         const value = Number(typed.trim().replace(",", "."));
         if (typed.trim() !== "" && Number.isFinite(value)) {
             target.value = target.isCursor
