@@ -175,6 +175,8 @@ export type ObjectMethod =
     | "concat"
     | "setHidden"
     | "setShowName"
+    // GeoGebra's StartAnimation of an object (see animation.ts).
+    | "setAnimated"
     | "setOpacity"
     | "setRGBColor"
     | "setSize"
@@ -228,6 +230,7 @@ export const METHOD_ARITY: Record<ObjectMethod, number> = {
     shift: 0,
     concat: -1,
     setHidden: 1,
+    setAnimated: 1,
     setShowName: 1,
     setOpacity: 1,
     setRGBColor: 3,

@@ -542,25 +542,30 @@ const STYLE: Record<string, Property> = {
                 animation.speed,
                 animation.direction,
                 animation.once ? 2 : +animation.ar,
-                ...(animation.geogebra ? [1] : []),
+                ...(animation.geogebra
+                    ? [1, ...(animation.stopped ? [1] : [])]
+                    : []),
             ],
         (owner, value) => {
             if (!value) return;
-            const [speed, direction, end, geogebra] = value as number[];
+            const [speed, direction, end, geogebra, stopped] =
+                value as number[];
             owner.C.animations.add(owner, {
                 speed,
                 direction,
                 ar: end === 1,
                 ...(end === 2 && { once: true }),
                 ...(geogebra === 1 && { geogebra: true }),
+                ...(stopped === 1 && { stopped: true }),
             });
         },
         null,
         (value) =>
             value === null ||
             (Array.isArray(value) &&
-                (value.length === 3 ||
-                    (value.length === 4 && isFlag(value[3]))) &&
+                value.length >= 3 &&
+                value.length <= 5 &&
+                value.slice(3).every(isFlag) &&
                 isNumber(value[0]) &&
                 value[0] >= 0 &&
                 (value[1] === 1 || value[1] === -1) &&

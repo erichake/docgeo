@@ -3959,6 +3959,54 @@ r.setExpression(0);`);
         expect((restored.getObj("a") as expression_object).value).toBe(0);
     });
 
+    it("translates scripts' conditions, styles and animations", async () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/><slider min="0" max="10" width="200" x="50" y="50" fixed="true" horizontal="true"/><animation step="0.1" speed="2" type="1" playing="false"/></element>
+<element type="boolean" label="r"><value val="true"/></element>
+<element type="point" label="A"><show object="true" label="true"/><coords x="1" y="2" z="1"/></element>
+<element type="button" label="b"><labelOffset x="20" y="30"/><caption val="go"/>
+<ggbscript val="# StartAnimation[a]&#xa;If[r, Execute[{&quot;ShowLabel[A, false]&quot;, &quot;SetFilling[A, 0.4]&quot;}]];&#xa;SetColor[A, If[a &lt; 5, &quot;Lime&quot;, black]]&#xa;ZoomIn[1]&#xa;StartAnimation[a, r]"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual([]);
+        const button = c.getObj("b") as button_object;
+        const blocks = programBlocks(
+            button.program!.program,
+            true,
+            formatName,
+        )!;
+        expect(blocksProgram(blocks, formatName)).toBe(`if (r) {
+    A.setShowName(0);
+    A.setOpacity(0.4);
+}
+if (a < 5) {
+    A.setRGBColor(191, 255, 0);
+} else {
+    A.setRGBColor(0, 0, 0);
+}
+a.setAnimated(r);`);
+        const a = c.getObj("a") as expression_object;
+        const point = c.getObj("A") as point_object;
+        // Not playing until the button starts it.
+        expect(a.animation).toMatchObject({ speed: 2, stopped: true });
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(
+            (restored.getObj("a") as expression_object).animation,
+        ).toMatchObject({ speed: 2, stopped: true });
+        button.run();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect([
+            point.showName,
+            point.opacity,
+            point.stroke_color,
+            a.animation!.stopped,
+        ]).toEqual([false, 0.4, "rgb(191,255,0)", false]);
+    });
+
     it("computes with complex numbers and runs update scripts as GeoGebra", async () => {
         const c = createConstruction();
         c.animations.paused = true;

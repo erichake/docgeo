@@ -1152,9 +1152,12 @@ Calque `l` : comme dans DGPad et GeoGebra, un objet est peint au-dessus de
 ceux des calques plus bas, points compris ; à calque égal, l'ordre reste celui
 des types. Les `Html`, comme les textes de DGPad, restent au-dessus.
 
-Animation `an` : `[vitesse, sens, extrémité]` ou `[vitesse, sens, extrémité,
-GeoGebra]`. Comme dans DGPad, elle est lancée à l'ouverture et un bouton en bas
-à gauche de la fenêtre la suspend et la reprend. Sens 1 ou -1 (sens courant à
+Animation `an` : `[vitesse, sens, extrémité]`, `[vitesse, sens, extrémité,
+GeoGebra]` ou `[vitesse, sens, extrémité, 1, arrêtée]`. Comme dans DGPad, elle
+est lancée à l'ouverture et un bouton en bas à gauche de la fenêtre la suspend
+et la reprend. Arrêtée (1), celle d'un objet de GeoGebra qui ne joue pas
+attend qu'un programme la lance (`setAnimated(1)`, le `StartAnimation` de
+GeoGebra) ; le bouton n'apparaît qu'une fois une animation lancée. Sens 1 ou -1 (sens courant à
 l'enregistrement). Extrémité : 0 retour à l'autre extrémité, 1 aller-retour,
 2 arrêt (« croissant une fois » de GeoGebra ; la vitesse est alors mise à 0).
 Vitesse positive, sans le drapeau GeoGebra (ou à 0), comme dans DGPad : en

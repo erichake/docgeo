@@ -606,6 +606,7 @@ function defineBlocks(): void {
 const STYLE_LABELS: Record<string, BlockMessage> = {
     setHidden: "HIDDEN",
     setShowName: "SHOW_NAME",
+    setAnimated: "ANIMATED",
     setOpacity: "OPACITY",
     setSize: "SIZE",
     setPrecision: "DECIMALS",

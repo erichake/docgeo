@@ -438,6 +438,9 @@ export function styleObject(
             c.invalidateProjection();
             return;
         }
+        case "setAnimated":
+            c.animations.play(target, realPart(args[0]) !== 0);
+            return;
         case "setShowName": {
             const value = realPart(args[0]);
             if (

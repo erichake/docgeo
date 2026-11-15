@@ -336,6 +336,13 @@ const AXES: Record<string, Vec3> = {
 const DEFAULT_SLIDER_STEP = 0.1;
 // The milliseconds between two steps of an animation a script starts.
 const ANIMATION_FRAME = 40;
+// The colors a script names, as GeoGebra reads them (relevé dans GeoGebra):
+// its own palette, then HTML's names. Case and spaces don't matter.
+const COLOR_NAMES = new Map(
+    "black000000 darkgray202020 gray808080 lightgrayA0A0A0 silver404040 whiteFFFFFF redFF0000 darkred8B0000 crimsonDC143C maroon800000 pinkFFC0CB lightpinkFFB6C1 magentaFF00FF fuchsiaFF00FF purple800080 violet7F00FF lightvioletE0B0FF darkviolet9400D3 indigo4B0082 lightpurpleCCCCFF blue0000FF darkblue1C39BB lightblue7D7DFF navy000080 aquaBCD4E6 cyan00FFFF turquoiseAFEEEE teal008080 green00FF00 darkgreen006400 lightgreenD0F0C0 limeBFFF00 olive808000 yellowFFFF00 lightyellowFFFACD goldFFD700 orangeFF7F00 lightorangeFFEFD5 darkorangeFF8C00 brown993300 tanD2B48C beigeF5F5DC salmonFA8072 coralFF7F50 orchidDA70D6 khakiF0E68C chocolateD2691E siennaA0522D plumDDA0DD skyblue87CEEB forestgreen228B22"
+        .split(" ")
+        .map((entry) => [entry.slice(0, -6), entry.slice(-6)]),
+);
 // Numerical analysis: a derivative's step, the intervals of an integral's
 // Simpson rule and of its drawn region, and the samples an interval's
 // extremum is sought among for a lower or upper sum.
@@ -2645,21 +2652,24 @@ export function translateGgb(
         };
 
     // A speed that depends on the figure is read once every object exists.
-    const animate = (label: string): void => {
+    // Not playing, it waits for a script to start it.
+    const animate = (label: string, scripted = false): void => {
         const element = elements.get(label);
         const animation = element && child(element, "animation");
-        if (animation?.getAttribute("playing") !== "true") return;
-        const source = animation.getAttribute("speed") ?? "1";
+        const playing = animation?.getAttribute("playing") === "true";
+        if (!playing && !scripted) return;
+        const source = animation?.getAttribute("speed") ?? "1";
         const speed = NUMBER.test(source) ? Number(source) : 1;
         if (speed !== Number(source)) rateSources.set(label, source);
         // Oscillating, increasing, decreasing or increasing once.
-        const type = animation.getAttribute("type");
+        const type = animation?.getAttribute("type");
         animations.set(objects.get(label)!.variable, {
             speed: Math.abs(speed),
             direction: speed < 0 !== (type === "2") ? -1 : 1,
             ar: type === "0" || type === null,
             ...(type === "3" && { once: true }),
             geogebra: true,
+            ...(!playing && { stopped: true }),
         });
     };
 
@@ -5667,24 +5677,124 @@ export function translateGgb(
         ];
     };
 
+    // A style method called on each object a GeoGebra object is drawn as.
+    const styled = (label: string, method: string, args: string[]): string =>
+        (parts.get(label) ?? [label])
+            .map(
+                (part) =>
+                    `${objects.get(part)!.variable}.${method}(${args.join(",")});`,
+            )
+            .join("");
+
+    // SetColor's color: a name, "#RRGGBB" or "#AARRGGBB", whose alpha is
+    // the object's filling.
+    const colorStatement = (label: string, text: string): string | null => {
+        const name = /^"?([\w# ]+)"?$/.exec(text)?.[1];
+        const hex = name?.startsWith("#")
+            ? name.slice(1)
+            : COLOR_NAMES.get(name?.toLowerCase().replace(/ /g, "") ?? "");
+        if (!hex || !/^([\dA-F]{2})?[\dA-F]{6}$/i.test(hex)) return null;
+        const channels = hex
+            .slice(-6)
+            .match(/../g)!
+            .map((channel) => String(parseInt(channel, 16)));
+        return `${styled(label, "setRGBColor", channels)}${
+            hex.length === 8
+                ? styled(label, "setOpacity", [
+                      String(+(parseInt(hex.slice(0, 2), 16) / 255).toFixed(3)),
+                  ])
+                : ""
+        }`;
+    };
+
     // Its lines, each a SetValue, an assignment or an UpdateConstruction,
     // which has nothing to draw again: the import keeps random numbers.
+    // "#" starts a comment.
     const scriptProgram = (source: string): string | null => {
         const started: [string, string][] = [];
-        const statements = source.split("\n").map((line) => {
-            const text = normalizeBrackets(line.trim());
+        const line = (source: string): string | null => {
+            const text = normalizeBrackets(source.trim().replace(/;$/, ""));
+            if (!text || text.startsWith("#")) return "";
+            // A StartAnimation stepped at the program's end, not in a branch.
+            return branched(text, (part) => command(part, part === text));
+        };
+        const command = (text: string, top: boolean): string | null => {
             // The view a script's next commands are about: there is one.
             if (
-                !text ||
-                /^(?:UpdateConstruction\(\s*\)|SetActiveView\(.*\))$/.test(text)
+                /^(?:UpdateConstruction\(\s*\)|SetActiveView\(.*\)|ZoomIn\(\s*1\s*\))$/.test(
+                    text,
+                )
             )
                 return "";
             const call = COMMAND_EXPRESSION.exec(text);
             const args = call && splitArguments(call[2])?.map((a) => a.trim());
-            if (call?.[1] === "StartAnimation") {
-                const step = animationStep(call[2].trim());
-                if (step) started.push(step);
-                return step && "";
+            // Its commands, written in constant strings.
+            if (call?.[1] === "Execute") {
+                const strings = /^\{\s*("[^"]*"\s*(?:,\s*"[^"]*"\s*)*)\}$/.exec(
+                    call[2].trim(),
+                );
+                const lines = strings?.[1]
+                    .match(/"[^"]*"/g)!
+                    .map((string) => line(string.slice(1, -1)));
+                return lines && !lines.includes(null) ? lines.join("\n") : null;
+            }
+            const [object, setting] = args ?? [];
+            const style =
+                args &&
+                objects.has(object) &&
+                {
+                    ShowLabel: "setShowName",
+                    SetFilling: "setOpacity",
+                    SetLineThickness: "setSize",
+                    SetPointSize: "setSize",
+                }[call[1]];
+            if (style && args.length === 2) {
+                const content = formula(
+                    call[1] === "SetLineThickness"
+                        ? `(${setting}) / 2`
+                        : setting,
+                    VALUE_KINDS,
+                );
+                return content && styled(object, style, [content]);
+            }
+            if (call?.[1] === "SetColor" && args && objects.has(object)) {
+                if (args.length === 2)
+                    return branched(setting, (color) =>
+                        colorStatement(object, color),
+                    );
+                const channels = args
+                    .slice(1)
+                    .map((channel) => formula(`255 (${channel})`, VALUE_KINDS));
+                return channels.length === 3 && !channels.includes(null)
+                    ? styled(object, "setRGBColor", channels as string[])
+                    : null;
+            }
+            // A slider increasing once, stepped by the program. Another
+            // animated object, slider or point on an object, its last
+            // argument telling whether it plays.
+            if (call?.[1] === "StartAnimation" && args) {
+                const step = top && animationStep(call[2].trim());
+                if (step) {
+                    started.push(step);
+                    return "";
+                }
+                const animatable = (label: string) =>
+                    is(label, ["pointOn"]) ||
+                    (is(label, ["expression"]) &&
+                        !!child(elements.get(label)!, "slider"));
+                const playing =
+                    args.length > 1 && !animatable(args.at(-1)!)
+                        ? args.pop()!
+                        : "true";
+                const condition = formula(playing, VALUE_KINDS);
+                if (condition === null || !args.every(animatable)) return null;
+                args.forEach((label) => {
+                    if (!animations.has(objects.get(label)!.variable))
+                        animate(label, true);
+                });
+                return args
+                    .map((label) => styled(label, "setAnimated", [condition]))
+                    .join("");
             }
             // Toward a point, the view looks along the line through it from
             // its side nearest the camera.
@@ -5728,7 +5838,8 @@ export function translateGgb(
             return is(label, ["expression", ...(call ? POINT_KINDS : [])])
                 ? setValue(label, value)
                 : null;
-        });
+        };
+        const statements = source.split("\n").map(line);
         // Blockly has no imaginary unit: a DGP formula multiplies points as
         // complex numbers.
         if (started.length)

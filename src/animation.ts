@@ -10,13 +10,15 @@ import type { expression_object } from "./objects/expression_object";
 // speed times the value of `rate`, if any, as GeoGebra's may depend on the
 // figure.
 // GeoGebra's `speed` runs through a slider's range, or a path from one end
-// to the other, in 10 s at 1.
+// to the other, in 10 s at 1. A GeoGebra object not playing (`stopped`)
+// waits for a script to start it.
 export interface Animation {
     speed: number;
     direction: number;
     ar: boolean;
     once?: boolean;
     geogebra?: boolean;
+    stopped?: boolean;
     rate?: expression_object;
 }
 
@@ -82,14 +84,17 @@ export class animations {
         if (animation.speed === 0) return;
         if (!object.animation) this.objects.push(object);
         object.animation = animation;
-        if (!this.button) {
-            this.button = $.create("button").stl(
-                "position:absolute;left:5px;bottom:5px;width:50px;height:50px;padding:0;border:0;background:none;cursor:pointer;z-index:9000",
-            );
-            this.button.on("pointerdown", () => (this.paused = !this.paused));
-            $("body").add(this.button);
-        }
         this.show();
+    }
+
+    // GeoGebra's StartAnimation(object, playing), which also starts them
+    // all.
+    play(object: construction_object, playing: boolean): void {
+        const { animation } = object as animated_object;
+        if (!animation) return;
+        animation.stopped = !playing;
+        if (playing) this.paused = false;
+        else this.show();
     }
 
     dispose(): void {
@@ -97,10 +102,21 @@ export class animations {
         this.button?.dispose();
     }
 
+    // Its button once an animation plays.
     private show(): void {
         if (this.frame !== null) cancelAnimationFrame(this.frame);
         this.frame = null;
         this.time = null;
+        if (
+            !this.button &&
+            this.objects.some(({ animation }) => !animation!.stopped)
+        ) {
+            this.button = $.create("button").stl(
+                "position:absolute;left:5px;bottom:5px;width:50px;height:50px;padding:0;border:0;background:none;cursor:pointer;z-index:9000",
+            );
+            this.button.on("pointerdown", () => (this.paused = !this.paused));
+            $("body").add(this.button);
+        }
         if (!this.button) return;
         this.button
             .inner(this.paused ? PLAY : PAUSE)
@@ -112,6 +128,7 @@ export class animations {
         const seconds = this.time === null ? 0 : (time - this.time) / 1000;
         this.time = time;
         this.objects.forEach((object) => {
+            if (object.animation!.stopped) return;
             const rate = object.animation!.rate;
             object.animate(
                 rate ? seconds * (Number(rate.value) || 0) : seconds,

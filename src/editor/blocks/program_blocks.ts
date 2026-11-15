@@ -65,6 +65,7 @@ const ROOTS = new Set([
 export const STYLE_METHODS = [
     "setHidden",
     "setShowName",
+    "setAnimated",
     "setOpacity",
     "setSize",
     "setPrecision",

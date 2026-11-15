@@ -18,6 +18,27 @@ débloque :
 - pas de calcul formel : dériver ou intégrer numériquement ;
 - renoncer à une fonctionnalité rare dont le coût en taille est élevé.
 
+## Périmètre
+
+Objectif réaliste : environ 75 % du corpus, en traitant les causes par
+fréquence plutôt que figure par figure. Au-delà, chaque figure gagnée coûte
+plus que les précédentes et alourdit le build.
+
+Hors périmètre, définitivement :
+
+- le calcul formel (CAS) ;
+- le JavaScript des figures, ignoré et signalé (voir `AGENTS.md`) ;
+- les commandes qui dépendent d'un service extérieur.
+
+Tout le reste est dans le périmètre, y compris les scripts GeoGebra
+(GgbScript), traduits en programmes qui s'ouvrent en blocs, les statistiques
+(`Mean`, `SD`, `BoxPlot`, `FitPoly`…), les plages du tableur (`A2:A11`, une
+liste) et les constructions qui lisent la vue (`Corner`, fonctions de la
+figure, `Zip`). Une commande rare n'est pas refusée : elle vient plus tard,
+à son rang de fréquence. Une figure testée à la main sur geogebra.org qui
+échoue est ajoutée au corpus, pour que sa mesure suive les figures qui
+intéressent réellement.
+
 ## Mesure
 
 Les outils sont dans `tools/ggb_corpus/`. Le corpus (~470 `.ggb`, 17 Mo) est
@@ -106,6 +127,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 258 / 456 (57 %)   | 327,4 Ko | item 58 : polygone régulier d'un curseur, listes dessinées (+0)      |
 | 2026-11-14 | 260 / 456 (57 %)   | 327,9 Ko | item 59 : traces, légendes de curseurs, fonctions dans un texte (+2) |
 | 2026-11-15 | 265 / 456 (58 %)   | 332,9 Ko | item 63 : repère 3D de GeoGebra, scripts de vue (+0)                 |
+| 2026-11-15 | 269 / 456 (59 %)   | 333,2 Ko | item 64 : scripts, `If`, `Execute`, styles, `StartAnimation` (+4)    |
 
 ## À faire, par rapport gain / coût
 
@@ -1131,6 +1153,29 @@ cause.
       bouge un peu quand la vue tourne, là où celle de GeoGebra reste
       fixe.
 
-À écarter, sauf changement de priorité : calcul formel, courbes implicites,
-statistiques et probabilités, tableur au-delà des cellules simples, matrices.
-Ils sont lourds, ou rares dans ce corpus.
+- [x] **64. Scripts : conditions, `Execute`, styles, animations**. Les
+      scripts refusés étaient pour un tiers du JavaScript, pour deux tiers des
+      GgbScripts arrêtés par une commande non traduite. Fait (relevé dans
+      GeoGebra) : une ligne `#` est un commentaire, un `;` final est permis ;
+      `If(condition, commande[, commande])` en tête de ligne devient un `if`
+      (24 figures) ; `Execute({"…", "…"})` de textes constants, leurs
+      commandes ; `ShowLabel` (`setShowName`), `SetFilling` (`setOpacity`),
+      `SetLineThickness` et `SetPointSize` (`setSize`), `SetColor` d'un nom
+      (palette de GeoGebra, `"Lime"` = #BFFF00, puis noms HTML, sans casse
+      ni espace), de `"#RRGGBB"`, `"#AARRGGBB"` (son alpha : le remplissage)
+      ou de trois composantes ; `ZoomIn(1)` ne fait rien.
+      `StartAnimation(objets…[, booléen])` d'un curseur ou d'un point sur
+      objet : méthode `setAnimated` des programmes (bloc de style
+      « animé (0 ou 1) »), qui lance ou arrête son animation, et relance
+      toutes les animations comme GeoGebra. Un objet que GeoGebra n'anime
+      pas reçoit une animation arrêtée (`an` : 5ᵉ élément 1, voir `DGO.md`),
+      et le bouton pause n'apparaît qu'une fois une animation lancée. Le
+      curseur « croissant une fois » hors d'un `If` garde sa boucle de
+      l'item 60. **+4 figures** (265 → 269), éléments non importés
+      2849 → 2793. Moteur +0,3 Ko, import +2,2 Ko. Reste, parmi les
+      scripts : le JavaScript (17 figures), des cibles elles-mêmes non
+      importées (cascades), `SetCaption`, `SetFixed`, `CenterView`,
+      `ShowGrid`, `ParseToNumber`, `RunClickScript`, le clic sur une
+      conique, un polygone ou une image, `StartAnimation()` global ; une
+      dizaine de figures seulement ne sont plus bloquées que par leurs
+      scripts.
