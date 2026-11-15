@@ -589,6 +589,7 @@ export class expression_object extends construction_object {
     private box?: DOMElement;
     private tex?: DOMElement;
     private renderedTeX: string | null = null;
+    private renderedText: string | null = null;
     private check?: DOMElement;
     private field?: DOMElement;
 
@@ -916,9 +917,23 @@ export class expression_object extends construction_object {
             .att("x", x)
             .att("y", y)
             .stl("display", this.unlabeled && this.isCursor ? "none" : "");
-        if (typeof this.value === "string")
-            this.valueText.text(this.rounded(","));
-        else {
+        if (typeof this.value === "string") {
+            // Its lines 1.5 times its font size apart, as in GeoGebra.
+            const content = this.rounded(",");
+            if (content !== this.renderedText) {
+                this.renderedText = content;
+                this.valueText.text("").add(
+                    ...content.split("\n").map((line, index) =>
+                        this.svg
+                            .shape("tspan")
+                            .att("dy", index && 1.5 * this.fontSize)
+                            .text(line),
+                    ),
+                );
+            }
+            this.valueText.findAll("tspan").forEach((line) => line.att("x", x));
+        } else {
+            this.renderedText = null;
             const shown =
                 this.precision < 0
                     ? ""
@@ -1088,6 +1103,7 @@ export class expression_object extends construction_object {
             return dom.add(t.field);
         }
 
+        t.renderedText = null;
         t.valueText = t.svg
             .shape("text")
             .stl(

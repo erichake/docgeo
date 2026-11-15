@@ -1090,6 +1090,7 @@ export function translateGgb(
     const polygons = new LazyMap<string[]>();
     // The center, start and end of each CircleArc of the plane.
     const arcs = new Map<string, string[]>();
+    const sectors = new Set<string>();
     // Each Sequence's inputs, and the vertices of a Sequence of polygons
     // with its variable and bounds.
     const sequences = new Map<string, string[]>();
@@ -1437,6 +1438,14 @@ export function translateGgb(
                         !/^ ?\(/.test(text.slice(index, index + 2))
                             ? local
                             : `(${local})`;
+                } else if (arcs.has(word) && kinds.includes("expression")) {
+                    // An arc's length, a sector's area (relevé dans GeoGebra).
+                    const [m, a, b] = arcs
+                        .get(word)!
+                        .map((point) => objects.get(point)!.variable);
+                    result += sectors.has(word)
+                        ? `(d(${m},${a})^2*Angle360(${a},${m},${b})/2)`
+                        : `(d(${m},${a})*Angle360(${a},${m},${b}))`;
                 } else if (vectors.has(word) && kinds.length > 0) {
                     const [p, q] = vectors
                         .get(word)!
@@ -3083,6 +3092,7 @@ export function translateGgb(
                           inputs.map(ref),
                       )
                     : arcs.set(label, inputs) &&
+                      (!sector || sectors.add(label)) &&
                       orientedShape(
                           label,
                           inputs,
@@ -3541,6 +3551,20 @@ export function translateGgb(
                     ref(surface),
                 ]);
             }
+            // Of two functions, from a point: Newton's method on their
+            // difference, from its abscissa.
+            if (functions.has(first) && functions.has(second)) {
+                if (!points(third) || outputs.length !== 1) return false;
+                const [f, g, p] = [first, second, third].map(
+                    (input) => objects.get(input)!.variable,
+                );
+                const h = (x: string) => `(${f}(${x})-${g}(${x}))`;
+                const x = hiddenExpression(
+                    `var $x=x(${p}),$d=1,$k=0;while($k<100&&abs($d)>0.000000000001){$d=${h("$x")}*0.000001/(${h("$x+0.000001")}-${h("$x")});$x=$x-$d;$k=$k+1};$x`,
+                );
+                formulaPoint(`[${x},${f}(${x})]`, outputs[0]);
+                return true;
+            }
             const kinds: Kind[] = ["line", "circle", "quadric"];
             const withCurve =
                 (is(first, ["curve"]) && is(second, kinds)) ||
@@ -3577,12 +3601,50 @@ export function translateGgb(
                 define(label, "point", "MidPoint", [ref(ends[0]), ref(ends[1])])
             );
         },
-        Distance: ([p, q], [label]) =>
-            points(p, q) &&
-            !!hiddenExpression(
-                `d(${objects.get(p)!.variable},${objects.get(q)!.variable})`,
-                label,
-            ),
+        // From a point to a segment's nearest point, to a line; between two
+        // lines or segments, 0 unless they are parallel (relevé dans
+        // GeoGebra : Distance de deux segments sécants est 0).
+        Distance: (inputs, [label]) => {
+            const [p, q] = points(inputs[1]) ? [inputs[1], inputs[0]] : inputs;
+            const v = (point: string) => objects.get(point)!.variable;
+            if (points(q))
+                return (
+                    points(p) && !!hiddenExpression(`d(${v(p)},${v(q)})`, label)
+                );
+            // A line's point and direction, a quarter turn kept or not.
+            const line = (label: string) => {
+                const direction = !is3D && lineDirection(label);
+                if (!direction) return undefined;
+                const [s, a, b] = [direction.start, ...direction.ends].map(v);
+                const along = `(${b}-${a})`;
+                return {
+                    s,
+                    a,
+                    along,
+                    u: direction.turns % 2 ? `perp${along}` : along,
+                };
+            };
+            const target = line(q);
+            if (!target) return false;
+            const { s, a, along, u } = target;
+            const across = (point: string) =>
+                `abs(dot(perp(${u}),${point}-${s}))`;
+            if (points(p))
+                return !!hiddenExpression(
+                    segments.has(q)
+                        ? `d(${v(p)},${a}+max(0,min(1,dot(${v(p)}-${a},${along})/dot(${along},${along})))*${along})`
+                        : across(v(p)),
+                    label,
+                );
+            const other = line(p);
+            return (
+                !!other &&
+                !!hiddenExpression(
+                    `abs(dot(perp(${u}),${other.u}))<0.000000001*sqrt(dot(${other.u},${other.u}))?${across(other.s)}:0`,
+                    label,
+                )
+            );
+        },
         Center: ([circle], [label]) =>
             is(circle, ["circle"])
                 ? define(label, "point", "Center", [ref(circle)])
@@ -5439,7 +5501,7 @@ export function translateGgb(
         const [open, close] = !latex
             ? ["", ""]
             : [
-                  `\\\\displaystyle${sans ? "\\\\sf" : ""}${bold ? "\\\\boldsymbol{" : " "}`,
+                  `\\displaystyle${sans ? "\\sf" : ""}${bold ? "\\boldsymbol{" : " "}`,
                   bold ? "}" : "",
               ];
         const mode = {
@@ -5447,13 +5509,32 @@ export function translateGgb(
                 (part) => typeof part === "string" && /(^|[^\\])\$/.test(part),
             ),
         };
-        const content = `"${open}"${parts
-            .map((part) =>
+        // Its neighboring strings joined: a constant text is one string,
+        // which a script may set. A string first, so that "+" joins texts.
+        const terms: (string | { formula: string })[] = [];
+        [
+            open,
+            ...parts.map((part) =>
                 typeof part === "string"
-                    ? `+"${(latex ? inlineTeX(part, breaks, bold, sans, mode) : subscripts(part)).replace(/[\\"]/g, "\\$&")}"`
-                    : `+(${part.formula})`,
+                    ? latex
+                        ? inlineTeX(part, breaks, bold, sans, mode)
+                        : subscripts(part)
+                    : part,
+            ),
+            close,
+        ].forEach((term) => {
+            const last = terms.length - 1;
+            if (typeof term === "string" && typeof terms[last] === "string")
+                terms[last] += term;
+            else terms.push(term);
+        });
+        const content = terms
+            .map((term) =>
+                typeof term === "string"
+                    ? `"${term.replace(/[\\"]/g, "\\$&")}"`
+                    : `(${term.formula})`,
             )
-            .join("")}+"${close}"`;
+            .join("+");
         if (
             child(element, "absoluteScreenLocation") ||
             (latex && attribute(element, "show", "object") === "false")
@@ -6411,7 +6492,15 @@ export function translateGgb(
     const scriptProgram = (source: string): string | null => {
         const started: [string, string][] = [];
         const line = (source: string): string | null => {
-            const text = normalizeBrackets(source.trim().replace(/;$/, ""));
+            // A label typed sol_a stands for sol_{a}, as in GeoGebra.
+            const text = normalizeBrackets(
+                source.trim().replace(/;$/, ""),
+            ).replace(QUOTED_WORDS, (word) => {
+                const braced = word.replace(/_([^{].*)$/, "_{$1}");
+                return objects.has(word) || !objects.has(braced)
+                    ? word
+                    : braced;
+            });
             if (!text || text.startsWith("#")) return "";
             // A StartAnimation stepped at the program's end, not in a branch.
             return branched(text, (part) => command(part, part === text));
@@ -6615,7 +6704,7 @@ export function translateGgb(
         if (!scripts.length) return;
         const [script] = scripts;
         const type = element.getAttribute("type");
-        const click = script.getAttribute("val");
+        const click = script.getAttribute("val") || null;
         // GeoGebra runs a boolean's update script before it updates what
         // depends on it, whose values are still those for its opposite.
         const update = script.getAttribute("onUpdate") ?? "";

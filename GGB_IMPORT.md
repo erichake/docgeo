@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 312 / 456,
-68 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-313 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 317 / 456,
+70 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
+318 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
@@ -95,11 +95,17 @@ dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
    courbes, un point sur une liste de segments (`Point(ch, dep)`) et
    `Point(f, 0.1 / f)` ; s'y ajoute le cercle dégénéré de Sa2y6MrH (une
    conique tracée comme une droite : moteur) ;
-3. `point` (3), `function`, `functionNVar` (surfaces z = f(x, y)),
-   `image`, `Point`, `Intersect`, `Distance` (2 chacun) ;
+3. `point` (4), `function`, `image`, `Point`, `Intersect`, `Angle`
+   (angles de deux segments de l'espace, Xkv4rNyS, hyv2wxhc) (2
+   chacun) ; `functionNVar` : 7 copies d'une même figure (caz8zu6k…),
+   surface z = √(x² + y²) cachée, son intersection avec le plan z = 3 et
+   le symétrique d'un cône par le plan z = 0 ;
 4. scripts restants (12, chacun pour une raison différente : JavaScript
-   hors périmètre, cibles non importées, `SetCaption`, `SetFixed`,
-   `ParseToNumber`, `RunClickScript`, clic sur une conique ou un polygone).
+   hors périmètre, redéfinitions (`M = Point(r)`, `P' = Rotate(…)`,
+   `Nl = N`), script de mise à jour d'une droite (FGpkP4QP, une
+   tangente), clic sur une image (pa6q3mgr), `StartAnimation(false)`
+   (mFbjcE5n), points que l'élève doit construire (xkpxfWc6 : échec
+   normal), `SetCaption`, `SetFixed`, `ParseToNumber`, `RunClickScript`).
 
 **Une étape** :
 
@@ -227,6 +233,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 307 / 456 (67 %)   | 336,9 Ko | item 73 : `Sequence` d'images d'images, de textes, de toute commande (+3) |
 | 2026-11-15 | 309 / 456 (68 %)   | 337,1 Ko | item 74 : listes dans les `Sequence`, `Sum` en boucle, `$` du tableur, noms des angles (+2) |
 | 2026-11-15 | 312 / 456 (68 %)   | 338,0 Ko | item 75 : textes de JLaTeXMath réparés pour KaTeX, `RotateText` (+3, +10 réelles) |
+| 2026-11-15 | 317 / 456 (70 %)   | 338,3 Ko | item 76 : `Distance` de droites, arcs comme nombres, textes sur plusieurs lignes, scripts (+5) |
 
 ## À faire, par rapport gain / coût
 
@@ -1465,3 +1472,21 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       (hachures, curseur, champs de saisie). Aucune figure perdue ni « sans
       perte » avec un écart. Moteur inchangé (338,0 Ko), import +0,4 Ko,
       morceau KaTeX +3,5 Ko.
+- [x] **76. `Distance` de droites, arcs comme nombres, textes sur
+      plusieurs lignes, scripts** : `Distance` d'un point à une droite, à
+      un segment (à son point le plus proche) et entre deux droites ou
+      segments (0 s'ils ne sont pas parallèles, relevé dans GeoGebra). Un
+      arc lu comme nombre est sa longueur, un secteur son aire (relevé dans
+      GeoGebra). `Intersect(f, g, A)` de deux fonctions : méthode de Newton
+      sur f − g depuis l'abscisse de A. Dans un script, `sol_a` désigne
+      `sol_{a}` comme dans GeoGebra ; un script vide (`val=""`, ceux des
+      champs de saisie) n'en est pas un ; un texte constant est une seule
+      chaîne, donc une valeur qu'un script peut changer
+      (`textea = If(…)`), une chaîne constante d'une expression DGP étant
+      désormais une valeur (`"v"` du `.dgo`), plus un programme. Enfin, un
+      texte simple s'affiche sur plusieurs lignes, espacées de 1,5 fois sa
+      taille comme dans GeoGebra : 74 figures du corpus en ont un, toutes
+      l'affichaient sur une seule ligne (erreur silencieuse). **+5
+      figures** (312 → 317 : sy2dHxNG, tUWB7NK4, zLZOCZc3, jjxaquzq,
+      atzg8fgg). Aucune figure perdue ni « sans perte » avec un écart.
+      Moteur +0,3 Ko (lignes d'un texte), import +1,2 Ko.

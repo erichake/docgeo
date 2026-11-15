@@ -106,6 +106,8 @@ function parseExpressionValue(value: string): ScriptValue | null {
     if (value === "true" || value === "false") return Number(value === "true");
     // Animated, a clock: its dependents recomputed at each frame.
     if (value === "NaN") return NaN;
+    // A text, which a program may set as a manipulation does.
+    if (/^"[^"\\]*"$/.test(value)) return value.slice(1, -1);
     return (
         parseVectorLiteral(value) ??
         parseComplexLiteral(value) ??

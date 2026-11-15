@@ -2165,6 +2165,94 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         expect((c.getObj("s") as expression_object).value).toBeCloseTo(6, 12);
     });
 
+    it("measures distances to lines and segments, arcs and sectors, and breaks a text's lines", async () => {
+        const c = createConstruction();
+        const point = (label: string, x: number, y: number) =>
+            `<element type="point" label="${label}"><coords x="${x}" y="${y}" z="1"/></element>`;
+        const command = (name: string, inputs: string[], output: string) =>
+            `<command name="${name}"><input ${inputs.map((input, n) => `a${n}="${input}"`).join(" ")}/><output a0="${output}"/></command>`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+${point("A", 0, 0)}${point("B", 4, 0)}${point("C", 1, 2)}${point("D", 6, 3)}
+${point("E", 5, 2)}${point("F", 7, 1)}${point("G", 5, 1)}${point("H", 9, 1)}
+${point("M", 0, 0)}${point("P", 3, 0)}${point("Q", 0, 1)}
+${command("Segment", ["A", "B"], "s")}${command("Segment", ["C", "D"], "t")}
+${command("Segment", ["G", "H"], "u")}${command("Line", ["A", "B"], "g")}
+${command("Line", ["C", "E"], "h")}${command("Line", ["C", "D"], "k")}
+${command("Distance", ["s", "t"], "d1")}${command("Distance", ["g", "h"], "d2")}
+${command("Distance", ["g", "k"], "d3")}${command("Distance", ["D", "s"], "d4")}
+${command("Distance", ["s", "F"], "d5")}${command("Distance", ["s", "u"], "d6")}
+${command("Distance", ["C", "g"], "d7")}
+${command("CircleArc", ["M", "P", "Q"], "a")}
+${command("CircleSector", ["M", "P", "Q"], "b")}
+<expression label="v" exp="a + 0"/><element type="numeric" label="v"/>
+<expression label="w" exp="b + 0"/><element type="numeric" label="w"/>
+<expression label="f" exp="f(x) = x^2" type="function"/><element type="function" label="f"/>
+<expression label="q" exp="q(x) = 2 - x" type="function"/><element type="function" label="q"/>
+${point("R", 0.5, 0)}${point("S", -3, 0)}
+<command name="Intersect"><input a0="f" a1="q" a2="R"/><output a0="I"/></command>
+<command name="Intersect"><input a0="f" a1="q" a2="S"/><output a0="J"/></command>
+<expression label="note" exp="&quot;one&#10;two&quot;"/>
+<element type="text" label="note"><startPoint x="1" y="1" z="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        // Relevé dans GeoGebra: two lines or segments are 0 apart unless
+        // parallel, a point is as far from a segment as from its nearest
+        // point.
+        const value = (name: string) =>
+            (c.getObj(name) as expression_object).value as number;
+        [0, 2, 0, Math.sqrt(13), Math.sqrt(10), 1, 2].forEach((d, n) =>
+            expect(value(`d${n + 1}`)).toBeCloseTo(d, 12),
+        );
+        // Two functions' intersection nearest to a point's abscissa.
+        expect((c.getObj("I") as point_object).coords[0]).toBeCloseTo(1, 9);
+        expect((c.getObj("J") as point_object).coords[1]).toBeCloseTo(4, 9);
+        // An arc's length, a sector's area.
+        expect(value("v")).toBeCloseTo((3 * Math.PI) / 2, 12);
+        expect(value("w")).toBeCloseTo((9 * Math.PI) / 4, 12);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(c.svg.findAll("tspan").map((line) => line.text())).toEqual([
+            "one",
+            "two",
+        ]);
+    });
+
+    it("reads sol_a as sol_{a} in a script, which sets a text, an input box's empty script being none", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="sol_{a}" exp="0"/><element type="numeric" label="sol_{a}"><value val="0"/></element>
+<command name="Textfield"><input a0="sol_{a}"/><output a0="ChampTexte1"/></command>
+<element type="textfield" label="ChampTexte1"><labelOffset x="20" y="60"/><ggbscript val=""/></element>
+<expression label="textea" exp="&quot;&quot;"/>
+<element type="text" label="textea"><absoluteScreenLocation x="100" y="77"/></element>
+<element type="button" label="b"><labelOffset x="20" y="30"/><caption val="go"/>
+<ggbscript val="textea=If(sol_a==9.43,&quot;Correcte&quot;,&quot;Incorrecte&quot;)"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        // It opens as blocks.
+        const button = c.getObj("b") as button_object;
+        expect(
+            programBlocks(button.program!.program, true, formatName),
+        ).not.toBeNull();
+        button.run();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const text = c.getObj("textea") as expression_object;
+        expect(text.value).toBe("Incorrecte");
+        const sol = c.getObj("sol_{a}") as expression_object;
+        sol.value = 9.43;
+        c.invalidateGeometry(sol);
+        button.run();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(text.value).toBe("Correcte");
+    });
+
     it("measures a polygon's angles, reads a number z in an equation and an angle in LaTeX", () => {
         const c = createConstruction();
         expect(

@@ -533,7 +533,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    comme `r`, sans glisser.
 6. `{"t": texte, "mn": min, "mx": max, …}` (bornes nombres, ou formules
    toutes deux quand l'une lit d'autres objets) avec exactement l'un de `"v"`
-   (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
+   (valeur constante ou de curseur ; un texte constant, sans formule, en
+   est une), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
    point : `"on": point, "d": [dx, dy]`. Un script peut, par
    `SET_EXP("E", valeur)`, changer la valeur d'une `Ex` de valeur constante
