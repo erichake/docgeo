@@ -139,6 +139,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-15 | 275 / 456 (60 %)   | 333,8 Ko | item 66 : angles orientés, angle de deux droites, bissectrice (+4)   |
 | 2026-11-15 | 285 / 456 (63 %)   | 335,7 Ko | item 67 : foyers, sommets, directrices, excentricité, `LaTeX` (+10)  |
 | 2026-11-15 | 285 / 456 (63 %)   | 336,0 Ko | item 68 : graduations de GeoGebra, curseurs d'angle en degrés (+0)   |
+| 2026-11-15 | 290 / 456 (64 %)   | 336,0 Ko | item 69 : `If` entre deux objets, `If` booléen (+5)                  |
 
 ## À faire, par rapport gain / coût
 
@@ -1250,3 +1251,12 @@ cause.
       Écartée : la symétrie par rapport à un plan (`Mirror(d, z = 0)`,
       « seule cause » de 6 figures, toutes des copies d'une même figure qui
       échoue aussi sur une surface z = f(x, y)).
+- [x] **69. `If` entre deux objets, `If` booléen** : `If(condition, objet1,
+    objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
+      chaque branche, construite à part, prend le style de l'objet et ne se
+      montre que tant que sa condition vaut (`!condition` pour la seconde),
+      jointe à la condition d'affichage de l'objet une fois tous les objets
+      construits (elle peut lire une case définie plus loin). Un `If` qui
+      donne un booléen devient une case calculée. **+5 figures**
+      (285 → 290), aucune « sans perte » avec un écart. Import +0,5 Ko,
+      moteur inchangé.

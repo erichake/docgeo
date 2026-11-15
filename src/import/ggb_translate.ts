@@ -3001,6 +3001,85 @@ export function translateGgb(
             arcThrough(label, sector, [inputs[0], inputs[2]], inputs[1]);
 
     type Handler = (inputs: string[], outputs: string[]) => boolean;
+    // Objects, each built apart in its style, shown while its branch's
+    // condition holds, as long as no other object reads it: its parts,
+    // whose own condition is joined to theirs once every object exists.
+    const branchTests = new Map<string, string>();
+    const ifObjects = (
+        inputs: string[],
+        label: string,
+        element: Element,
+    ): boolean => {
+        const condition = formula(inputs[0], VALUE_KINDS);
+        const reads = [...definitions].some(
+            ([owner, source]) =>
+                owner !== label && source.match(LABEL_WORDS)?.includes(label),
+        );
+        // Built from its nested commands beforehand (see inputs).
+        const built = inputs
+            .slice(1)
+            .map((input) =>
+                input.startsWith("aux ") && objects.has(input) ? input : null,
+            );
+        if (
+            inputs.length < 2 ||
+            inputs.length > 3 ||
+            condition === null ||
+            reads ||
+            built.includes(null)
+        )
+            return false;
+        parts.set(label, built as string[]);
+        if (!hidden(element))
+            built.forEach((object, index) => {
+                const test = hiddenExpression(
+                    index ? `!(${condition})` : condition,
+                );
+                branchTests.set(object!, test);
+                push(null, "STL", [
+                    ref(object!),
+                    literal(
+                        `${objectStyle(element, objects.get(object!)!.kind)};h:0;sc:${test}`,
+                    ),
+                ]);
+            });
+        return true;
+    };
+
+    // A checkbox, computed by a formula if it isn't constant.
+    const checkbox = (
+        label: string,
+        element: Element,
+        value: string,
+    ): boolean => {
+        const offset = child(element, "labelOffset");
+        const [x, y] = screenPosition(
+            Number(offset?.getAttribute("x") ?? 0),
+            Number(offset?.getAttribute("y") ?? 0),
+            true,
+        );
+        return define(
+            label,
+            "expression",
+            "Expression",
+            [
+                attribute(element, "show", "label") === "false"
+                    ? ""
+                    : caption(element, label),
+                "",
+                "",
+                value && !isConstant(value)
+                    ? value
+                    : attribute(element, "value", "val") === "true"
+                      ? "1"
+                      : "0",
+                String(x),
+                String(y),
+            ].map(literal),
+            `${textStyle(element)};cB:true`,
+        );
+    };
+
     // A conic's center, foci, vertices, directrices' points or eccentricity,
     // in GeoGebra's order (see conic_point_object.ts).
     const conicPoints =
@@ -4342,8 +4421,16 @@ export function translateGgb(
                 );
                 return body !== null && defineFunction(label, body);
             }
+            if (
+                element &&
+                !["point", "point3d", "numeric", "text", "boolean"].includes(
+                    type!,
+                )
+            )
+                return ifObjects(inputs, label, element);
             const content = ifFormula(inputs, VALUE_KINDS);
             if (!element || content === null) return false;
+            if (type === "boolean") return checkbox(label, element, content);
             if (type === "point" || type === "point3d") {
                 formulaPoint(content, label);
                 return true;
@@ -5326,33 +5413,7 @@ export function translateGgb(
         if (type === "boolean") {
             const value =
                 source === undefined ? "" : formula(source, VALUE_KINDS);
-            if (value === null) return false;
-            const offset = child(element, "labelOffset");
-            const [x, y] = screenPosition(
-                Number(offset?.getAttribute("x") ?? 0),
-                Number(offset?.getAttribute("y") ?? 0),
-                true,
-            );
-            return define(
-                label,
-                "expression",
-                "Expression",
-                [
-                    attribute(element, "show", "label") === "false"
-                        ? ""
-                        : caption(element, label),
-                    "",
-                    "",
-                    value && !isConstant(value)
-                        ? value
-                        : attribute(element, "value", "val") === "true"
-                          ? "1"
-                          : "0",
-                    String(x),
-                    String(y),
-                ].map(literal),
-                `${textStyle(element)};cB:true`,
-            );
+            return value !== null && checkbox(label, element, value);
         }
         if (type === "image") {
             const image = images.get(attribute(element, "file", "name") ?? "");
@@ -6194,9 +6255,15 @@ export function translateGgb(
         }
         const condition = conditions.get(source);
         if (condition)
-            drawn.forEach((part) =>
-                push(null, "STL", [ref(part), literal(`h:0;sc:${condition}`)]),
-            );
+            drawn.forEach((part) => {
+                const branch = branchTests.get(part);
+                push(null, "STL", [
+                    ref(part),
+                    literal(
+                        `h:0;sc:${branch ? hiddenExpression(`(${branch})&&(${condition})`) : condition}`,
+                    ),
+                ]);
+            });
     });
 
     // GeoGebra's dynamic colors in RGB, which may read later objects: a

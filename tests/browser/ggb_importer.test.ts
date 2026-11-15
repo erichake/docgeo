@@ -4051,6 +4051,43 @@ r.setExpression(0);`);
         );
     });
 
+    it("shows the object of If's branch whose condition holds", async () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="-1" y="0" z="1"/></element>
+<element type="numeric" label="s"><value val="0.5"/></element>
+<command name="If"><input a0="abs(s) &lt; 1" a1="Hyperbola[A, B, s]" a2="Ellipse[A, B, s]"/><output a0="h"/></command>
+<element type="conic" label="h"><show object="true"/><condition showObject="k"/></element>
+<command name="If"><input a0="Distance[A, B] &lt; 3" a1="true" a2="false"/><output a0="near"/></command>
+<element type="boolean" label="near"><show object="true" label="true"/></element>
+<element type="boolean" label="k"><value val="true"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const kinds = () =>
+            c.OBJS.V.filter(
+                (object) =>
+                    object instanceof focal_conic_object && object.isVisible,
+            ).map((object) => (object as focal_conic_object).KIND);
+        expect(kinds()).toEqual(["hyperbola"]);
+        expect((c.getObj("near") as expression_object).value).toBe(1);
+        const s = c.getObj("s") as expression_object;
+        s.value = 2;
+        c.invalidateGeometry(s);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(kinds()).toEqual(["ellipse"]);
+        // And its own condition.
+        const k = c.getObj("k") as expression_object;
+        k.value = 0;
+        c.invalidateGeometry(k);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(kinds()).toEqual([]);
+    });
+
     it("writes an angle slider's value in degrees", async () => {
         const c = createConstruction();
         importGgb(
@@ -4061,7 +4098,7 @@ r.setExpression(0);`);
         );
         const shown = async (from: construction) => {
             await new Promise((resolve) => requestAnimationFrame(resolve));
-            return (from.getObj("α") as expression_object).valueText.dom()
+            return (from.getObj("α") as expression_object)["valueText"].dom()
                 .textContent;
         };
         expect(await shown(c)).toBe("α = 270°");
