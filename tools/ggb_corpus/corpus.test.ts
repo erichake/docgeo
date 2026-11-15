@@ -65,6 +65,37 @@ it("corpus", async () => {
                 )
                     mismatches.push(`${label} ${saved} ${value}`);
             });
+            // And the points of the plane whose coordinates differ, but the
+            // window's corners.
+            const corners = new Set(
+                [
+                    ...doc.querySelectorAll(
+                        'construction > command[name="Corner"] > output',
+                    ),
+                ].map((output) => output.getAttribute("a0")),
+            );
+            doc.querySelectorAll(
+                'construction > element[type="point"]',
+            ).forEach((element) => {
+                const label = element.getAttribute("label")!;
+                if (corners.has(label)) return;
+                const coords = element.querySelector(":scope > coords");
+                const w = Number(coords?.getAttribute("z"));
+                const saved = ["x", "y"].map(
+                    (axis) => Number(coords?.getAttribute(axis)) / w,
+                );
+                const value = c.getObj(label)?.scriptValue(false);
+                if (
+                    saved.every(Number.isFinite) &&
+                    Array.isArray(value) &&
+                    saved.some(
+                        (coordinate, index) =>
+                            Math.abs((value[index] as number) - coordinate) >
+                            1e-6 * Math.max(1, Math.abs(coordinate)),
+                    )
+                )
+                    mismatches.push(`${label} (${saved}) (${value})`);
+            });
         } catch (e) {
             error = String(e).slice(0, 200);
         }

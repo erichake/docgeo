@@ -137,6 +137,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-15 | 269 / 456 (59 %)   | 333,2 Ko | item 64 : scripts, `If`, `Execute`, styles, `StartAnimation` (+4)    |
 | 2026-11-15 | 271 / 456 (59 %)   | 333,6 Ko | item 65 : `ShowGrid`, `CenterView` dans les scripts (+2)             |
 | 2026-11-15 | 275 / 456 (60 %)   | 333,8 Ko | item 66 : angles orientés, angle de deux droites, bissectrice (+4)   |
+| 2026-11-15 | 285 / 456 (63 %)   | 335,7 Ko | item 67 : foyers, sommets, directrices, excentricité, `LaTeX` (+10)  |
 
 ## À faire, par rapport gain / coût
 
@@ -1212,6 +1213,25 @@ cause.
       36 → 10 figures, aucune « sans perte » : ceux qui restent sont des
       cellules de tableur tirées au hasard et des valeurs qui lisent la
       taille de la fenêtre, dans des figures en échec par ailleurs. Moteur
-      +0,2 Ko, import +0,4 Ko. Reste : l'étiquette d'un angle, que GeoGebra
-      écrit à l'horizontale avec son nom (« β = 147.65° ») là où DocGeo
-      écrit sa valeur seule, tournée selon la bissectrice.
+      +0,2 Ko, import +0,4 Ko. L'étiquette d'un angle reste écrite selon sa
+      bissectrice, comme dans DGPad, et non à l'horizontale avec son nom
+      comme dans GeoGebra (« β = 147.65° ») : choix de l'auteur du projet,
+      ce n'est pas un écart.
+- [x] **67. Foyers, sommets, directrices, excentricité, centre d'une
+      conique** : `Focus`, `Vertex`, `Directrix`, `Eccentricity`, `Center`
+      d'une conique quelconque (équation à curseurs, `Ellipse`…). Objet
+      moteur `ConicPoint` (`CnP`, voir `DGO.md`), calculé des coefficients
+      de la conique, dans l'ordre de GeoGebra (relevé dans GeoGebra : e₀ le
+      vecteur propre (b/2, μ − a) du grand axe ou de l'axe transverse,
+      F₁ = C − c·e₀, V₁ = C − a·e₀, V₃ = C − b·e₁, d₁ du côté de +e₀ ; une
+      parabole n'en a qu'un) ; une directrice passe par deux de ces points,
+      l'excentricité est l'abscisse d'un point caché. La comparaison des
+      positions confirme l'ordre sur tout le corpus. `LaTeX[c]` d'une
+      conique au style d'équation « user » : son équation telle que tapée,
+      avec les valeurs de ses objets (`- (-0.8)` écrit `+ 0.8`), fractions et
+      puissances en LaTeX. La longueur d'un segment au mode d'étiquette
+      « valeur » est écrite le long de lui, comme DGPad. La comparaison du
+      corpus porte aussi sur les points (hors coins de la fenêtre).
+      **+10 figures** (275 → 285), aucune « sans perte » avec un écart.
+      Moteur +1,9 Ko, import +2,1 Ko. Reste : DocGeo espace ses graduations
+      d'au moins 64 pixels, GeoGebra en met une par unité dès 50 pixels.

@@ -4001,6 +4001,56 @@ r.setExpression(0);`);
         ]);
     });
 
+    it("finds a conic's foci, vertices, directrices and eccentricity in GeoGebra's order", async () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="C"><coords x="2" y="-0.8" z="1"/></element>
+<element type="numeric" label="a"><value val="3"/></element>
+<element type="numeric" label="b"><value val="2"/></element>
+<expression label="eq1" exp="(x - x(C))^(2) / a^(2) + (y - y(C))^(2) / b^(2) = 1" type="conic"/>
+<element type="conic" label="eq1"><eqnStyle style="user"/></element>
+<command name="Focus"><input a0="eq1"/><output a0="F" a1="G"/></command>
+<command name="Vertex"><input a0="eq1"/><output a0="V" a1="W" a2="X" a3=""/></command>
+<command name="Directrix"><input a0="eq1"/><output a0="d" a1=""/></command>
+<command name="Center"><input a0="eq1"/><output a0="O"/></command>
+<command name="Eccentricity"><input a0="eq1"/><output a0="e"/></command>
+<expression label="p" exp="y = x^(2)" type="conic"/>
+<element type="conic" label="p"></element>
+<command name="Focus"><input a0="p"/><output a0="H"/></command>
+<expression label="t" exp="&quot;&quot; + (LaTeX[eq1]) + &quot;&quot;"/>
+<element type="text" label="t"><isLaTeX val="true"/><startPoint x="0" y="0" z="1"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const at = (name: string) =>
+            (c.getObj(name) as point_object).coords.slice(0, 2);
+        const k = Math.sqrt(5);
+        // Relevé dans GeoGebra.
+        [
+            ["F", [2 - k, -0.8]],
+            ["G", [2 + k, -0.8]],
+            ["V", [-1, -0.8]],
+            ["W", [5, -0.8]],
+            ["X", [2, -2.8]],
+            ["O", [2, -0.8]],
+            ["H", [0, 0.25]],
+        ].forEach(([name, coords]) =>
+            expectClose(at(name as string), coords as number[]),
+        );
+        expect((c.getObj("e") as expression_object).value).toBeCloseTo(k / 3);
+        // d: x = 2 + 9/√5, on G's side.
+        const d = c.getObj("d") as primitive_line_object;
+        expect(d.P1.coords[0]).toBeCloseTo(2 + 9 / k);
+        expect(d.VEC[0]).toBeCloseTo(0);
+        // As GeoGebra writes it as typed, with its values.
+        expect((c.getObj("t") as expression_object).value).toBe(
+            "\\displaystyle\\sf \\frac{\\left(x - 2 \\right)^{2}}{3^{2}} + \\frac{\\left(y + 0.8 \\right)^{2}}{2^{2}}\\, = \\,1",
+        );
+    });
+
     it("translates scripts' conditions, styles and animations", async () => {
         const c = createConstruction();
         const unsupported = importGgb(

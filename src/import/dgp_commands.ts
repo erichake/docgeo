@@ -53,6 +53,11 @@ import { createCylinderIntersection } from "../objects/cylinder_intersection_obj
 import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
 import {
+    CONIC_POINTS,
+    createConicPoint,
+    type ConicPoint,
+} from "../objects/conic_point_object";
+import {
     createExpression,
     expression_object,
     listArrow,
@@ -2979,6 +2984,25 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as primitive_line_object,
                     args[2] as plane_object,
                 ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's center, foci, vertices, directrices'
+    // points or eccentricity of a conic (see conic_point_object.ts).
+    [
+        "ConicPoint",
+        {
+            parameters: [string, quadric, string],
+            result: "point",
+            execute: (context, args) => {
+                if (!CONIC_POINTS.includes(args[2] as ConicPoint))
+                    throw new Error(`Invalid conic point ${args[2]}`);
+                return createConicPoint(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_quadric_object,
+                    args[2] as ConicPoint,
+                );
+            },
         },
     ],
     // Not a DGPad command: P moved by a line's direction vector.

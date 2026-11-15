@@ -1500,8 +1500,18 @@ export function translateGgb(
                     `var $s=0;for(var $n=1;$n<=${list.count};$n++){$s+=${item}};$s`,
                 );
             }
-            // As GeoGebra writes a number, or a point in its own style.
+            // As GeoGebra writes a number, a point in its own style, or a
+            // conic's equation as typed, with the values of its objects.
             case "LaTeX": {
+                const source = expressions.get(args[0]);
+                if (
+                    args.length === 1 &&
+                    is(args[0], ["quadric"]) &&
+                    source &&
+                    attribute(elements.get(args[0])!, "eqnStyle", "style") ===
+                        "user"
+                )
+                    return equationLatex(source, locals);
                 const value =
                     args.length === 1 && formula(args[0], TEXT_KINDS, locals);
                 if (!value) return null;
@@ -1637,6 +1647,102 @@ export function translateGgb(
         return hiddenExpression(
             `var $n=${size},$s="{\\\\begin{array}{",$j,$k,$v;for(var $i=0;$i<=${columns};$i++){$s=$s+(${vertical("$i")}?"|":"")+($i<${columns}?[${aligns.map((a) => `"${a}"`)}][min($i,${aligns.length - 1})]:"")};$s=$s+"}"+(${horizontal("0")}?"\\\\hline ":"");${body};$s+"\\\\end{array}}"`,
         );
+    };
+
+    // An equation's LaTeX, as GeoGebra writes it as typed: x and y kept, the
+    // other names and calls replaced by their values, rounded, a negative
+    // one after "+" or "-" turning it into the other.
+    const equationLatex = (
+        source: string,
+        locals: Map<string, string>,
+    ): string | null => {
+        const tokens =
+            source.match(
+                /\d+(?:\.\d+)?|[\p{L}_][\p{L}\d_']*(?:\{[^}]*\})?|\S/gu,
+            ) ?? [];
+        let at = 0;
+        const text = (latex: string) => JSON.stringify(latex);
+        const round = (value: string) =>
+            `round((${value})*1e${decimals})/1e${decimals}`;
+        type Term = { latex: string; value?: string; inner?: string };
+        const primary = (): Term | null => {
+            const token = tokens[at++];
+            if (token === "(") {
+                const inner = sum();
+                if (!inner || tokens[at++] !== ")") return null;
+                return {
+                    latex: `${text("\\left(")}+${inner.latex}+${text(" \\right)")}`,
+                    inner: inner.latex,
+                };
+            }
+            if (token === "-") {
+                const operand = power();
+                return operand && { latex: `${text("-")}+${operand.latex}` };
+            }
+            if (/^\d/.test(token ?? "")) return { latex: text(token) };
+            if ((token === "x" || token === "y") && tokens[at] !== "(")
+                return { latex: text(token) };
+            let name = token ?? "";
+            if (tokens[at] === "(") {
+                let depth = 0;
+                do {
+                    const next = tokens[at++];
+                    if (next === undefined) return null;
+                    depth += next === "(" ? 1 : next === ")" ? -1 : 0;
+                    name += next;
+                } while (depth);
+            }
+            const value = formula(name, VALUE_KINDS, locals);
+            return value ? { latex: `(""+${round(value)})`, value } : null;
+        };
+        const power = (): Term | null => {
+            const base = primary();
+            if (!base || tokens[at] !== "^") return base;
+            at++;
+            const exponent = power();
+            return (
+                exponent && {
+                    latex: `${base.latex}+${text("^{")}+${exponent.inner ?? exponent.latex}+${text("}")}`,
+                }
+            );
+        };
+        const product = (): Term | null => {
+            let left = power();
+            while (left && (tokens[at] === "*" || tokens[at] === "/")) {
+                const op = tokens[at++];
+                const right = power();
+                if (!right) return null;
+                left = {
+                    latex:
+                        op === "/"
+                            ? `${text("\\frac{")}+${left.latex}+${text("}{")}+${right.latex}+${text("}")}`
+                            : `${left.latex}+${text(" \\cdot ")}+${right.latex}`,
+                };
+            }
+            return left;
+        };
+        const sum = (): Term | null => {
+            let left = product();
+            while (left && (tokens[at] === "+" || tokens[at] === "-")) {
+                const minus = tokens[at++] === "-";
+                const right = product();
+                if (!right) return null;
+                const sign = (negative: boolean) =>
+                    text(negative ? " - " : " + ");
+                left = {
+                    latex: right.value
+                        ? `${left.latex}+((${right.value})<0?${sign(!minus)}+${round(`-(${right.value})`)}:${sign(minus)}+${round(right.value)})`
+                        : `${left.latex}+${sign(minus)}+${right.latex}`,
+                };
+            }
+            return left;
+        };
+        const left = sum();
+        if (!left || tokens[at++] !== "=") return null;
+        const right = sum();
+        return right && at === tokens.length
+            ? `(${left.latex}+${text("\\, = \\,")}+${right.latex})`
+            : null;
     };
 
     // A line's direction, written Line(P, Q) or named.
@@ -2201,8 +2307,13 @@ export function translateGgb(
             else if (point) {
                 if (mode !== "3" || !text) parts.push("sn:true");
             }
-            // An angle's value, alone or after its name.
-            else if (kind === "angle" && (mode === "1" || mode === "2"))
+            // An angle's value, alone or after its name; a segment's length
+            // alone, written along it as DGPad does.
+            else if (
+                (kind === "angle" && (mode === "1" || mode === "2")) ||
+                (element.getAttribute("type")?.startsWith("segment") &&
+                    mode === "2")
+            )
                 parts.push(`p:${decimals}`);
             // Its name, not its value nor its caption.
             else if (mode === "0" || (mode === "3" && !text))
@@ -2890,6 +3001,20 @@ export function translateGgb(
             arcThrough(label, sector, [inputs[0], inputs[2]], inputs[1]);
 
     type Handler = (inputs: string[], outputs: string[]) => boolean;
+    // A conic's center, foci, vertices, directrices' points or eccentricity,
+    // in GeoGebra's order (see conic_point_object.ts).
+    const conicPoints =
+        (names: string[]): Handler =>
+        ([conic], outputs) =>
+            is(conic, ["quadric"]) &&
+            outputs.every(
+                (label, index) =>
+                    !label ||
+                    define(label, "point", "ConicPoint", [
+                        ref(conic),
+                        literal(names[index]),
+                    ]),
+            );
     const onePoint =
         (command: string, arity: number, kind: Kind = "line"): Handler =>
         (inputs, [label]) =>
@@ -3199,8 +3324,31 @@ export function translateGgb(
                 label,
             ),
         Center: ([circle], [label]) =>
-            is(circle, ["circle"]) &&
-            define(label, "point", "Center", [ref(circle)]),
+            is(circle, ["circle"])
+                ? define(label, "point", "Center", [ref(circle)])
+                : conicPoints(["C"])([circle], [label]),
+        Focus: conicPoints(["F1", "F2"]),
+        Vertex: conicPoints(["V1", "V2", "V3", "V4"]),
+        // Through a point of each and one unit further along it.
+        Directrix: ([conic], outputs) =>
+            is(conic, ["quadric"]) &&
+            outputs.every((label, index) => {
+                if (!label) return true;
+                const [d, e] = ["D", "E"].map((name) => {
+                    const point = auxiliary();
+                    conicPoints([`${name}${index + 1}`])([conic], [point]);
+                    return point;
+                });
+                return HANDLERS.Line([d, e], [label]);
+            }),
+        // The abscissa of a hidden point.
+        Eccentricity: ([conic], [label]) => {
+            const point = auxiliary();
+            return (
+                conicPoints(["e"])([conic], [point]) &&
+                !!hiddenExpression(`x(${objects.get(point)!.variable})`, label)
+            );
+        },
         // A polygon's center of mass, not its vertices': the sum of
         // (P(i) + P(i+1))·(P(i) × P(i+1)) over 3 times the shoelace sum.
         Centroid: ([polygon, extra], [label]) => {

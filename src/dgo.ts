@@ -45,6 +45,11 @@ import { createCylinderIntersection } from "./objects/cylinder_intersection_obje
 import { createCylinderSection } from "./objects/cylinder_section_object";
 import { createDirectionPoint } from "./objects/direction_point_object";
 import {
+    CONIC_POINTS,
+    createConicPoint,
+    type ConicPoint,
+} from "./objects/conic_point_object";
+import {
     createExpression,
     expression_object,
     type ExpressionFormula,
@@ -216,6 +221,7 @@ export const LOOKS: Record<string, Look> = {
     Fp: DERIVED_POINT,
     On: POINT,
     DirP: POINT,
+    CnP: DERIVED_POINT,
     Mid: DERIVED_POINT,
     Int: DERIVED_POINT,
     CyI: DERIVED_POINT,
@@ -1968,6 +1974,16 @@ const BUILDERS: Record<string, Builder> = {
         return createCenter(c, name, at(circle, primitive_circle_object));
     },
     DirP: linePoint(createDirectionPoint),
+    CnP: (parameters, { c, name, at }) => {
+        const [conic, which] = list(parameters, 2);
+        check(CONIC_POINTS.includes(which as ConicPoint));
+        return createConicPoint(
+            c,
+            name,
+            at(conic, primitive_quadric_object),
+            which as ConicPoint,
+        );
+    },
     PlI: (parameters, { c, name, at }) => {
         const [line, plane] = list(parameters, 2);
         return createPlaneIntersection(
