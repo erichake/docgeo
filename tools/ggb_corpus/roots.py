@@ -25,7 +25,7 @@ GGB=os.path.join(HERE,"..","..","..","doctools_MAIN","public","apps","geogebra",
 COMMANDS=set(re.findall(r'\\"(\w+)\.Syntax(?:CAS|3D)?\\"',open(GGB).read()))
 CALL=re.compile(r"([A-Za-z]\w*)\s*[\[(]")
 hidden=C.Counter(); hiddensamples=C.defaultdict(list); macros=C.Counter()
-rootfiles=C.Counter(); rootonly=C.Counter(); samples=C.defaultdict(list); nroot={}
+rootentries={}; rootfiles=C.Counter(); rootonly=C.Counter(); samples=C.defaultdict(list); nroot={}
 for r in rows:
     if not r["unsupported"]: continue
     root=ET.fromstring(zipfile.ZipFile(os.path.join(HERE, "corpus", r["name"])).read("geogebra.xml"))
@@ -68,6 +68,7 @@ for r in rows:
             names.add(n)
             if len(hiddensamples[n])<3: hiddensamples[n].append(u[:90])
     for n in names: hidden[n]+=1
+    rootentries[r["name"]]=[u for k,deps,u in entries if not (deps & bad)]
     roots=set()
     for k,deps,u in entries:
         if not (deps & bad):
@@ -83,3 +84,10 @@ print("commandes inconnues à l'intérieur des éléments non importés   files"
 for k,v in hidden.most_common(60): print(f"  {k:22} {v:4}   {hiddensamples[k][:2]}")
 print("outils personnalisés (macros) appelés par des éléments non importés",len(macros))
 json.dump({k:list(v) for k,v in nroot.items()},open(os.path.join(HERE, "roots.json"), "w"))
+
+# python3 roots.py 'Angle(' 'numeric ': each figure's root causes starting
+# so, with its number of root causes.
+import sys
+for f,us in rootentries.items():
+    for u in us:
+        if any(u.startswith(k) for k in sys.argv[1:]): print(f, len(nroot[f]), u[:110])

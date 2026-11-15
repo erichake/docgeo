@@ -57,11 +57,13 @@ it("corpus", async () => {
                         ? 2 * Math.PI - raw
                         : raw;
                 const value = c.getObj(label)?.scriptValue(false);
+                // Undefined (null) where GeoGebra saved a number, too.
                 if (
                     Number.isFinite(saved) &&
-                    typeof value === "number" &&
-                    Math.abs(value - saved) >
-                        1e-6 * Math.max(1, Math.abs(saved))
+                    (value === null ||
+                        (typeof value === "number" &&
+                            Math.abs(value - saved) >
+                                1e-6 * Math.max(1, Math.abs(saved))))
                 )
                     mismatches.push(`${label} ${saved} ${value}`);
             });
