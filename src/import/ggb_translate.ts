@@ -86,6 +86,8 @@ export interface GgbTranslation {
     // Where GeoGebra moved the name of an object other than a point, in
     // pixels from its default place (see anchorName).
     nameShifts: Map<string, Vec2>;
+    // The choices of a dropdown list's Expression, by its variable.
+    menus: Map<string, string[]>;
     unsupported: string[];
     // The animations of points on paths and sliders that GeoGebra plays,
     // started with the figure if `startAnimation`.
@@ -142,6 +144,9 @@ const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
 const POINT_SHIFT = /^ ?([+-]) ?(\d+(?:\.\d*)?|\.\d+)(?= ?(?:[)+,-]|$))/;
 // The commands a formula rewrites as a whole (see commandFormula).
 const FORMULA_COMMANDS = new Set([
+    "Radius",
+    "SelectedIndex",
+    "SelectedElement",
     "Vector",
     "OrthogonalVector",
     "UnitVector",
@@ -156,6 +161,7 @@ const FORMULA_COMMANDS = new Set([
     "Slope",
     "Length",
     "PathParameter",
+    "Point",
     "Rotate",
     "Translate",
     "Dilate",
@@ -176,6 +182,8 @@ const CELL = /^([A-Z]+)(\d+)$/;
 const LABEL_WORDS =
     /[$_\p{ID_Start}](?:_\{[^{}]*\}|[$'\u200c\u200d\p{ID_Continue}])*/gu;
 const LABEL = new RegExp(`^${LABEL_WORDS.source}`, "u");
+// Its labels, and its strings, which a label doesn't run into.
+const QUOTED_WORDS = new RegExp(`"[^"]*"|${LABEL_WORDS.source}`, "gu");
 // A DGP formula's names, and its innermost calls.
 const WORDS = new RegExp(
     `${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*`,
@@ -205,7 +213,13 @@ const evaluateConstant = (source: string): number | null =>
     );
 const FUNCTIONS: Record<string, string | Expansion> = {
     Distance: "d",
-    exp: "exp",
+    Dot: "dot",
+    Midpoint: ([p, q]) => (q ? `((${p})+(${q}))/2` : "?"),
+    // Of a complex number written with the imaginary unit, a complex one.
+    exp: ([a]) =>
+        /\bi\b/.test(a)
+            ? `(exp(x(${a}))*[cos(y(${a})),sin(y(${a}))])`
+            : `exp(${a})`,
     ln: "log",
     log: ([a, b]) => (b ? `(log(${b})/log(${a}))` : `log(${a})`),
     round: ([a, n]) =>
@@ -239,6 +253,12 @@ const FUNCTIONS: Record<string, string | Expansion> = {
     atan: "atan",
     arctan: "atan",
     atan2: "atan2",
+    sinh: ([a]) => `((exp(${a})-exp(-(${a})))/2)`,
+    cosh: ([a]) => `((exp(${a})+exp(-(${a})))/2)`,
+    tanh: ([a]) => `(1-2/(exp(2*(${a}))+1))`,
+    asinh: ([a]) => `log((${a})+sqrt((${a})^2+1))`,
+    acosh: ([a]) => `log((${a})+sqrt((${a})^2-1))`,
+    atanh: ([a]) => `(log((1+(${a}))/(1-(${a})))/2)`,
     floor: "floor",
     x: "x",
     y: "y",
@@ -368,11 +388,16 @@ const polynomial = (terms: [number, string][]): string =>
 
 // A plane's equation keeps x, y and z.
 const PLANE_VARIABLES = new Map(["x", "y", "z"].map((name) => [name, name]));
-// An equation's x and y stay its variables, z of the plane is 0.
+// An equation's x and y stay its variables, z of the plane is 0, unless
+// the figure has a number z.
 const EQUATION_VARIABLES = new Map([
     ["x", "x"],
     ["y", "y"],
     ["z", "0"],
+]);
+const PLANAR_VARIABLES = new Map([
+    ["x", "x"],
+    ["y", "y"],
 ]);
 // A text also reads a polygon, as its area.
 const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
@@ -442,6 +467,20 @@ function indexedAttributes(element: Element | undefined): string[] {
     for (let index = 0; element?.hasAttribute(`a${index}`); index++)
         values.push(element.getAttribute(`a${index}`)!);
     return values;
+}
+
+// The spreadsheet's absolute references, A$12 or $A12, as their cell's
+// label, outside strings.
+function absoluteCells(construction: Element): void {
+    for (const item of construction.querySelectorAll(
+        "input, expression, objColor",
+    ))
+        for (const attr of item.attributes)
+            if (attr.value.includes("$"))
+                attr.value = attr.value.replace(
+                    /"[^"]*"|(?<![\w$])\$?([A-Z]+)\$?(\d+)(?!\w)/g,
+                    (match, column, row) => (column ? column + row : match),
+                );
 }
 
 // Replaces each command of a user-defined tool (geogebra_macro.xml) by the
@@ -1003,12 +1042,21 @@ export function translateGgb(
     if (document.querySelector("parsererror") || !construction)
         throw new Error("Invalid GGB XML");
     if (macros) expandMacros(construction, macros);
+    absoluteCells(construction);
 
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
     const handles = new Map<string, [string | null, string | null]>();
     const follows = new Map<string, string>();
     const nameShifts = new Map<string, Vec2>();
+    const menus = new Map<string, string[]>();
+    // A circle's radius, as a formula, where it is known.
+    const radii = new Map<string, string>();
+    // A hidden region y > f(x) (or <, ≥, ≤): its sign and f(x).
+    const halfPlanes = new Map<string, [string, string]>();
+    // A dropdown list's Expression, its selected item's number, by the
+    // list's label.
+    const selections = new Map<string, string>();
     const animations = new Map<string, Animation>();
     const rateSources = new Map<string, string>();
     const unsupported: string[] = [];
@@ -1280,6 +1328,27 @@ export function translateGgb(
             .replace(/¬/g, "!")
             // The least or greatest of a list's items.
             .replace(/\b(Min|Max)\(\{([^{}]*)\}\)/g, "$1($2)")
+            .replace(
+                new RegExp(`\\b(Min|Max)\\((${LABEL_WORDS.source})\\)`, "gu"),
+                (call, name: string, list: string) => {
+                    const count = Number(lists.get(list)?.count);
+                    return count > 0
+                        ? `${name}(${Array.from(
+                              { length: count },
+                              (_, n) => `Element(${list},${n + 1})`,
+                          )})`
+                        : call;
+                },
+            )
+            // The product of two vectors is their dot product.
+            .replace(
+                new RegExp(
+                    `(${LABEL_WORDS.source})\\s*\\*\\s*(${LABEL_WORDS.source})`,
+                    "gu",
+                ),
+                (call, u: string, v: string) =>
+                    vectors.has(u) && vectors.has(v) ? `Dot(${u},${v})` : call,
+            )
             .replace(/\s+/g, " ");
         const flat = is3D ? ",0" : "";
         const groups: {
@@ -1325,11 +1394,21 @@ export function translateGgb(
                     // A constant, read without kinds, calls none; a list
                     // l(n) is its n-th item.
                     const list = lists.get(word);
+                    // A line f(x) is its ordinate at x.
+                    const start =
+                        kinds.length > 0 &&
+                        is(word, ["line"]) &&
+                        linePoint(word);
                     const fn = functions.has(word)
                         ? kinds.length > 0 && objects.get(word)!.variable
                         : list
                           ? ([n]: string[]) => `(${list.item(n) ?? "?"})`
-                          : FUNCTIONS[word];
+                          : start
+                            ? ([x]: string[]) => {
+                                  const p = objects.get(start)!.variable;
+                                  return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
+                              }
+                            : FUNCTIONS[word];
                     if (!fn) return null;
                     const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
@@ -1491,9 +1570,15 @@ export function translateGgb(
                 return item ? `(${item})` : null;
             }
             // Summed by a hidden Expression's script, whose own variable
-            // stands for the item's index.
+            // stands for the item's index. Not of a list reading a local
+            // variable, which only a script's loop has (see scripted).
             case "Sum": {
-                const list = args.length === 1 && listFormula(args[0]);
+                const list =
+                    args.length === 1 &&
+                    !args[0]
+                        .match(LABEL_WORDS)
+                        ?.some((word) => locals.has(word)) &&
+                    listFormula(args[0]);
                 const item = list && list.item("$n");
                 if (!item) return null;
                 return hiddenExpression(
@@ -1515,6 +1600,12 @@ export function translateGgb(
                 const value =
                     args.length === 1 && formula(args[0], TEXT_KINDS, locals);
                 if (!value) return null;
+                // An angle in degrees, even defined by an expression.
+                if (
+                    is(args[0], ["angle"]) ||
+                    elements.get(args[0])?.getAttribute("type") === "angle"
+                )
+                    return `(""+((${value})*180/π)+"°")`;
                 if (!is(args[0], POINT_KINDS)) return `(""+(${value}))`;
                 const [x, y] = [`x(${value})`, `y(${value})`];
                 return attribute(
@@ -1540,6 +1631,16 @@ export function translateGgb(
                     ? `Angle360(${values})`
                     : null;
             }
+            case "Radius":
+                return radii.get(args[0]) ?? null;
+            case "SelectedIndex":
+                return selections.get(args[0]) ?? null;
+            case "SelectedElement": {
+                const selection = selections.get(args[0]);
+                const item =
+                    selection && listFormula(args[0], locals)?.item(selection);
+                return item ? `(${item})` : null;
+            }
             case "Corner":
                 return cornerFormula(args);
             case "Slope":
@@ -1558,6 +1659,16 @@ export function translateGgb(
                     (point) => objects.get(point)!.variable,
                 );
                 return `(d(${p},${m})/d(${p},${q}))`;
+            }
+            // Point(s, t) of a segment, from its start (0) to its end (1).
+            case "Point": {
+                const ends = args.length === 2 && segments.get(args[0]);
+                const t = ends && formula(args[1], VALUE_KINDS, locals);
+                if (!t) return null;
+                const [p, q] = ends.map(
+                    (point) => objects.get(point)!.variable,
+                );
+                return `(${p}+(${t})*(${q}-${p}))`;
             }
             // Of a point or a vector, around a point.
             case "Rotate":
@@ -2051,7 +2162,7 @@ export function translateGgb(
         array: string;
         guard: string;
     }
-    const SCRIPTED = /\b(Sequence|CountIf|BinomialDist|Random)\(/;
+    const SCRIPTED = /\b(Sequence|CountIf|Sum|BinomialDist|Random)\(/;
     const scripted = (
         source: string,
         locals: Map<string, string>,
@@ -2145,6 +2256,21 @@ export function translateGgb(
                 depth: 0,
             };
         }
+        // Its first item plus the others, which may be points.
+        if (name === "Sum" && args.length === 1) {
+            const list = listFormula(args[0], locals);
+            const items = list ? null : scripted(args[0], locals, fresh);
+            if (!list && items?.depth !== 1) return null;
+            const [sum, index] = [fresh(), fresh()];
+            const x = (n: string) =>
+                list ? list.item(n) : `${items!.value}[${n}-1]`;
+            if (x(index) === null) return null;
+            return {
+                code: `${items?.code ?? ""}var ${sum}=${x("1")};for(var ${index}=2;${index}<=${list ? list.count : `${items!.value}.length`};${index}++){${sum}=${sum}+${x(index)}};`,
+                value: sum,
+                depth: 0,
+            };
+        }
         if (name === "Sequence" && args.length >= 4 && args.length <= 5) {
             const [expression, variable, ...range] = args;
             const bounds = values(range);
@@ -2214,6 +2340,8 @@ export function translateGgb(
         const drawn = attribute(element!, "show", "object") === "true";
         const array = hiddenExpression(program, drawn ? auxiliary() : label);
         lists.set(label, named(array, value.depth));
+        if (name === "Sequence" && value.depth === 1 && isPoint(sources[0]))
+            pointLists.add(label);
         if (!drawn) return true;
         return define(
             label,
@@ -2956,8 +3084,23 @@ export function translateGgb(
     const arcOn =
         (sector: boolean): Handler =>
         ([support, p, q, extra], [label]) => {
-            if (extra !== undefined || !points(p, q)) return false;
             const circle = is(support, ["circle"]);
+            // Between two angles of a circle (relevé dans GeoGebra): its
+            // points at those angles, its radius read from a hidden point
+            // on it.
+            const angles = [p, q].map((t) => formula(t, VALUE_KINDS));
+            if (circle && !is3D && !points(p, q) && !angles.includes(null)) {
+                const [center, on] = [auxiliary(), auxiliary()];
+                define(center, "point", "Center", [ref(support)]);
+                pointOn(on, support, false);
+                const [m, a] = [center, on].map(
+                    (point) => objects.get(point)!.variable,
+                );
+                [p, q] = angles.map((t) =>
+                    formulaPoint(`${m}+d(${m},${a})*[cos(${t}),sin(${t})]`),
+                );
+            }
+            if (extra !== undefined || !points(p, q)) return false;
             return (
                 (circle || is(support, ["quadric"])) &&
                 define(
@@ -3329,10 +3472,30 @@ export function translateGgb(
             formulaPoint(`${objects.get(support)!.variable}+(${value})`, label);
             return true;
         },
-        PointIn: ([region, extra], [label]) =>
-            extra === undefined &&
-            is(region, ["polygon"]) &&
-            pointOn(label, region, false),
+        PointIn: ([region, extra], [label]) => {
+            if (extra !== undefined) return false;
+            const half = halfPlanes.get(region);
+            if (!half)
+                return is(region, ["polygon"]) && pointOn(label, region, false);
+            // Following a hidden free point, held in the region vertically.
+            const coords = pointCoords(elements.get(label)!);
+            if (!coords) return false;
+            const free = auxiliary();
+            define(free, "point", "Point", vectorLiteral(coords), "h:2");
+            const f = objects.get(free)!.variable;
+            const bound = formula(
+                half[1],
+                VALUE_KINDS,
+                new Map([["x", `x(${f})`]]),
+            );
+            if (bound === null) return false;
+            formulaPoint(
+                `[x(${f}),${half[0] === ">" ? "max" : "min"}(y(${f}),${bound})]`,
+                label,
+            );
+            follows.set(objects.get(label)!.variable, f);
+            return true;
+        },
         Intersect: ([first, second, third], outputs) => {
             const [path, surface] = is(first, ["line"])
                 ? [first, second]
@@ -3537,6 +3700,26 @@ export function translateGgb(
         // their intersection.
         Angle: (inputs, outputs) => {
             const [g, h] = inputs;
+            // Of a polygon, at each vertex, from the next one to the
+            // previous one (relevé dans GeoGebra).
+            const vertices = inputs.length === 1 && polygons.get(g);
+            if (vertices) {
+                const n = vertices.length;
+                return (
+                    !is3D &&
+                    outputs.length === n &&
+                    outputs.every((label, i) =>
+                        define(
+                            label,
+                            "angle",
+                            "Angle",
+                            [i + 1, i, i + n - 1].map((k) =>
+                                ref(vertices[k % n]),
+                            ),
+                        ),
+                    )
+                );
+            }
             if (inputs.length !== 2 || !is(g, ["line"]) || !is(h, ["line"]))
                 return onePoint("Angle", 3, "angle")(inputs, outputs);
             if (is3D) return false;
@@ -3581,9 +3764,13 @@ export function translateGgb(
                     ref(second),
                     ref(third),
                 ]);
+            const [c, p] = [center, second].map(
+                (point) => objects.get(point)?.variable,
+            );
             if (third !== undefined) {
                 const radius = formula(second, VALUE_KINDS);
                 if (radius === null) return false;
+                radii.set(label, `(${radius})`);
                 // A plane's direction, its normal through the center.
                 let axis = third;
                 if (isDirection(third)) {
@@ -3599,21 +3786,27 @@ export function translateGgb(
                     ref(axis),
                 ]);
             }
-            if (points(second))
+            if (points(second)) {
+                radii.set(label, `d(${c},${p})`);
                 return define(label, "circle", "Circle", [
                     ref(center),
                     ref(second),
                 ]);
+            }
             const ends = segmentEnds(second);
-            if (ends)
+            if (ends) {
+                const [e, f] = ends.map((end) => objects.get(end)!.variable);
+                radii.set(label, `d(${e},${f})`);
                 return define(label, "circle", "Circle3", [
                     ref(ends[0]),
                     ref(ends[1]),
                     ref(center),
                 ]);
+            }
             // Always a formula string, even for a plain number: GeoGebra's
             // Circle(A, r) radius isn't draggable, unlike DGP's numeric one.
             const radius = formula(second, VALUE_KINDS);
+            if (radius !== null) radii.set(label, `(${radius})`);
             return (
                 radius !== null &&
                 define(label, "circle", "Circle1", [
@@ -3688,7 +3881,12 @@ export function translateGgb(
                 [focus, directrix].map(ref),
             );
         },
-        Polygon: (inputs, [label, ...sides]) => {
+        Polygon: (inputs, outputs) => {
+            // Polygon({A, B, C}), of a list of its points.
+            const listed = /^\{(.*)\}$/.exec(inputs.join());
+            const items = listed && splitArguments(listed[1]);
+            if (items && items.length > 2 && points(...items)) inputs = items;
+            const [label, ...sides] = outputs;
             const [a, b, count, plane] = inputs;
             const onPlane = plane !== undefined && isDirection(plane);
             // Of a slider's n, GeoGebra's outputs are those of its largest.
@@ -4244,16 +4442,6 @@ export function translateGgb(
                 inner = `Polygon(${item})`;
                 call = commandCall(inner);
             }
-            // Of a polygon's images, the polygon of its vertices' images.
-            const vertices =
-                call &&
-                ["Rotate", "Translate", "Dilate"].includes(call[0]) &&
-                polygons.get(call[1][0]);
-            if (vertices) {
-                const [name, [, ...rest]] = call!;
-                inner = `Polygon(${vertices.map((vertex) => `${name}(${[vertex, ...rest]})`)})`;
-                call = commandCall(inner);
-            }
             while (
                 call?.[0] === "Sequence" &&
                 call[1].length >= 4 &&
@@ -4262,6 +4450,39 @@ export function translateGgb(
                 const [nested, name, a, b, s = "1"] = call[1];
                 loops.push([name, a, b, s]);
                 inner = nested;
+                call = commandCall(inner);
+            }
+            // Of lists of one command, its items by another loop.
+            const items = itemLoop(
+                inner,
+                loops.map(([name]) => name),
+            );
+            if (items) {
+                loops.push(items[1]);
+                inner = items[0];
+                call = commandCall(inner);
+            }
+            // Of a polygon's images, maybe images of images, the polygon
+            // of its vertices' images.
+            const images: [string, string[]][] = [];
+            let source = call;
+            let polygon = "";
+            while (
+                source &&
+                ["Rotate", "Translate", "Dilate"].includes(source[0])
+            ) {
+                images.unshift([source[0], source[1].slice(1)]);
+                polygon = source[1][0];
+                source = commandCall(polygon);
+            }
+            const vertices = polygon && polygons.get(polygon);
+            if (vertices) {
+                inner = `Polygon(${vertices.map((vertex) =>
+                    images.reduce(
+                        (image, [name, rest]) => `${name}(${[image, ...rest]})`,
+                        vertex,
+                    ),
+                )})`;
                 call = commandCall(inner);
             }
             const nature =
@@ -4305,7 +4526,11 @@ export function translateGgb(
                 formula(end, VALUE_KINDS, locals),
             );
             if (bounds.flat().includes(null) || formulas.includes(null))
-                return false;
+                return (
+                    !!call &&
+                    loops.length === 1 &&
+                    sequenceItems(label, inner, loops[0])
+                );
             const element = elements.get(label);
             const size = element && attribute(element, "pointSize", "val");
             define(
@@ -4383,10 +4608,14 @@ export function translateGgb(
                     `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
             );
         },
-        // An input box of a number, at its top left corner.
+        // An input box of a number or of a function, at its top left corner.
         Textfield: ([linked, extra], [label]) => {
             const element = elements.get(label);
-            if (!element || extra !== undefined || !is(linked, ["expression"]))
+            if (
+                !element ||
+                extra !== undefined ||
+                !(is(linked, ["expression"]) || functions.has(linked))
+            )
                 return false;
             const [x, y] = screenPosition(
                 Number(attribute(element, "labelOffset", "x") ?? 0),
@@ -4556,6 +4785,7 @@ export function translateGgb(
             return true;
         },
         Length: formulaCommand("Length"),
+        Radius: formulaCommand("Radius"),
         Sum: formulaCommand("Sum"),
         UnitVector: formulaCommand("UnitVector"),
         UnitOrthogonalVector: formulaCommand("UnitOrthogonalVector"),
@@ -4707,6 +4937,53 @@ export function translateGgb(
         return parts.join(";");
     };
 
+    // A dropdown list of numbers and texts, as an Expression whose value is
+    // its selected item's number, at its top left corner.
+    const dropdown = (
+        label: string,
+        element: Element,
+        items: (string | null)[],
+    ) => {
+        const choices = items.map((item) => {
+            if (item === null) return null;
+            const value =
+                /^"([^"]*)"$/.exec(item)?.[1] ?? evaluateConstant(item);
+            return typeof value === "number"
+                ? String(Number(value.toFixed(decimals)))
+                : value;
+        });
+        if (choices.includes(null)) return;
+        const selection = auxiliary();
+        const [x, y] = screenPosition(
+            Number(attribute(element, "labelOffset", "x") ?? 0),
+            Number(attribute(element, "labelOffset", "y") ?? 0),
+            true,
+        );
+        // Without a caption, GeoGebra's label is three no-break spaces.
+        define(
+            selection,
+            "expression",
+            "Expression",
+            [
+                attribute(element, "show", "label") === "true"
+                    ? attribute(element, "caption", "val")
+                        ? caption(element, label)
+                        : "\u00a0\u00a0\u00a0"
+                    : "",
+                "",
+                "",
+                String(
+                    Number(attribute(element, "selectedIndex", "val") ?? 0) + 1,
+                ),
+                String(x),
+                String(y),
+            ].map(literal),
+            textStyle(element),
+        );
+        menus.set(objects.get(selection)!.variable, choices as string[]);
+        selections.set(label, objects.get(selection)!.variable);
+    };
+
     // A list of points is drawn, other lists only read by formulas.
     const defineList = (
         label: string,
@@ -4716,7 +4993,17 @@ export function translateGgb(
         const list = listFormula(source);
         if (!list) return false;
         lists.set(label, list);
-        if (attribute(element, "listType", "val") !== "point") {
+        // Take, Insert… of a list of points.
+        if (
+            commandCall(normalizeBrackets(source))?.[1].some((arg) =>
+                pointLists.has(arg),
+            )
+        )
+            pointLists.add(label);
+        if (
+            attribute(element, "listType", "val") !== "point" &&
+            !pointLists.has(label)
+        ) {
             // Written {…}, an expression the formulas read by name.
             const text = normalizeBrackets(source.trim());
             if (!/^\{.*\}$/.test(text)) return true;
@@ -4734,6 +5021,8 @@ export function translateGgb(
                 ...named(objects.get(label)!.variable, 1),
                 count: list.count,
             });
+            if (attribute(element, "comboBox", "val") === "true")
+                dropdown(label, element, items);
             return true;
         }
         const item = list.item("k+1");
@@ -5188,7 +5477,7 @@ export function translateGgb(
                     parts
                         .map((part) =>
                             typeof part === "string"
-                                ? part.replace(/%/g, "%%")
+                                ? subscripts(part).replace(/%/g, "%%")
                                 : `%${part.formula}%`,
                         )
                         .join(""),
@@ -5196,6 +5485,119 @@ export function translateGgb(
             ],
             textStyle(element),
         );
+    };
+
+    // {C(a₁, b₁), C(a₂, b₂)…}, a list of one command C, as C(Element({a₁,
+    // a₂…}, j), Element({b₁, b₂…}, j)) for j from 1 to its size, j not
+    // being one of `taken` nor a word of the list.
+    const itemLoop = (
+        list: string,
+        taken: string[],
+    ): [string, string[]] | null => {
+        const calls = /^\{.*\}$/.test(list)
+            ? splitArguments(list.slice(1, -1))?.map(commandCall)
+            : null;
+        const [name, args] = calls?.[0] ?? [];
+        if (
+            !args ||
+            !calls!.every(
+                (item) => item?.[1].length === args.length && item[0] === name,
+            )
+        )
+            return null;
+        let j = "j";
+        while (taken.includes(j) || new RegExp(`\\b${j}\\b`).test(list))
+            j += "j";
+        return [
+            `${name}(${args.map(
+                (_, index) =>
+                    `Element({${calls!.map((item) => item![1][index])}}, ${j})`,
+            )})`,
+            [j, "1", String(calls!.length), "1"],
+        ];
+    };
+
+    // Sequence(f(i), i, a, b, s), f being a command no Sequence draws: an
+    // object for each value i may take, a and b being numbers or sliders,
+    // shown between a and b.
+    const sequenceItems = (
+        label: string,
+        inner: string,
+        [variable, from, to, step]: string[],
+    ): boolean => {
+        const element = elements.get(label);
+        const constant = (bound: string) => {
+            const value = formula(bound, []);
+            return (value === null ? null : evaluateConstant(value)) ?? NaN;
+        };
+        // The values a bound may take, reading at most a slider: those at
+        // its ends.
+        const extent = (bound: string) => {
+            const [name, ...others] = (bound.match(LABEL_WORDS) ?? []).filter(
+                (word) => elements.has(word),
+            );
+            const slider = elements.get(name);
+            if (!slider || others.length || !child(slider, "slider"))
+                return [constant(bound), constant(bound)];
+            const ends = ["min", "max"].map((end) =>
+                constant(
+                    bound.replace(LABEL_WORDS, (word) =>
+                        word === name
+                            ? `(${attribute(slider, "slider", end)})`
+                            : word,
+                    ),
+                ),
+            );
+            return [Math.min(...ends), Math.max(...ends)];
+        };
+        const [low] = extent(from);
+        const [, high] = extent(to);
+        const s = constant(step);
+        const count = Math.floor((high - low) / s + 1.000001);
+        const fixed = !isNaN(constant(from) + constant(to));
+        if (!element || !(count > 0 && count <= 100)) return false;
+        const items: string[] = [];
+        for (let n = 0; n < count; n++) {
+            const value = `(${low + n * s})`;
+            const [command, inside] = [
+                inner,
+                `(${from}) <= ${variable} <= (${to})`,
+            ].map((input) =>
+                input.replace(QUOTED_WORDS, (word) =>
+                    word === variable ? value : word,
+                ),
+            );
+            const test = fixed ? "1" : formula(inside, VALUE_KINDS);
+            const [name, [source, point, ...rest]] = commandCall(command)!;
+            const anchor = name === "Text" && point && pointAt(point);
+            let object = auxiliary();
+            if (anchor) {
+                // Its integer terms as strings, joined to those around
+                // them: "u_{" + (1) + "}" is "u_{1}", 1 in subscript.
+                const written = textTerms(source)
+                    .map((term) => {
+                        const value = /^"/.test(term) ? null : constant(term);
+                        return Number.isInteger(value) ? `"${value}"` : term;
+                    })
+                    .join("+")
+                    .replace(/"\+"/g, "");
+                if (rest.length || !text(object, element, written, anchor))
+                    return false;
+            } else object = resolve(command);
+            if (test === null || !objects.has(object)) return false;
+            items.push(object);
+            const shown = fixed ? "" : hiddenExpression(test);
+            if (shown) branchTests.set(object, shown);
+            if (!hidden(element))
+                push(null, "STL", [
+                    ref(object),
+                    literal(
+                        `${anchor ? "" : `${objectStyle(element, objects.get(object)!.kind)};`}h:0${shown && `;sc:${shown}`}`,
+                    ),
+                ]);
+        }
+        parts.set(label, items);
+        return true;
     };
 
     // GeoGebra drags a point "(xExpression, yExpression)" by shifting each
@@ -5221,6 +5623,16 @@ export function translateGgb(
         const type = element.getAttribute("type");
         const source = expressions.get(label);
         if (orphan(label, element)) return true;
+        const half =
+            /^functionnvar$/i.test(type ?? "") &&
+            hidden(element) &&
+            /^[^=]*\(\s*x\s*,\s*y\s*\)\s*=\s*y\s*([<>≤≥])(.*)$/.exec(
+                source ?? "",
+            );
+        if (half) {
+            halfPlanes.set(label, [/[>≥]/.test(half[1]) ? ">" : "<", half[2]]);
+            return true;
+        }
         if (type === "point" || type === "point3d") {
             // A constant, such as the complex number "1 + (2 * ί)", is a
             // free point.
@@ -5344,7 +5756,9 @@ export function translateGgb(
                               formula(
                                   side.trim(),
                                   VALUE_KINDS,
-                                  EQUATION_VARIABLES,
+                                  objects.has("z")
+                                      ? PLANAR_VARIABLES
+                                      : EQUATION_VARIABLES,
                               ),
                           );
             if (!sides || sides.length !== 2 || sides.includes(null))
@@ -5389,6 +5803,12 @@ export function translateGgb(
         const copied = source !== undefined && sequences.get(source.trim());
         if (type === "list" && copied)
             return HANDLERS.Sequence(copied, [label]);
+        // Written {C(…), C(…)…}, a Sequence of its items.
+        const items =
+            type === "list" &&
+            source !== undefined &&
+            itemLoop(normalizeBrackets(source.trim()), []);
+        if (items) return HANDLERS.Sequence([items[0], ...items[1]], [label]);
         // A hidden list of objects only draws its images.
         if (type === "list" && source !== undefined)
             return (
@@ -5494,9 +5914,22 @@ export function translateGgb(
         }
         if (type === "function" && source !== undefined) {
             const body = formula(
-                source.replace(FUNCTION_DEFINITION, ""),
+                source.replace(FUNCTION_DEFINITION, "").trim(),
                 ["expression"],
                 new Map([["x", "x"]]),
+            );
+            return body !== null && defineFunction(label, body);
+        }
+        // f(z) = …, a complex function, which GeoGebra saves as a surface.
+        const complex =
+            type === "surfacecartesian" &&
+            hidden(element) &&
+            /^[^=(]*\(\s*z\s*\)\s*=(.*)$/.exec(source ?? "");
+        if (complex) {
+            const body = formula(
+                complex[1].trim(),
+                ["expression"],
+                new Map([["z", "x"]]),
             );
             return body !== null && defineFunction(label, body);
         }
@@ -5714,9 +6147,17 @@ export function translateGgb(
     const resolve = (input: string): string => {
         if (objects.has(input)) return input;
         const text = normalizeBrackets(input.trim());
-        const axis = AXES[text];
+        // A line x = c or y = c of the plane.
+        const [, variable, c] =
+            (!is3D && /^([xy]) ?= ?(-?\d+(?:\.\d+)?)$/.exec(text)) || [];
+        const k = Number(c);
+        const axis =
+            AXES[text] ??
+            (variable && (variable === "x" ? [0, 1, 0] : [1, 0, 0]));
         if (axis) {
-            const [origin, tip] = [[0, 0, 0] as Vec3, axis].map((coords) => {
+            const start: Vec3 =
+                variable === "x" ? [k, 0, 0] : variable ? [0, k, 0] : [0, 0, 0];
+            const [origin, tip] = [start, vAdd(start, axis)].map((coords) => {
                 const point = auxiliary();
                 define(point, "point", "Point", vectorLiteral(coords));
                 return point;
@@ -6316,6 +6757,7 @@ export function translateGgb(
         handles,
         follows,
         nameShifts,
+        menus,
         animations,
         rates,
         startAnimation:

@@ -29,6 +29,7 @@ export function importGgb(
         handles,
         follows,
         nameShifts,
+        menus,
         animations,
         rates,
         startAnimation,
@@ -41,6 +42,12 @@ export function importGgb(
     c.segmentsOverPolygons = true;
     const executed = executeDgpCommands(c, calls, is3D);
     const variables = executed.variables;
+    // Built without its choices: rebuilt with them.
+    menus.forEach((choices, variable) => {
+        const expression = variables.get(variable) as expression_object;
+        expression.menu = choices;
+        if (!expression.isHidden) expression.createSVG();
+    });
     handles.forEach((numbers, variable) =>
         (variables.get(variable) as formula_point_object).setHandles(
             numbers.map(

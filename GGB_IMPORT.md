@@ -73,6 +73,88 @@ figure sont seulement comptés. L'API utilisée est
 `api.geogebra.org/v1.0/search/materials?query=…&size=…&from=…`, puis
 `/v1.0/materials/<id>?scope=extended` (éléments `type: "G"` → `url` du `.ggb`).
 
+## Méthode et prochaines étapes
+
+Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 309 / 456,
+68 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
+311 : u8qxbhjt (formules dans `\text{…}`, voir ci-dessous) et Sa2y6MrH
+(cercle par trois points dont deux confondus, que GeoGebra dessine comme la
+droite qui les porte et DocGeo pas du tout) restent fausses.
+
+**Ordre des leviers**, par nombre de figures où la cause est seule (refaire
+`python3 tools/ggb_corpus/roots.py` avant de choisir, l'ordre évolue) :
+
+1. textes (`text`, 4), chacun à part : `LaTeX` d'une fonction (règles
+   d'écriture de GeoGebra, dérivée symbolique), équation d'une droite
+   dans un texte (échelle de ses coefficients), outils personnalisés ;
+   formules dans `\text{…}` (u8qxbhjt, comptée à tort « sans perte » :
+   `\text{ \sqrt[3]{…}}`, `^3`, que JLaTeXMath accepte et KaTeX refuse) ;
+2. `Sequence` restantes (4 figures, jamais seule cause) : `If` d'objets
+   (nhznjtge), matrices (rumzymp5), angles (tktnzexh), et VytdxwXH, qui
+   demande des `Sequence` de courbes (`CurveCartesian`, nature absente de
+   `sequence_object.ts`), la translation d'une courbe et d'une liste de
+   courbes, un point sur une liste de segments (`Point(ch, dep)`) et
+   `Point(f, 0.1 / f)` ; s'y ajoute le cercle dégénéré de Sa2y6MrH (une
+   conique tracée comme une droite : moteur) ;
+3. `point` (3), `function`, `functionNVar` (surfaces z = f(x, y)),
+   `image`, `Point`, `Intersect`, `Distance` (2 chacun) ;
+4. scripts restants (12, chacun pour une raison différente : JavaScript
+   hors périmètre, cibles non importées, `SetCaption`, `SetFixed`,
+   `ParseToNumber`, `RunClickScript`, clic sur une conique ou un polygone).
+
+**Une étape** :
+
+1. `python3 tools/ggb_corpus/roots.py 'numeric '` liste, par figure, les
+   causes premières qui commencent ainsi et leur nombre (1 : seule cause).
+   Lire le `geogebra.xml` de la figure (`unzip -p
+tools/ggb_corpus/corpus/<f>.ggb geogebra.xml`).
+2. En cas de doute sur la sémantique de GeoGebra, la relever plutôt que la
+   deviner : `node tools/ggb_corpus/reference.mjs eval "<commande>"…` ou
+   `values <f>.ggb <nom>…` (voir l'en-tête du script ; GeoGebra servi sur
+   le port 8765). Écrire « relevé dans GeoGebra » dans le commentaire.
+3. Implémenter, puis relancer le corpus (`npx vitest run --config
+tools/ggb_corpus/vitest.corpus.config.ts`, puis `roots.py`) : vérifier
+   le gain, qu'aucune figure n'est perdue, et qu'aucune figure « sans
+   perte » n'a d'écart (`mismatches` de `results.jsonl`, voir « Mesure ») :
+    ```sh
+    python3 -c "import json;[print(r['name'],r['mismatches'][:3]) for r in map(json.loads,open('tools/ggb_corpus/results.jsonl')) if r.get('mismatches') and not r['unsupported']]"
+    ```
+4. Regarder au moins une figure gagnée à côté de GeoGebra :
+   `node tools/ggb_corpus/reference.mjs shot <f>.ggb` (DocGeo servi sur le
+   port 5199), puis lire les deux PNG de `tools/ggb_corpus/shots/`. Ne
+   compter comme écart que la géométrie, les valeurs, les textes et le
+   comportement : le style de DocGeo (étiquette d'un angle le long de sa
+   bissectrice, aspect des curseurs…) n'en est pas un.
+5. Un test dans `tests/browser/ggb_importer.test.ts` (s'ouvre en blocs
+   pour un script), `npx vitest run`, `npx vitest run --config
+vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
+   `engine-*` du lecteur, voir l'historique), l'item ici avec son gain et
+   la ligne d'historique, puis commit sur demande.
+
+**Pièges rencontrés** :
+
+- un même fichier peut figurer plusieurs fois dans le corpus (copies sous
+  des noms différents) : un « gain de 6 » peut n'être qu'une figure ;
+- la « seule cause » de `roots.py` ne voit que les éléments signalés :
+  vérifier qu'une figure ne cache pas une autre cause avant d'y investir ;
+- les entrées d'une commande sont construites avant son traducteur
+  (`inputs`) : une commande imbriquée y arrive comme objet auxiliaire
+  (`aux n`) ;
+- une condition d'affichage peut lire un objet défini plus loin : la
+  traiter une fois tous les objets construits ;
+- une valeur enregistrée par GeoGebra peut précéder son style (angle
+  « jamais rentrant ») : relever la valeur affichée avant de conclure ;
+- quelques tests de l'éditeur (« ring circle », pincement, « scrubs
+  numbers live ») échouent parfois quand toute la suite tourne en
+  parallèle ; ils passent seuls ;
+- un nombre indéfini (`null`) là où GeoGebra a enregistré une valeur est
+  un écart, sauf si GeoGebra l'affiche lui aussi indéfini (« ? » de
+  `reference.mjs values`) : la valeur enregistrée peut être périmée
+  (γ de rdjhnput et de ses copies) ;
+- l'image de GeoGebra (`shot`) recentre sa vue dans une fenêtre plus
+  grande que celle de la figure : comparer les positions relatives, pas
+  les pixels.
+
 ## Historique
 
 | Date       | Figures sans perte | Build    | Changement                                                           |
@@ -140,6 +222,11 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-15 | 285 / 456 (63 %)   | 335,7 Ko | item 67 : foyers, sommets, directrices, excentricité, `LaTeX` (+10)  |
 | 2026-11-15 | 285 / 456 (63 %)   | 336,0 Ko | item 68 : graduations de GeoGebra, curseurs d'angle en degrés (+0)   |
 | 2026-11-15 | 290 / 456 (64 %)   | 336,0 Ko | item 69 : `If` entre deux objets, `If` booléen (+5)                  |
+| 2026-11-15 | 294 / 456 (64 %)   | 336,0 Ko | item 70 : listes déroulantes, `Midpoint` dans une formule (+4)       |
+| 2026-11-15 | 301 / 456 (66 %)   | 336,0 Ko | item 71 : rayon, angles d'un polygone, demi-plans, produit scalaire (+7) |
+| 2026-11-15 | 304 / 456 (67 %)   | 336,9 Ko | item 72 : champ de saisie d'une fonction (+3)                        |
+| 2026-11-15 | 307 / 456 (67 %)   | 336,9 Ko | item 73 : `Sequence` d'images d'images, de textes, de toute commande (+3) |
+| 2026-11-15 | 309 / 456 (68 %)   | 337,1 Ko | item 74 : listes dans les `Sequence`, `Sum` en boucle, `$` du tableur, noms des angles (+2) |
 
 ## À faire, par rapport gain / coût
 
@@ -1252,7 +1339,7 @@ cause.
       « seule cause » de 6 figures, toutes des copies d'une même figure qui
       échoue aussi sur une surface z = f(x, y)).
 - [x] **69. `If` entre deux objets, `If` booléen** : `If(condition, objet1,
-    objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
+objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       chaque branche, construite à part, prend le style de l'objet et ne se
       montre que tant que sa condition vaut (`!condition` pour la seconde),
       jointe à la condition d'affichage de l'objet une fois tous les objets
@@ -1260,3 +1347,95 @@ cause.
       donne un booléen devient une case calculée. **+5 figures**
       (285 → 290), aucune « sans perte » avec un écart. Import +0,5 Ko,
       moteur inchangé.
+- [x] **70. Listes déroulantes, `Midpoint` dans une formule** : une liste
+      `{…}` de nombres et de textes en liste déroulante (`comboBox`) devient,
+      en plus de la liste, une expression-menu (`mu`, voir `DGO.md`) de ses
+      éléments, de valeur le numéro de l'élément choisi (`selectedIndex`
+      + 1), à son coin supérieur gauche ; `SelectedIndex(l)` la lit,
+      `SelectedElement(l)` lit l'élément qu'elle désigne. Relevé dans le
+      source de GeoGebra (`DrawDropDownList`) : sans légende, le nom
+      affiché est fait de trois espaces insécables (la boîte est décalée,
+      rien n'est écrit), suivi d'un écart de 10 pixels. `Midpoint(A, B)`
+      dans une formule (`Distance[Midpoint[C', E'], P]`). **+4 figures**
+      (290 → 294 ; 3 sont des copies d'une même figure), aucune « sans
+      perte » avec un écart. Import +0,9 Ko, moteur inchangé. Écartée :
+      `f(0)` d'une droite (2 figures), qui ne fait que révéler leur vraie
+      cause, une région donnée par une inéquation (`y > a x + b`) et
+      `PointIn` de cette région (fait à l'item 71).
+- [x] **71. Rayon, angles d'un polygone, demi-plans, produit scalaire** :
+      `Radius(c)`, en commande ou dans une formule, d'un cercle de centre
+      et rayon, de centre et point ou de centre et segment (formule du
+      rayon retenue à la traduction). `Angle(poly)` : l'angle n° i au
+      sommet i, de P[i+1] à P[i−1] en sens direct (relevé dans GeoGebra :
+      rentrant pour un polygone parcouru en sens horaire). Une région
+      cachée `y > f(x)` (`<`, `≥`, `≤`) n'est pas dessinée, mais
+      `PointIn` de celle-ci devient un point de formule
+      (x(F), max(y(F), f(x(F)))) qui suit un point libre caché F (comme
+      `DynamicCoordinates`) : tiré hors de la région, il reste sur sa
+      frontière, à la verticale. Une droite f lue comme une fonction,
+      f(x) son ordonnée en x. Dans une équation, `z` est le nombre z de la
+      figure s'il existe, et non la cote (`x = z` coupait le demi-cercle en
+      (0, 0) en silence). `x = 2`, `y = 0` en argument (`Intersect(d, x =
+      0)`, `Line(A, x = 0)`) : une droite. `LaTeX(α)` d'un angle en degrés.
+      `Min(l)`, `Max(l)` d'une liste nommée de taille fixe (de segments,
+      par exemple) : de ses éléments (`min` d'une liste donnait `null`).
+      `u * v` de deux vecteurs : leur produit scalaire. La comparaison du
+      corpus compte aussi un nombre indéfini là où GeoGebra en a enregistré
+      un : elle a révélé tRt7WWcU, comptée à tort sans perte (`u * v`).
+      **+7 figures** (294 → 301), aucune « sans perte » avec un écart.
+      Import +1,5 Ko, moteur inchangé.
+- [x] **72. Champ de saisie d'une fonction** (`Textfield(f)`), autorisé
+      par l'auteur du projet : comme dans GeoGebra, la formule tapée
+      redéfinit la fonction (`curve_object.redefine`). Elle est lue en
+      notation de GeoGebra (`x²`, `ln`, `e`, `pi`, `f(x) =` en tête ; la
+      multiplication implicite `3x`, `2(x+1)` l'était déjà) par l'analyseur
+      fermé des formules, jamais exécutée ; elle ne lit que `x` et des
+      objets construits avant la fonction (ni elle-même ni un objet qui en
+      dépend), sinon elle est refusée et l'ancienne reste. Le champ montre
+      la formule de la fonction. La fonction redéfinie entre dans l'état
+      élève (`DGO.md`), par le texte de sa formule. **+3 figures**
+      (301 → 304), aucune « sans perte » avec un écart. Moteur +0,9 Ko,
+      import inchangé.
+- [x] **73. `Sequence` d'images d'images, de textes, de toute commande** :
+      les images enchaînées d'un polygone (`Translate(Dilate(poly1, b^l),
+      v)`) sont lues aussi dans une `Sequence` imbriquée, et
+      `Polygon({D, E, F})` comme le polygone de ces points. Une `Sequence`
+      dont la commande n'a pas de tracé natif (`Text`, `CircumcircleArc`,
+      `Cube`…) est mise à plat à l'import : un objet par valeur que peut
+      prendre sa variable (100 au plus), construit par le traducteur de la
+      commande, montré seulement entre ses bornes, qui sont des nombres ou
+      ne lisent qu'un curseur (`n - 1`, évalué à ses extrémités). Dans un
+      texte ainsi déplié, un terme entier se joint aux chaînes voisines
+      (`"u_{" + (1) + "}"` est `u₁`). Un texte simple ancré écrit
+      désormais ses indices comme GeoGebra (`u_{1}` en indice). **+3
+      figures** (304 → 307 ; le corpus en compte 308, mais u8qxbhjt reste
+      fausse : son texte LaTeX écrit des formules dans `\text{…}`, ce que
+      KaTeX refuse, voir « Méthode et prochaines étapes »). Aucune figure
+      perdue ni « sans perte » avec un écart. Moteur inchangé, import
+      (`ggb_importer`) 85,2 Ko.
+- [x] **74. Listes dans les `Sequence`, `Sum` en boucle, références
+      absolues du tableur, noms des angles** : une `Sequence` dont le terme
+      est une liste d'une même commande (`{Segment(…), Segment(…)}`), et
+      une telle liste écrite seule, deviennent une `Sequence` de plus,
+      dont la variable parcourt les items (`Segment(Element({a₁, a₂}, j),
+      …)`). `A$12` et `$L1` (y compris dans les couleurs dynamiques) sont
+      les cellules A12 et L1. Un `Sum` qui lit la variable d'une
+      `Sequence` est calculé dans la boucle du script de la liste, et non
+      plus une fois pour toutes par une expression cachée (liste2 de
+      Sa2y6MrH était silencieusement fausse) ; une telle liste de points,
+      et un `Insert`, `Take`… d'une liste de points, donnent des points
+      (`Element(l, n)`, dessinés). `Point(s, t)` d'un segment se lit dans
+      une formule. `sinh`, `cosh`, `tanh` et leurs réciproques s'écrivent
+      avec `exp` et `log`, `exp` d'un argument écrit avec l'unité
+      imaginaire est complexe, une fonction complexe `f(z) = …` (que
+      GeoGebra enregistre comme une surface) est une fonction de la
+      figure, `Arc(c, a, b)` d'un cercle va de l'angle a à l'angle b
+      (relevé dans GeoGebra), et `LaTeX(θ)` d'un angle défini par une
+      expression l'écrit en degrés. Enfin, un angle écrit son nom ou sa
+      légende au-delà de son arc, sur sa bissectrice (bpnbrfak, ckrq23xp,
+      gDxbK4Zb et phEVqxDv, comptées « sans perte », ne le montraient
+      pas). **+2 figures** (307 → 309 : skfatwgv, d67tfadb ; Sa2y6MrH est
+      comptée mais reste fausse, voir « Méthode et prochaines étapes »).
+      Aucune figure perdue ni « sans perte » avec un écart. Moteur +0,3 Ko
+      (`nameAt` des angles), import (`ggb_importer`) 87,3 Ko.
+

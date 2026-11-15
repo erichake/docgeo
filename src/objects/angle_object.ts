@@ -124,6 +124,21 @@ export class angle_object extends construction_object {
         this.projectionDefined = true;
     }
 
+    // Centered past its arc on its bisector, where its value is written.
+    nameAt(): Vec2 | null {
+        if (!this.projectionDefined) return null;
+        const turn = (this.labelRotationDeg * Math.PI) / 180;
+        const r =
+            Math.sign(this.labelOffset) *
+            (this.arcRadius + LABEL_MARGIN + this.fontSize * 0.6);
+        const width =
+            0.6 * this.fontSize * [...(this.caption ?? this.name)].length;
+        return [
+            this.origin[0] + r * Math.cos(turn) - width / 2,
+            this.origin[1] + r * Math.sin(turn) + this.fontSize * 0.35,
+        ];
+    }
+
     render(): void {
         this.dom.stl(
             "display",

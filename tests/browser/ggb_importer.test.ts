@@ -30,6 +30,7 @@ import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { rotation_object } from "../../src/objects/rotation_object";
+import type { construction_object } from "../../src/objects/construction_object";
 import { segment_object } from "../../src/objects/segment_object";
 import type { sequence_object } from "../../src/objects/sequence_object";
 import { translation_object } from "../../src/objects/translation_object";
@@ -2112,6 +2113,193 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         ).toEqual(["Rayon r =", "", "t3", "r =", "A B"]);
     });
 
+    it("makes a dropdown list a menu, read by SelectedIndex and SelectedElement", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="l1" exp="{&quot; &quot;, 0, 1.5, &quot;x&quot;}"/>
+<element type="list" label="l1"><show object="true" label="true"/><labelOffset x="85" y="39"/><selectedIndex val="1"/><comboBox val="true"/></element>
+<expression label="a" exp="SelectedIndex[l1] - 2"/>
+<element type="numeric" label="a"><value val="0"/></element>
+<expression label="b" exp="SelectedElement[l1] + 1"/>
+<element type="numeric" label="b"><value val="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const [a, b] = ["a", "b"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        const menu = c.OBJS.V.find(
+            (object) => (object as expression_object).menu,
+        ) as expression_object;
+        // Without a caption, GeoGebra's label is three no-break spaces.
+        expect([menu.menu, menu.text, menu.value]).toEqual([
+            [" ", "0", "1.5", "x"],
+            "   ",
+            2,
+        ]);
+        expect([a.value, b.value]).toEqual([0, 1]);
+        const select = c.svg.find("select")!.dom() as HTMLSelectElement;
+        expect(select.selectedIndex).toBe(1);
+        select.selectedIndex = 2;
+        select.dispatchEvent(new Event("change"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect([a.value, b.value]).toEqual([1, 2.5]);
+    });
+
+    it("reads a midpoint in a number's formula", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="6" y="8" z="1"/></element>
+<expression label="s" exp="Distance[Midpoint[A, B], A] + 1"/>
+<element type="numeric" label="s"><value val="6"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect((c.getObj("s") as expression_object).value).toBeCloseTo(6, 12);
+    });
+
+    it("measures a polygon's angles, reads a number z in an equation and an angle in LaTeX", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="C"><coords x="0" y="3" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<command name="Polygon"><input a0="C" a1="B" a2="A"/><output a0="q"/></command>
+<element type="polygon" label="q"/>
+<command name="Angle"><input a0="q"/><output a0="α" a1="β" a2="γ"/></command>
+<element type="angle" label="α"><value val="5.356"/></element>
+<element type="angle" label="β"><value val="5.640"/></element>
+<element type="angle" label="γ"><value val="4.712"/></element>
+<element type="numeric" label="z"><value val="2"/></element>
+<expression label="n" exp="x = z" type="line"/>
+<element type="line" label="n"><coords x="1" y="0" z="-2"/></element>
+<expression label="t" exp="&quot;a = &quot; + (LaTeX[γ])"/>
+<element type="text" label="t"><isLaTeX val="true"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        // Relevé dans GeoGebra: at each vertex, counterclockwise from the
+        // next one to the previous one.
+        expect(
+            ["α", "β", "γ"].map((name) =>
+                Math.round(
+                    ((c.getObj(name) as angle_object).value as number) *
+                        (180 / Math.PI) *
+                        100,
+                ),
+            ),
+        ).toEqual([30687, 32313, 27000]);
+        const line = c.getObj("n") as equation_line_object;
+        expect(line.P1.coords[0]).toBeCloseTo(2, 12);
+        expect(String((c.getObj("t") as expression_object).value)).toContain(
+            "a = 270°",
+        );
+    });
+
+    it("holds a point in a half-plane, reads a line f(x), a list's Min, a dot product, x = c", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="1" z="1"/></element>
+<element type="point" label="B"><coords x="2" y="2" z="1"/></element>
+<command name="Line"><input a0="A" a1="B"/><output a0="f"/></command>
+<element type="line" label="f"/>
+<expression label="b" exp="f(0)"/>
+<element type="numeric" label="b"><value val="1"/></element>
+<expression label="h" exp="h(x, y) = y &gt; x / 2 + b"/>
+<element type="functionNVar" label="h"><show object="false" label="true"/></element>
+<command name="PointIn"><input a0="h"/><output a0="C"/></command>
+<element type="point" label="C"><coords x="2" y="5" z="1"/></element>
+<command name="Segment"><input a0="A" a1="B"/><output a0="g"/></command>
+<element type="segment" label="g"/>
+<command name="Segment"><input a0="A" a1="C"/><output a0="k"/></command>
+<element type="segment" label="k"/>
+<expression label="l" exp="{g, k}"/>
+<element type="list" label="l"/>
+<command name="Min"><input a0="l"/><output a0="m"/></command>
+<element type="numeric" label="m"><value val="2.236"/></element>
+<command name="Vector"><input a0="A" a1="B"/><output a0="u"/></command>
+<element type="vector" label="u"/>
+<command name="Vector"><input a0="A" a1="C"/><output a0="v"/></command>
+<element type="vector" label="v"/>
+<expression label="p" exp="u * v"/>
+<element type="numeric" label="p"><value val="8"/></element>
+<command name="Intersect"><input a0="f" a1="x = 4"/><output a0="D"/></command>
+<element type="point" label="D"><coords x="4" y="3" z="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const value = (name: string) =>
+            (c.getObj(name) as expression_object).value;
+        expect(value("b")).toBeCloseTo(1, 12);
+        expect(value("m")).toBeCloseTo(Math.sqrt(5), 12);
+        expect(value("p")).toBeCloseTo(8, 12);
+        expect((c.getObj("D") as point_object).coords).toEqual([4, 3, 0]);
+        // Dragged below y = x / 2 + 1, it stays on it.
+        const point = c.getObj("C") as point_object;
+        expect(point.coords).toEqual([2, 5, 0]);
+        const free = (point as unknown as { follows: point_object }).follows;
+        free.coords = [4, -10, 0];
+        c.invalidateGeometry(free);
+        c.flush();
+        expect(point.coords[1]).toBeCloseTo(3, 12);
+    });
+
+    it("makes an input box of a function redefine it", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="f" exp="f(x) = x^(2) + (3 * x) - 1"/>
+<element type="function" label="f"/>
+<command name="Textfield"><input a0="f"/><output a0="t"/></command>
+<element type="textfield" label="t"><show object="true" label="true"/><labelOffset x="10" y="20"/><caption val="f(x) ="/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const input = c.svg.find("input")!.dom() as HTMLInputElement;
+        expect(input.value).toBe("x^(2) + (3 * x) - 1");
+        input.value = "2x + 1";
+        input.dispatchEvent(new Event("change"));
+        const f = c.getObj("f") as curve_object;
+        expect(f.formula.source).toBe("2x + 1");
+    });
+
+    it("reads a circle's radius", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="3" y="4" z="1"/></element>
+<command name="Circle"><input a0="A" a1="B"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<command name="Circle"><input a0="B" a1="(0.5 * Radius[c])"/><output a0="d"/></command>
+<element type="conic" label="d"/>
+<command name="Radius"><input a0="d"/><output a0="r"/></command>
+<element type="numeric" label="r"><value val="2.5"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect((c.getObj("d") as circle1_object).R).toBeCloseTo(2.5, 12);
+        expect((c.getObj("r") as expression_object).value).toBeCloseTo(2.5, 12);
+    });
+
     it("draws dynamic colors, tables and LaTeX lines as GeoGebra", async () => {
         const c = createConstruction();
         const response = await fetch(figure("graphe_complet.ggb"));
@@ -2838,6 +3026,150 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
             true,
             false,
         ]);
+    });
+
+    it("draws Sequences of images of images, and of any command", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="D"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="E"><coords x="0" y="1" z="1"/></element>
+<element type="point" label="F"><coords x="0" y="0" z="1"/></element>
+<command name="Polygon"><input a0="{D, E, F}"/><output a0="poly1"/></command>
+<element type="polygon" label="poly1"/>
+<command name="Sequence"><input a0="Sequence[Translate[Dilate[poly1, 2^(l)], (k, l)], k, 0, 1]" a1="l" a2="0" a3="1"/><output a0="L"/></command>
+<element type="list" label="L"/>
+<element type="numeric" label="n"><value val="2"/><slider min="1" max="3"/></element>
+<command name="Sequence"><input a0="Text[&quot;u_{&quot; + (i) + &quot;}&quot;, (i, 0)]" a1="i" a2="1" a3="n"/><output a0="T"/></command>
+<element type="list" label="T"><show object="true" label="false"/></element>
+<command name="Sequence"><input a0="CircumcircleArc[(k, 0), (k + 1, 1), (k + 2, 0)]" a1="k" a2="0" a3="n - 1"/><output a0="S"/></command>
+<element type="list" label="S"><show object="true" label="false"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        // The images of the triangle by Dilate(·, 2^l) then a
+        // translation by (k, l), each followed by an undefined vertex.
+        const images = c.getObj("L") as sequence_object;
+        expect(images.count).toBe(16);
+        expectClose(
+            (images.items[12][0] as readonly number[]).slice(0, 2),
+            [3, 1],
+        );
+        expect(images.items[15][0]).toBeNull();
+        // A text for each value n may take, "u_{i}" in subscript, shown
+        // while i ≤ n; an arc from k = 0 to n - 1.
+        const shown = (
+            type: abstract new (...args: never[]) => construction_object,
+        ) =>
+            c.OBJS.V.filter(
+                (object) => object instanceof type && object.isVisible,
+            );
+        const texts = shown(text_object) as text_object[];
+        expect(texts.map((text) => text.content)).toEqual(["u₁", "u₂"]);
+        expect(shown(arc3pts_object)).toHaveLength(2);
+        const n = c.getObj("n") as expression_object;
+        n.value = 3;
+        c.invalidateGeometry(n);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(shown(text_object)).toHaveLength(3);
+        expect(shown(arc3pts_object)).toHaveLength(3);
+    });
+
+    it("reads Sequences of lists, sums, points of segments, complex functions", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="A12" exp="0"/><element type="numeric" label="A12"><value val="0"/></element>
+<expression label="L1" exp="1"/><element type="numeric" label="L1"><value val="1"/></element>
+<command name="Sequence"><input a0="{Segment[(k, A$12), (k, 2)], Segment[($L1, k), (2, k)]}" a1="k" a2="0" a3="2"/><output a0="grid"/></command>
+<element type="list" label="grid"/>
+<element type="point" label="A"><coords x="1" y="1" z="1"/></element>
+<element type="point" label="B"><coords x="3" y="1" z="1"/></element>
+<command name="Segment"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="segment" label="s"/>
+<command name="Sequence"><input a0="(i, 2 * i)" a1="i" a2="1" a3="3"/><output a0="steps"/></command>
+<element type="list" label="steps"/>
+<command name="Sequence"><input a0="A + Sum[First[steps, i]]" a1="i" a2="1" a3="3"/><output a0="walk"/></command>
+<element type="list" label="walk"/>
+<command name="Insert"><input a0="A" a1="walk" a2="1"/><output a0="path"/></command>
+<element type="list" label="path"/>
+<command name="Segment"><input a0="Element[path, 1]" a1="Element[path, 3]"/><output a0="t"/></command>
+<element type="segment" label="t"/>
+<command name="Sequence"><input a0="Segment[Point[s, i], (0, i)]" a1="i" a2="0" a3="1" a4="0.5"/><output a0="rays"/></command>
+<element type="list" label="rays"/>
+<expression label="ψ" exp="1"/><element type="numeric" label="ψ"><value val="1"/></element>
+<expression label="h" exp="h(z) = (real(z) * cosh(ψ) + imaginary(z) * sinh(ψ)) + ί * atanh(tanh(ψ))" type="surfacecartesian"/>
+<element type="surfacecartesian" label="h"><show object="false"/></element>
+<expression label="H" exp="h(B)" type="point"/>
+<element type="point" label="H"><coords x="0" y="0" z="1"/></element>
+<expression label="R" exp="exp(ί * π / 2)" type="point"/>
+<element type="point" label="R"><coords x="0" y="1" z="1"/></element>
+<expression label="c" exp="x^(2) + y^(2) = 4" type="conic"/>
+<element type="conic" label="c"><matrix A0="1" A1="1" A2="-4" A3="0" A4="0" A5="0"/></element>
+<command name="Arc"><input a0="c" a1="0" a2="π / 2"/><output a0="arc"/></command>
+<element type="conicpart" label="arc"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const items = (label: string) =>
+            (c.getObj(label) as sequence_object).items.map((item) =>
+                item.map((point) => (point as readonly number[]).slice(0, 2)),
+            );
+        // A$12 and $L1 are A12 and L1; each k's two segments in turn.
+        expect(items("grid").slice(0, 2)).toEqual([
+            [
+                [0, 0],
+                [0, 2],
+            ],
+            [
+                [1, 0],
+                [2, 0],
+            ],
+        ]);
+        // A + (1, 2), A + (1, 2) + (2, 4)…, after A.
+        expectClose(
+            (c.getObj("t") as segment_object).P2.coords.slice(0, 2),
+            [4, 7],
+        );
+        expectClose(items("rays")[1][0], [2, 1]);
+        const B = c.getObj("B") as point_object;
+        expectClose((c.getObj("H") as point_object).coords.slice(0, 2), [
+            3 * Math.cosh(1) + Math.sinh(1),
+            1,
+        ]);
+        expectClose((c.getObj("R") as point_object).coords.slice(0, 2), [0, 1]);
+        expect(B.coords[0]).toBe(3);
+        // A quarter of the circle of radius 2.
+        const arc = c.getObj("arc") as primitive_arc_object;
+        const span = Math.abs(arc.endAlpha - arc.startAlpha) % (2 * Math.PI);
+        expect(arc.scriptValue(false)).toBeCloseTo(2, 9);
+        expect(Math.min(span, 2 * Math.PI - span)).toBeCloseTo(Math.PI / 2, 9);
+    });
+
+    it("writes an angle's caption past its arc", () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="0" y="1" z="1"/></element>
+<command name="Angle"><input a0="A" a1="O" a2="B"/><output a0="α"/></command>
+<element type="angle" label="α"><show object="true" label="true"/><labelMode val="3"/><caption val="ϕ"/></element>
+</construction></geogebra>`,
+        );
+        const angle = c.getObj("α") as angle_object;
+        angle.draw();
+        expect(angle.nameLabel?.dom().textContent).toBe("ϕ");
+        const [x, y] = angle.nameAt()!;
+        const [ox, oy] = (c.getObj("O") as point_object).screen;
+        // Above and right of O, on the bisector, beyond the arc.
+        expect(x - ox).toBeGreaterThan(angle.arcRadius / 2);
+        expect(oy - y).toBeGreaterThan(angle.arcRadius / 2);
     });
 
     it("imports Cercles3D's Sequence of six directed circles", async () => {
