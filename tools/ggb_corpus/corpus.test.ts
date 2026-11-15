@@ -4,6 +4,7 @@ import { construction } from "../../src/construction";
 import { importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { preferences } from "../../src/preferences";
+import { renderTeX } from "../../src/objects/latex";
 
 const FILES = import.meta.glob("./corpus/*.ggb", {
     query: "?url",
@@ -97,6 +98,19 @@ it("corpus", async () => {
                     )
                 )
                     mismatches.push(`${label} (${saved}) (${value})`);
+            });
+            // And the shown LaTeX texts that KaTeX refuses, even repaired.
+            c.OBJS.V.forEach((object) => {
+                const t = object as any;
+                if (!t.latex || t.hidden || typeof t.value !== "string") return;
+                const tex = t.rounded("{,}");
+                const error = /katex-error[^>]*?(?:title="([^"]*)")?>/.exec(
+                    renderTeX(tex)[0],
+                );
+                if (error)
+                    mismatches.push(
+                        `latex ${t.name} ${error[1]?.slice(0, 120)} ⟦${tex.slice(0, 200)}⟧`,
+                    );
             });
         } catch (e) {
             error = String(e).slice(0, 200);

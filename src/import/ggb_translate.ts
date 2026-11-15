@@ -158,6 +158,7 @@ const FORMULA_COMMANDS = new Set([
     "Corner",
     "FractionText",
     "TableText",
+    "RotateText",
     "Slope",
     "Length",
     "PathParameter",
@@ -1702,6 +1703,23 @@ export function translateGgb(
             }
             case "TableText":
                 return tableFormula(args, locals);
+            // "\\rotatebox{90}{ \\text{ abc }  }" (relevé dans GeoGebra),
+            // a LaTeX text kept as is. Drawn turned (see latex.ts).
+            case "RotateText": {
+                // A text not in LaTeX isn't read by a formula: its own
+                // expression is.
+                const source = expressions.get(args[0]);
+                const parts = source === undefined ? null : textParts(source);
+                const value = parts
+                    ? `(""${parts.map((part) => (typeof part === "string" ? `+"${part.replace(/[\\"]/g, "\\$&")}"` : `+(${part.formula})`)).join("")})`
+                    : formula(args[0], TEXT_KINDS, locals);
+                const angle = formula(args[1], TEXT_KINDS, locals);
+                if (args.length !== 2 || !value || !angle) return null;
+                const text = elements.get(args[0]);
+                const latex =
+                    !!text && attribute(text, "isLaTeX", "val") === "true";
+                return `("\\\\rotatebox{"+((${angle})*180/π)+"}{"+${latex ? value : `"\\\\text{ "+${value}+" }"`}+"}")`;
+            }
             default:
                 return vectorFormula(source, locals);
         }
@@ -4714,6 +4732,7 @@ export function translateGgb(
         },
         FractionText: formulaCommand("FractionText"),
         TableText: formulaCommand("TableText"),
+        RotateText: formulaCommand("RotateText"),
         // A polygon of a Sequence, by its vertices.
         Element: (inputs, [label]) => {
             const item =

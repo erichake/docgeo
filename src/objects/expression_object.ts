@@ -45,12 +45,9 @@ export function frameText(rect: DOMElement, text: DOMElement): void {
         .att("height", box.height + 2 * BACKDROP_MARGIN);
 }
 
-let katex: Promise<typeof import("katex").default> | undefined;
+let latex: Promise<typeof import("./latex").renderTeX> | undefined;
 export const loadKaTeX = () =>
-    (katex ??= Promise.all([
-        import("katex/dist/katex.min.js"),
-        import("katex/dist/katex.min.css"),
-    ]).then(([module]) => module.default));
+    (latex ??= import("./latex").then((module) => module.renderTeX));
 
 const DEFAULT_CURSOR_LENGTH = 200;
 const DEFAULT_CURSOR_RADIUS = 10;
@@ -892,13 +889,24 @@ export class expression_object extends construction_object {
             if (content !== this.renderedTeX) {
                 this.renderedTeX = content;
                 const div = this.tex.find("div")!;
-                loadKaTeX().then((katex) => {
-                    if (this.renderedTeX === content)
-                        div.inner(
-                            katex.renderToString(content, {
-                                throwOnError: false,
-                            }),
-                        );
+                loadKaTeX().then((render) => {
+                    if (this.renderedTeX !== content) return;
+                    const [html, degrees] = render(content);
+                    div.inner(html);
+                    // GeoGebra's RotateText: its box at the same corner.
+                    const a = (degrees * Math.PI) / 180;
+                    const { offsetWidth: w, offsetHeight: h } =
+                        div.dom() as HTMLElement;
+                    const [c, s] = [
+                        Math.abs(Math.cos(a)),
+                        Math.abs(Math.sin(a)),
+                    ];
+                    div.stl(
+                        "transform",
+                        degrees
+                            ? `translate(${(w * c + h * s - w) / 2}px,${(w * s + h * c - h) / 2}px) rotate(${-degrees}deg)`
+                            : "",
+                    );
                 });
             }
             return;

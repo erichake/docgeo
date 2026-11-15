@@ -295,15 +295,13 @@ export class panel_object extends construction_object {
                 ),
             );
             if (parts.length === 1) return;
-            loadKaTeX().then((katex) => {
+            loadKaTeX().then((render) => {
                 if (text.rendered !== rendered) return;
                 const spans = text.element.findAll(":scope > span");
                 parts
                     .filter((_, index) => index % 2)
                     .forEach((tex, index) =>
-                        spans[index].inner(
-                            katex.renderToString(tex, { throwOnError: false }),
-                        ),
+                        spans[index].inner(render(tex)[0]),
                     );
             });
         });

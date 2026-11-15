@@ -3741,6 +3741,38 @@ ${conic("circle", "(x - a)^(2) + y^(2) = 4", [1, 1, 0, 0, -2, 0])}
         );
     });
 
+    it("turns texts as GeoGebra's RotateText, and draws JLaTeXMath's texts", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="t" exp="&quot;\\frac{1}{h}&quot;"/>
+<element type="text" label="t"><show object="false"/></element>
+<command name="RotateText"><input a0="t" a1="π / 2"/><output a0="r"/></command>
+<element type="text" label="r"><isLaTeX val="true"/><startPoint x="0" y="0" z="1"/></element>
+<expression label="u" exp="&quot;x^2&quot;"/>
+<element type="text" label="u"><isLaTeX val="true"/><startPoint x="0" y="0" z="1"/></element>
+<command name="RotateText"><input a0="u" a1="30°"/><output a0="v"/></command>
+<element type="text" label="v"><isLaTeX val="true"/><startPoint x="2" y="0" z="1"/></element>
+<expression label="w" exp="&quot;\\mbox{Score : } \\hspace{0.6cm}\\textbf{ 1^3 = 1}&quot;"/>
+<element type="text" label="w"><isLaTeX val="true"/><startPoint x="0" y="3" z="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect((c.getObj("r") as expression_object).value).toBe(
+            "\\displaystyle\\sf \\rotatebox{90}{\\text{ \\frac{1}{h} }}",
+        );
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const div = (name: string) =>
+            c.getObj(name)!.svg.dom().querySelector("foreignObject > div")!;
+        expect((div("r") as HTMLElement).style.transform).toMatch(
+            /rotate\(-90deg\)/,
+        );
+        expect(div("w").querySelector(".katex-error")).toBeNull();
+        expect(div("w").querySelector(".katex")).not.toBeNull();
+    });
+
     it("computes tangents, slopes, lengths, derivatives and integrals", async () => {
         const c = createConstruction();
         const point = (label: string, x: number, y: number) =>

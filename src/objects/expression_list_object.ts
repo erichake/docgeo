@@ -373,18 +373,12 @@ export class expression_list_object extends list_object {
                     ),
                 );
             object.add(line);
-            loadKaTeX().then((katex) => {
+            loadKaTeX().then((render) => {
                 if (object.getAtt("data-tex") !== content) return;
                 const spans = line.findAll(":scope > span");
                 parts
                     .filter((_, k) => k % 2)
-                    .forEach((tex, k) =>
-                        spans[k].inner(
-                            katex.renderToString(tex, {
-                                throwOnError: false,
-                            }),
-                        ),
-                    );
+                    .forEach((tex, k) => spans[k].inner(render(tex)[0]));
             });
         });
         const images = labels.filter(([, style]) => style.image);

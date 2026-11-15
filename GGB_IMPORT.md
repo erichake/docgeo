@@ -56,6 +56,8 @@ nombres dont la valeur importée diffère de celle que GeoGebra a enregistrée
 un écart est une erreur silencieuse : elle échoue. Un angle « jamais
 rentrant » ou « rentrant » enregistre sa valeur dans le sens direct, avant
 son style (relevé dans GeoGebra) : la comparaison en tient compte.
+Un texte LaTeX visible que KaTeX refuse, même réparé (`src/objects/latex.ts`),
+y est aussi un écart (« latex nom erreur ⟦texte⟧ »).
 
 `roots.py` affiche, pour chaque cause, le nombre de figures touchées et le
 nombre de figures où c'est la **seule** cause. Il ne compte pas les échecs en
@@ -75,11 +77,10 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 309 / 456,
+Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 312 / 456,
 68 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-311 : u8qxbhjt (formules dans `\text{…}`, voir ci-dessous) et Sa2y6MrH
-(cercle par trois points dont deux confondus, que GeoGebra dessine comme la
-droite qui les porte et DocGeo pas du tout) restent fausses.
+313 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
 `python3 tools/ggb_corpus/roots.py` avant de choisir, l'ordre évolue) :
@@ -87,8 +88,6 @@ droite qui les porte et DocGeo pas du tout) restent fausses.
 1. textes (`text`, 4), chacun à part : `LaTeX` d'une fonction (règles
    d'écriture de GeoGebra, dérivée symbolique), équation d'une droite
    dans un texte (échelle de ses coefficients), outils personnalisés ;
-   formules dans `\text{…}` (u8qxbhjt, comptée à tort « sans perte » :
-   `\text{ \sqrt[3]{…}}`, `^3`, que JLaTeXMath accepte et KaTeX refuse) ;
 2. `Sequence` restantes (4 figures, jamais seule cause) : `If` d'objets
    (nhznjtge), matrices (rumzymp5), angles (tktnzexh), et VytdxwXH, qui
    demande des `Sequence` de courbes (`CurveCartesian`, nature absente de
@@ -227,6 +226,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 304 / 456 (67 %)   | 336,9 Ko | item 72 : champ de saisie d'une fonction (+3)                        |
 | 2026-11-15 | 307 / 456 (67 %)   | 336,9 Ko | item 73 : `Sequence` d'images d'images, de textes, de toute commande (+3) |
 | 2026-11-15 | 309 / 456 (68 %)   | 337,1 Ko | item 74 : listes dans les `Sequence`, `Sum` en boucle, `$` du tableur, noms des angles (+2) |
+| 2026-11-15 | 312 / 456 (68 %)   | 338,0 Ko | item 75 : textes de JLaTeXMath réparés pour KaTeX, `RotateText` (+3, +10 réelles) |
 
 ## À faire, par rapport gain / coût
 
@@ -1438,4 +1438,30 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       comptée mais reste fausse, voir « Méthode et prochaines étapes »).
       Aucune figure perdue ni « sans perte » avec un écart. Moteur +0,3 Ko
       (`nameAt` des angles), import (`ggb_importer`) 87,3 Ko.
-
+- [x] **75. Textes de JLaTeXMath, `RotateText`** : la mesure compte
+      désormais comme écart un texte LaTeX visible que KaTeX refuse. Elle a
+      révélé 8 figures comptées à tort « sans perte » (BBqMffYW, J5D79kra,
+      YjJnqDJH, apv2xrmj, jnfdw4up, memsrp59, txnjqzmn, u8qxbhjt) : GeoGebra
+      écrit ses textes pour JLaTeXMath, plus tolérant. Un texte que KaTeX
+      refuse (jamais un autre : ceux de DGPad sont écrits pour lui) est
+      réécrit par `src/objects/latex.ts`, chargé avec KaTeX et donc hors du
+      poids du moteur : `\mbox`, `\cr`, `\shadowbox`, `\[ \]`,
+      `\vspace` (retiré), `\begin{array}` sans colonnes, couleurs de
+      JLaTeXMath (`r,g,b` et hexadécimal sans ses zéros de tête : `#8800`
+      est #008800), `\scalebox` (taille de KaTeX la plus proche), dernier
+      argument sans accolades (`\fcolorbox{a}{b}\textsf{…}`), nombres
+      des longueurs, échelles et couleurs que l'arrondi du texte écrivait
+      en virgule décimale (`\hspace{0{,}6cm}`). Puis d'après les erreurs de
+      KaTeX : accolade fermante en trop retirée, manquante ajoutée en fin,
+      commande mathématique dans un texte (`\sqrt`, `1^3`, `\left…\right`,
+      `\begin…\end`) mise entre `\( \)`, police mathématique dans un texte
+      (`\bold\textcolor{…}{…}`, `\boldsymbol`) changée en `\textbf` de son
+      argument. 81 des 83 textes refusés du corpus s'affichent.
+      `RotateText(t, a)` donne `\rotatebox{degrés}{t}` (`\text{ t }` pour
+      un texte simple, relevé dans GeoGebra), dessiné tourné, sa boîte au
+      même coin. **+3 figures** comptées (309 → 312 : kenpzccu, vqcsfasn,
+      et u8qxbhjt enfin réelle), +10 réelles (302 → 312). y7e45dgw, où
+      `RotateText` était la seule cause signalée, cache d'autres écarts
+      (hachures, curseur, champs de saisie). Aucune figure perdue ni « sans
+      perte » avec un écart. Moteur inchangé (338,0 Ko), import +0,4 Ko,
+      morceau KaTeX +3,5 Ko.
