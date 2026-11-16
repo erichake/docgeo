@@ -11,6 +11,7 @@ import {
     lockFigure,
     objectValue,
     placeOn,
+    restyle,
     stateFigure,
 } from "./figure_state";
 import { frameRegion, hideFrame, showFrame } from "./frame";
@@ -65,11 +66,13 @@ export function embed(app: Embedder): void {
         reported = JSON.stringify(state());
         app.scene.reveal();
     };
-    // `values`: the state whose coordinates place points on objects.
+    // `values`: the state whose coordinates place points on objects, and
+    // whose changes restyle it.
     const rebuild = (figure: DgoFigure, values: FigureState = {}): void => {
         renew();
         readDgo(app.scene, figure, true);
         placeOn(app.scene, values);
+        restyle(app.scene, values);
         settle();
     };
     const state = () => figureState(app.scene, base!.values, view);
@@ -254,10 +257,10 @@ export function embed(app: Embedder): void {
                 );
             });
             if (Object.keys(rebased).length) {
-                rebuild(stateFigure(app.scene, base!.figure, rebased));
+                rebuild(stateFigure(app.scene, base!.figure, rebased), rebased);
                 rebase();
             }
-            rebuild(stateFigure(app.scene, base!.figure, current));
+            rebuild(stateFigure(app.scene, base!.figure, current), current);
         });
     });
 

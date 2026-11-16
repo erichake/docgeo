@@ -738,9 +738,10 @@ export function polylineSplit(
 
 // Renders a set of sub-ranges of [sP1, sP2] as disconnected SVG path
 // commands, one "M...L..." per range. Each range starts from its leftmost
-// (then topmost) end whichever way the segment runs, so that coincident
-// strokes (e.g. [G,C] and [C,G'] with G' on G) share the same dash phase
-// instead of filling each other's gaps.
+// end, its topmost when it is closer to vertical, whichever way the segment
+// runs, so that coincident strokes (e.g. [G,C] and [C,G'] with G' on G)
+// share the same dash phase instead of filling each other's gaps: never
+// from the rounding noise of a vertical one's abscissas.
 export function intervalsToPath(
     sP1: Vec2,
     sP2: Vec2,
@@ -750,7 +751,8 @@ export function intervalsToPath(
         .map(([a, b]) => {
             let p0 = vAdd(sP1, vScale(vSub(sP2, sP1), a));
             let p1 = vAdd(sP1, vScale(vSub(sP2, sP1), b));
-            if (p1[0] < p0[0] || (p1[0] === p0[0] && p1[1] < p0[1]))
+            const [dx, dy] = vSub(p1, p0);
+            if (Math.abs(dx) < Math.abs(dy) ? dy < 0 : dx < 0)
                 [p0, p1] = [p1, p0];
             return `M${p0[0]} ${p0[1]} L${p1[0]} ${p1[1]}`;
         })

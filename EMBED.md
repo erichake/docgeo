@@ -65,19 +65,19 @@ Après un `change`, l'hôte lit l'état ou la valeur voulue par une requête.
 
 ## Requêtes
 
-| `type`      | Paramètres                                               | `result`                                                                      |
-| ----------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `load`      | `data` (`ArrayBuffer`), `format` (`dgo`, `dgp` ou `ggb`) | `{ unsupported: string[] }` : la figure chargée devient la **figure de base** |
-| `save`      | —                                                        | `{ data: ArrayBuffer }` : le `.dgo` de la figure courante                     |
-| `targets`   | —                                                        | `[{ name, kind: "point" \| "expression", hidden, movable }]`                  |
-| `value`     | `name`                                                   | valeur de l'objet                                                             |
-| `getState`  | —                                                        | état courant                                                                  |
-| `setState`  | `state`                                                  | `null` : repart de la figure de base, puis applique l'état                    |
-| `reset`     | —                                                        | `null` : revient à la figure de base                                          |
-| `rebase`    | —                                                        | `null` : la figure courante devient la figure de base, vue exceptée           |
-| `lock`      | `except` (tableau de noms)                               | `null` : seuls les objets `movable` nommés restent manipulables               |
-| `setHidden` | `name`, `hidden` (booléen)                               | `null` : cache ou montre le point ou l'expression, figure de base comprise    |
-| `frame`     | `show` (booléen), `w`, `h` (entiers, pixels)             | `null` : affiche ou masque le cadre                                           |
+| `type`      | Paramètres                                               | `result`                                                                                             |
+| ----------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `load`      | `data` (`ArrayBuffer`), `format` (`dgo`, `dgp` ou `ggb`) | `{ unsupported: string[] }` : la figure chargée devient la **figure de base**                        |
+| `save`      | —                                                        | `{ data: ArrayBuffer }` : le `.dgo` de la figure courante                                            |
+| `targets`   | —                                                        | `[{ name, kind: "point" \| "expression", hidden, movable }]`                                         |
+| `value`     | `name`                                                   | valeur de l'objet                                                                                    |
+| `getState`  | —                                                        | état courant                                                                                         |
+| `setState`  | `state`                                                  | `null` : repart de la figure de base, puis applique l'état, styles des programmes compris (`DGO.md`) |
+| `reset`     | —                                                        | `null` : revient à la figure de base                                                                 |
+| `rebase`    | —                                                        | `null` : la figure courante devient la figure de base, vue exceptée                                  |
+| `lock`      | `except` (tableau de noms)                               | `null` : seuls les objets `movable` nommés restent manipulables                                      |
+| `setHidden` | `name`, `hidden` (booléen)                               | `null` : cache ou montre le point ou l'expression, figure de base comprise                           |
+| `frame`     | `show` (booléen), `w`, `h` (entiers, pixels)             | `null` : affiche ou masque le cadre                                                                  |
 
 ### `load`
 

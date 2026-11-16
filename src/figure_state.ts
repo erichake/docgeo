@@ -3,7 +3,8 @@ import { circle1_object } from "./objects/circle1_object";
 import { curve_object, typedFormula } from "./objects/curve_object";
 import { figureObjects, type DgoFigure } from "./dgo";
 import type { construction_object } from "./objects/construction_object";
-import { expression_object } from "./objects/expression_object";
+import { event_object } from "./objects/event_object";
+import { expression_object, runProgram } from "./objects/expression_object";
 import { free_vector_object } from "./objects/free_vector_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
@@ -260,6 +261,22 @@ export function placeOn(c: construction, state: FigureState): void {
         if (alpha === null) return;
         object.alpha = alpha;
         c.invalidateGeometry(object);
+    });
+}
+
+// Styles `c`, built with `state`, as the manipulation it stands for did:
+// the programs run once a value it changes changed ("onchange") or a point
+// it moves was dragged ("ondrag"), in construction order, for their styles
+// only.
+export function restyle(c: construction, state: FigureState): void {
+    c.flush();
+    figureObjects(c).forEach((object) => {
+        if (
+            object instanceof event_object &&
+            (object.gesture ?? "drag") === "drag" &&
+            Object.prototype.hasOwnProperty.call(state, object.owner.name)
+        )
+            runProgram(c, object.program, true);
     });
 }
 

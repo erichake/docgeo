@@ -1266,6 +1266,16 @@ base (égalité exacte des nombres JSON). État vide : figure non manipulée.
 faire à la figure, hors vue et traces, se retrouve dans l'état. Tout nouvel
 objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 
+Les styles que changent les programmes d'une manipulation (note 24 des
+objets, scripts de mise à jour de GeoGebra) se retrouvent, eux, en
+appliquant l'état (depuis le 2026-11-16) : une fois la figure construite
+avec ses valeurs, les programmes « onchange » des objets qu'il nomme et
+« ondrag » des points qu'il nomme s'exécutent, dans l'ordre de la figure,
+pour leurs styles seulement. Ni leurs affectations, déjà dans l'état, ni
+leurs messages, questions, attentes ou changements de vue (fond compris).
+Un style qu'un programme ne tire pas des valeurs finales (compteur de
+passages, réponse à une question) peut donc différer.
+
 ```json
 { "M": [2.1, -0.4], "N": 0.35, "k": 31, "cb": 1, "I2": 3 }
 ```

@@ -10,6 +10,7 @@ import {
     figureState,
     figureValues,
     objectValue,
+    restyle,
     stateFigure,
 } from "../../src/figure_state";
 import { importGgbFromUrl } from "../../src/ggb_importer";
@@ -70,7 +71,9 @@ function manipulate(
             object.alpha =
                 typeof alpha === "number"
                     ? alpha * 0.97 + 0.01
-                    : [alpha[0] * 0.97 + 0.01, alpha[1]];
+                    : (alpha.map((value, i) =>
+                          i ? value : value * 0.97 + 0.01,
+                      ) as unknown as typeof alpha);
         } else if (object.constructor === point_object) {
             const point = object as point_object;
             point.coords = [
@@ -128,9 +131,16 @@ async function stateRoundTrip(
     );
     const copy = createConstruction();
     readDgo(copy, stateFigure(student, base, state), true);
+    restyle(copy, state);
     await frame();
     expectClose(figureState(copy, values, builtView(copy)), state);
     [student, copy].forEach((c) => c.traceLayer.dom().replaceChildren());
+    // The background color, which a script may change, is the view's: out
+    // of the state.
+    copy.prefs.background.color = student.prefs.background.color;
+    copy.paintBackground();
+    copy.invalidateRender(copy.GRID);
+    copy.flush();
     // Up to rounding: a point on a polygon recomputes its parameters from
     // its position, a name is placed by its measured width.
     expect(

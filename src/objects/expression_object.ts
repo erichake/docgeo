@@ -305,7 +305,14 @@ export const listArrow = (value: unknown): Vec2 | null =>
 const RUNS = new WeakMap<ExpressionProgram, number>();
 
 // A program that waits (WAIT(ms)) runs on, the figure drawn during its waits.
-export function runProgram(c: construction, expression: ExpressionProgram) {
+// Only its styles when `restyled`, at once: values set and what the figure
+// shows besides are already those of a state (see restyle in
+// figure_state.ts).
+export function runProgram(
+    c: construction,
+    expression: ExpressionProgram,
+    restyled = false,
+) {
     const { program, refs, targets, vec3 } = expression;
     const view = () => c.formulaView();
     const env: FormulaEnv = {
@@ -318,50 +325,64 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
             if (!target) return;
             if (method !== "setExpression")
                 styleObject(c, target, method, args);
-            else if (setValue(target, args[0])) c.invalidateGeometry(target);
-        },
-        alert: (message) => message !== null && dialog(message),
-        turnView: (direction) => {
-            const [x, y, z] = Array.isArray(direction) ? direction : [];
-            if (!c.GRID.is2D && [x, y, z].every((c) => typeof c === "number"))
-                c.GRID.turnTo([x, y, z] as Vec3);
-        },
-        showAxis: (axis, shown) => {
-            const key = (["showOx", "showOy", "showOz"] as const)[
-                axis as number
-            ];
-            if (!key || typeof shown !== "number") return;
-            c.GRID[key] = shown !== 0;
-            c.invalidateRender(c.GRID);
-        },
-        // Shown without the axes GeoGebra didn't show.
-        showGrid: (shown) => {
-            if (typeof shown !== "number") return;
-            c.GRID.showGrid = shown !== 0;
-            if (shown) c.GRID.hidden = 0;
-            c.invalidateRender(c.GRID);
-        },
-        centerView: (point) => {
-            if (!Array.isArray(point) || typeof point[0] !== "number") return;
-            const [x, y] = c.pt3D([point[0], point[1] as number, 0]);
-            c.pan(null!, [c.width / 2 - x, c.height / 2 - y]);
-        },
-        clearTraces: () => {
-            c.traceEpoch++;
-            c.invalidateProjection();
-        },
-        background: (...channels) => {
-            const values = channels.map(realPart);
-            if (values.includes(null)) return;
-            const color = `rgb(${values.map((v) => Math.min(Math.max(Math.round(v!), 0), 255))})`;
-            c.prefs.background.color = color;
-            c.paintBackground();
-            // The axes' halo.
-            c.invalidateRender(c.GRID);
+            else if (!restyled && setValue(target, args[0]))
+                c.invalidateGeometry(target);
         },
     };
+    if (!restyled)
+        Object.assign(env, {
+            alert: (message: ScriptValue | null) =>
+                message !== null && dialog(message),
+            turnView: (direction) => {
+                const [x, y, z] = Array.isArray(direction) ? direction : [];
+                if (
+                    !c.GRID.is2D &&
+                    [x, y, z].every((c) => typeof c === "number")
+                )
+                    c.GRID.turnTo([x, y, z] as Vec3);
+            },
+            showAxis: (axis, shown) => {
+                const key = (["showOx", "showOy", "showOz"] as const)[
+                    axis as number
+                ];
+                if (!key || typeof shown !== "number") return;
+                c.GRID[key] = shown !== 0;
+                c.invalidateRender(c.GRID);
+            },
+            // Shown without the axes GeoGebra didn't show.
+            showGrid: (shown) => {
+                if (typeof shown !== "number") return;
+                c.GRID.showGrid = shown !== 0;
+                if (shown) c.GRID.hidden = 0;
+                c.invalidateRender(c.GRID);
+            },
+            centerView: (point) => {
+                if (!Array.isArray(point) || typeof point[0] !== "number")
+                    return;
+                const [x, y] = c.pt3D([point[0], point[1] as number, 0]);
+                c.pan(null!, [c.width / 2 - x, c.height / 2 - y]);
+            },
+            clearTraces: () => {
+                c.traceEpoch++;
+                c.invalidateProjection();
+            },
+            background: (...channels) => {
+                const values = channels.map(realPart);
+                if (values.includes(null)) return;
+                const color = `rgb(${values.map((v) => Math.min(Math.max(Math.round(v!), 0), 255))})`;
+                c.prefs.background.color = color;
+                c.paintBackground();
+                // The axes' halo.
+                c.invalidateRender(c.GRID);
+            },
+        } satisfies Partial<FormulaEnv>);
     const steps = programSteps(program, env);
     if (!steps) return void evaluateProgram(program, env);
+    if (restyled) {
+        // Its waits skipped, its questions left unanswered.
+        while (!steps.next("").done);
+        return;
+    }
     clearTimeout(RUNS.get(expression));
     const next = (answer: ScriptValue = "") => {
         const { done, value } = steps.next(answer);
