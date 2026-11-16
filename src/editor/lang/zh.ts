@@ -44,6 +44,8 @@ const zh: Texts = {
         new_figure: "新建图形",
         new_page: "新建页面",
         delete_page: "删除页面",
+        new_view: "新建视图",
+        delete_view: "删除视图",
         page_name: "第 % 页",
         delete_page_confirm: "删除页面“%”？",
         rename_page: "重命名",

@@ -45,6 +45,8 @@ const el: Texts = {
         new_figure: "Νέο σχήμα",
         new_page: "Νέα σελίδα",
         delete_page: "Διαγραφή της σελίδας",
+        new_view: "Νέα προβολή",
+        delete_view: "Διαγραφή της προβολής",
         page_name: "Σελίδα %",
         delete_page_confirm: "Διαγραφή της σελίδας «%»;",
         rename_page: "Μετονομασία",

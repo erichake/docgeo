@@ -1178,10 +1178,56 @@ export function translateGgb(
                 !orphan(label, element) &&
                 THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
         );
-    // Hidden, or else out of the first graphics view, the one DocGeo draws
-    // (bit 0 of "ev", see GeoElement.getXMLvisualTags).
-    const outOfView = (element: Element): boolean =>
-        !is3D && (Number(attribute(element, "show", "ev")) & 1) === 1;
+    // GeoGebra's graphics view n, and whether its window shows it.
+    const graphicsView = (n: number): Element | undefined =>
+        [...document.querySelectorAll("euclidianView")].find(
+            (view) => attribute(view, "viewNumber", "viewNo") === String(n),
+        );
+    const shownView = (id: string): boolean =>
+        document.querySelector(`gui view[id="${id}"][visible="true"]`) !== null;
+    // Where the window shows a view: a digit per level of its panes.
+    const location = (id: string) =>
+        document
+            .querySelector(`gui view[id="${id}"][visible="true"]`)
+            ?.getAttribute("location")
+            ?.split(",");
+    // Its second graphics view, beside the first (a view of its own) or
+    // alone (DocGeo's only one).
+    const second =
+        !is3D && shownView("16") && graphicsView(2)
+            ? shownView("1")
+                ? "beside"
+                : "alone"
+            : null;
+    // Beside the first, DocGeo's views being columns: its first one if
+    // it's on the left of the first or above it (the first digit of its
+    // location that differs from the first's: 0 north, 3 west).
+    const firstAt = location("1") ?? [];
+    const secondFirst =
+        second === "beside" &&
+        ["0", "3"].includes(
+            (location("16") ?? []).find(
+                (digit, index) => digit !== firstAt[index],
+            ) ?? "",
+        );
+    // Bit 0 of "ev": not in the first graphics view, bit 1: in the second
+    // (see GeoElement.getXMLvisualTags).
+    const views = (element: Element): number =>
+        Number(attribute(element, "show", "ev")) || 0;
+    // Drawn in DocGeo's second view: shown only in the graphics view of
+    // the right column.
+    const inSecond = (element: Element): boolean =>
+        second === "beside" && (views(element) & 3) === (secondFirst ? 0 : 3);
+    // Hidden, or else out of the graphics views DocGeo draws.
+    const outOfView = (element: Element): boolean => {
+        if (is3D) return false;
+        const shown = views(element) & 3;
+        return second === "alone"
+            ? (shown & 2) === 0
+            : second === "beside"
+              ? shown === 1
+              : (shown & 1) === 1;
+    };
     const hidden = (element: Element): boolean =>
         attribute(element, "show", "object") === "false" || outOfView(element);
     // A constant point, as a DGP fixed-point vector literal and its
@@ -1197,7 +1243,10 @@ export function translateGgb(
     const decimals = Number(
         document.querySelector("kernel > decimals")?.getAttribute("val") ?? 2,
     );
-    const view = document.querySelector("euclidianView");
+    const view =
+        second === "alone" || secondFirst
+            ? graphicsView(2)!
+            : document.querySelector("euclidianView");
     const rightAngleMark = ["none", "square", "dot", "L"][
         Number(
             document
@@ -2648,6 +2697,37 @@ export function translateGgb(
         const label = auxiliary();
         defineFunction(label, body);
         return objects.get(label)!.variable;
+    };
+
+    // A function of x and y's expression, the functions of x and y it calls
+    // with x and y (a(x, y)) written out in it, if none calls itself.
+    const writtenOut = (label: string, calling: Set<string>): string | null => {
+        const source = expressions.get(label);
+        if (source === undefined || calling.has(label)) return null;
+        let failed = false;
+        const text = source
+            .replace(/^[^=]*\(\s*x\s*,\s*y\s*\)\s*=/, "")
+            .replace(
+                new RegExp(
+                    `(${LABEL_WORDS.source})\\s*\\(\\s*x\\s*,\\s*y\\s*\\)`,
+                    "gu",
+                ),
+                (call, name: string) => {
+                    if (
+                        !/^functionnvar$/i.test(
+                            elements.get(name)?.getAttribute("type") ?? "",
+                        )
+                    )
+                        return call;
+                    const inner = writtenOut(
+                        name,
+                        new Set([...calling, label]),
+                    );
+                    failed ||= inner === null;
+                    return `(${inner})`;
+                },
+            );
+        return failed ? null : text.trim();
     };
 
     const derivative = (f: string, x: string): string =>
@@ -6098,6 +6178,32 @@ export function translateGgb(
                 }),
             );
         }
+        // An inequality of x and y: in the plane, the region where it
+        // holds, the inequalities it calls (a(x, y)) written out in it. One
+        // hidden draws nothing.
+        if (/^functionnvar$/i.test(type ?? "") && !is3D) {
+            if (hidden(element)) return true;
+            const text = writtenOut(label, new Set());
+            if (text === null || !/[<>≤≥]/.test(text)) return false;
+            const body = formula(
+                text,
+                VALUE_KINDS,
+                new Map([
+                    ["x", "x"],
+                    ["y", "y"],
+                ]),
+            );
+            return (
+                body !== null &&
+                define(
+                    label,
+                    "polygon",
+                    "Region",
+                    [literal(body)],
+                    shapeStyle(element),
+                )
+            );
+        }
         if (
             type === "function" &&
             source !== undefined &&
@@ -6136,11 +6242,6 @@ export function translateGgb(
     // Beside the 3D view, a graphics view whose widgets stay where they are
     // in it, from the window's top left corner: the 3D view is centered in
     // the rest of the window.
-    const location = (id: string) =>
-        document
-            .querySelector(`gui view[id="${id}"][visible="true"]`)
-            ?.getAttribute("location")
-            ?.split(",");
     const graphicsAt = location("1");
     const spaceAt = location("512");
     const side =
@@ -6199,7 +6300,7 @@ export function translateGgb(
             literal(Number(attribute(view!, "size", "height") ?? 0)),
             ...(yUnit === unit ? [] : [literal(yUnit)]),
         ]);
-    if (styledView) {
+    const coordsStyle = (styledView: Element): string => {
         const axesColor = child(styledView, "axesColor");
         const axes = attribute(styledView, "evSettings", "axes") === "true";
         const grid = attribute(styledView, "evSettings", "grid") === "true";
@@ -6271,13 +6372,12 @@ export function translateGgb(
         const plane = is3D
             ? space
             : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
-        push(null, "SetCoordsStyle", [
-            literal(
-                `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
-                    axesColor && !is3D ? `;color:${hexColor(axesColor)}` : ""
-                }${plane}`,
-            ),
-        ]);
+        return `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
+            axesColor && !is3D ? `;color:${hexColor(axesColor)}` : ""
+        }${plane}`;
+    };
+    if (styledView) {
+        push(null, "SetCoordsStyle", [literal(coordsStyle(styledView))]);
         // GeoGebra's shown clipping box: its gray edges.
         if (is3D && attribute(styledView, "clipping", "show") === "true") {
             const corners = [1, 2, 3, 4, 5, 6, 7, 8].map((n) =>
@@ -6306,6 +6406,38 @@ export function translateGgb(
                 ),
             );
         }
+    }
+    // The second graphics view beside the first: two columns, as wide as
+    // they are in GeoGebra, the right one with its own coordinate system,
+    // style and background.
+    const right =
+        second === "beside"
+            ? secondFirst
+                ? (graphicsView(1) ?? document.querySelector("euclidianView")!)
+                : graphicsView(2)!
+            : null;
+    if (view && right) {
+        const width = (element: Element) =>
+            Number(attribute(element, "size", "width")) || 1;
+        const share = width(view) / (width(view) + width(right));
+        const coords = child(right, "coordSystem");
+        const number = (name: string, fallback: number) =>
+            Number(coords?.getAttribute(name) ?? fallback);
+        const color = child(right, "bgColor");
+        push(null, "View", [0, share].map(literal));
+        push(null, "View", [
+            ...[
+                1,
+                1 - share,
+                number("xZero", 0),
+                number("yZero", 0),
+                number("scale", 50),
+                number("yscale", number("scale", 50)),
+            ].map(literal),
+            literal(
+                `${coordsStyle(right)}${color ? `;background:${hexColor(color)}` : ""}`,
+            ),
+        ]);
     }
     const background = styledView && child(styledView, "bgColor");
     // GeoGebra's functions work in radians.
@@ -6996,6 +7128,15 @@ export function translateGgb(
                   .join("")}`
             : `rgb:${hiddenExpression(`[${channels}]`)}`;
         drawn.forEach((part) => push(null, "STL", [ref(part), literal(style)]));
+    });
+
+    // What only the second graphics view shows is drawn in its view.
+    elements.forEach((element, label) => {
+        const drawn = parts.get(label) ?? [label];
+        if (inSecond(element) && objects.has(drawn[0]))
+            drawn.forEach((part) =>
+                push(null, "STL", [ref(part), literal("vw:1")]),
+            );
     });
 
     const rates = new Map<string, string>();

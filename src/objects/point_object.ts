@@ -147,17 +147,21 @@ export class point_object extends construction_object {
     set coords(v: Vec3) {
         this.COORDS = [v[0], v[1], v[2]];
     }
+    // Where it is drawn in the current view: a child drawn in another view
+    // than its own sees it there (see VUES.md).
     get screen(): Vec2 {
-        return this.SCREEN;
+        return this.view === this.C.view
+            ? this.SCREEN
+            : this.C.pt3D(this.COORDS);
     }
     set screen(v: Vec2) {
         this.SCREEN = [v[0], v[1]];
     }
     get sx(): number {
-        return this.SCREEN[0];
+        return this.screen[0];
     }
     get sy(): number {
-        return this.SCREEN[1];
+        return this.screen[1];
     }
     get x(): number {
         return this.COORDS[0];

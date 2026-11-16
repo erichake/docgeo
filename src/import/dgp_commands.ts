@@ -46,6 +46,7 @@ import {
 } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
+import { createRegion } from "../objects/region_object";
 import { createCurve, type CurveBound } from "../objects/curve_object";
 import { createButton, type button_object } from "../objects/button_object";
 import { createEvent, runInits } from "../objects/event_object";
@@ -987,6 +988,7 @@ function validateObjectStyle(
                     throw new Error(`Invalid DGP style at line ${lineNumber}`);
                 break;
             case "cL":
+            case "vw":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sg":
@@ -1065,7 +1067,7 @@ function validateCursorStyle(value: string, lineNumber: number): void {
 
 function validateCoordsStyle(value: string, lineNumber: number): void {
     const style = properties(value);
-    ["color", "gridColor"].forEach((name) => {
+    ["color", "gridColor", "background"].forEach((name) => {
         const color = style.get(name);
         if (color !== undefined) validateColor(color, lineNumber);
     });
@@ -1195,6 +1197,11 @@ function applyObjectStyle(
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
+                break;
+            // DocGeo's: the view it is drawn in.
+            case "vw":
+                if (Number(propertyValue) < target.C.views.length)
+                    target.C.moveToView(target, Number(propertyValue));
                 break;
             case "np":
                 if (target instanceof point_object)
@@ -1396,6 +1403,9 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     size("gridSubdivisions", (value) => (grid.gridSubdivisions = value));
     const gridColor = style.get("gridColor");
     if (gridColor !== undefined) grid.gridColor = extractColor(gridColor);
+    // DocGeo's: its view's own background.
+    const background = style.get("background");
+    if (background !== undefined) grid.background = extractColor(background);
     const gridDash = style.get("gridDash");
     if (gridDash !== undefined) grid.gridDash = gridDash.split(",").map(Number);
     flag("boldNumbers", (value) => (grid.boldNumbers = value));
@@ -3221,6 +3231,41 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     [
+        // DocGeo's: where a formula of x and y holds, GeoGebra's
+        // inequality of two variables.
+        "Region",
+        {
+            parameters: [string, string],
+            result: "curve",
+            validate: (args, lineNumber, variables) => {
+                const node = tryParseFormula(literalString(args[1]));
+                if (!node)
+                    throw new Error(
+                        `Invalid DGP region formula at line ${lineNumber}`,
+                    );
+                validateReferences(
+                    functionReferences(node, ["x", "y"]),
+                    variables,
+                    lineNumber,
+                );
+            },
+            execute: (context, args) => {
+                const source = args[1] as string;
+                const node = parseFormula(source);
+                return createRegion(context.construction, args[0] as string, {
+                    node,
+                    source,
+                    variables: ["x", "y"],
+                    refs: formulaRefs(
+                        functionReferences(node, ["x", "y"]),
+                        context.variables,
+                    ),
+                    vec3: context.is3D,
+                });
+            },
+        },
+    ],
+    [
         "Curvus",
         {
             parameters: [string, string, string, string],
@@ -3601,6 +3646,57 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         );
                     },
                 );
+            },
+        },
+    ],
+    [
+        // DocGeo's: view n (a new column at the right of the last) of this
+        // share of the window's width, with its origin from its top left
+        // corner, its units and its style (see SetCoordsStyle).
+        "View",
+        {
+            parameters: [
+                number,
+                number,
+                { ...number, optional: true },
+                { ...number, optional: true },
+                { ...number, optional: true },
+                { ...number, optional: true },
+                { ...string, optional: true },
+            ],
+            validate: (args, lineNumber) => {
+                const [index, share, , , unit, yUnit] = args.map(
+                    (arg) => (arg as { value?: number } | undefined)?.value,
+                );
+                if (
+                    !Number.isInteger(index) ||
+                    index! < 0 ||
+                    !(share! > 0) ||
+                    (unit !== undefined && unit <= 0) ||
+                    (yUnit !== undefined && yUnit <= 0)
+                )
+                    throw new Error(`Invalid DGP view at line ${lineNumber}`);
+                if (args[6])
+                    validateCoordsStyle(literalString(args[6]), lineNumber);
+            },
+            execute: (context, args) => {
+                const c = context.construction;
+                const [index, share, x, y, unit, yUnit = unit] = args as (
+                    number | undefined
+                )[];
+                if (index! > c.views.length) return;
+                if (index === c.views.length) c.addView(share);
+                else c.views[index!].share = share!;
+                c.arrangeViews();
+                c.inView(index!, () => {
+                    const grid = c.GRID;
+                    if (x !== undefined && y !== undefined) grid.ORG = [x, y];
+                    if (unit !== undefined) grid.UNIT = [unit, yUnit!, unit];
+                    if (args[6] !== undefined)
+                        applyCoordsStyle(context, args[6] as string);
+                });
+                c.paintBackground();
+                context.projectionChanged = true;
             },
         },
     ],
@@ -4149,11 +4245,13 @@ function executeCalls(
             context.variables.set(call.variable, result as construction_object);
     });
     if (!context.is3D) {
-        c.GRID.is2D = true;
-        c.GRID.SHOWFLOOR = false;
+        c.views.forEach(({ grid }) => {
+            grid.is2D = true;
+            grid.SHOWFLOOR = false;
+        });
         context.gridChanged = true;
     }
-    if (context.gridChanged) c.GRID.createSVG();
+    if (context.gridChanged) c.views.forEach(({ grid }) => grid.createSVG());
     c.endBatch();
     runInits(c);
     if (context.projectionChanged) c.invalidateProjection();

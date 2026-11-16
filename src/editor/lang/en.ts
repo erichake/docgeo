@@ -44,6 +44,8 @@ export default {
     new_figure: "New figure",
     new_page: "New page",
     delete_page: "Delete the page",
+    new_view: "New view",
+    delete_view: "Delete the view",
     page_name: "Page %",
     delete_page_confirm: "Delete the page “%”?",
     rename_page: "Rename",

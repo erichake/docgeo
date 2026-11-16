@@ -97,6 +97,7 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | ----- | ---------------------------------------- | ---------- |
 | `dgo` | version du format                        | (requis) 1 |
 | `v`   | vue et repère (ci-dessous)               | (requis)   |
+| `vs`  | autres vues (ci-dessous)                 | `[]`       |
 | `deg` | angles en degrés (1) ou en radians (0)   | 1 (DGPad)  |
 | `sop` | `construction.segmentsOverPolygons`      | 0          |
 | `bg`  | couleur de fond                          | `#FAFAFA`  |
@@ -212,6 +213,18 @@ URL (même image, même clé).
 
 ### Vue `v`
 
+Depuis le 2026-11-16, une figure peut avoir plusieurs vues (`VUES.md`),
+côte à côte en colonnes, de gauche à droite : `v` est la première, `vs` les
+suivantes, chacune avec les mêmes clés que `v` sauf `w` et `h` (taille de la
+fenêtre, donnée par `v` seule). Chaque vue a sa largeur `cw`, rapportée à la
+somme de celles des vues (écrite en fraction de la largeur de la fenêtre ;
+1 par défaut), son origine `o` en pixels depuis son coin en haut à gauche,
+son unité, ses réglages, et sa couleur de fond `bg` (`null` : le fond de la
+figure, `bg` et `bgi` de la racine). Une figure à plusieurs vues est toujours enregistrée et montrée en
+entier : ni cadrage (région), ni centrage en mode intégré. Une seule
+construction pour toutes les vues ; chaque objet est dessiné dans la sienne
+(style `vw`).
+
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par
 unité le long de Oy d'une figure plane, quand ils diffèrent de `u` (axes de
@@ -264,6 +277,8 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `gi` | coin de la vue 3D de GeoGebra         | [0, 0]          |
 | `gp` | centre initial de la vue 3D           | `null`          |
 | `gv` | (lu seulement) bande de la vue à côté | `null`          |
+| `cw` | largeur de la colonne (ci-dessus)     | 1               |
+| `bg` | fond propre à la vue                  | `null`          |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -501,6 +516,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Loc`   | lieu de P quand M parcourt son support ; si P est une droite, son enveloppe | `[P, M]`                                                 |
 | `Ex`    | expression                                                                  | objet (6)                                                |
 | `Cur`   | courbe y = f(x)                                                             | `[formule, min, max]` (23)                               |
+| `Reg`   | région du plan où une formule de x et y est vraie (33)                      | `formule`                                                |
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)                |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)                 |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                                      |
@@ -855,6 +871,12 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
 32. Ajouté le 2026-11-14, comme `Semicircle(A, B, p)` de GeoGebra : dans
     le plan, à gauche de AB autour de sa normale, parcouru de A à B dans
     le sens indirect autour d'elle.
+33. Ajouté le 2026-11-16, comme une inéquation de x et y de GeoGebra
+    (`a(x, y) = (x - x(A))² + (y - y(A))² ≤ r²`, `a(x, y) ∧ b(x, y)`) :
+    les points du plan z = 0 où la formule ne vaut ni 0 ni `NaN`, remplis
+    (`fc`, `o`) et bordés (`c`, `s`). Calculée sur une grille de la vue de
+    8 pixels de côté, chaque bord affiné par dichotomie : un détail plus
+    petit que la grille peut manquer.
 
 ### Macro-constructions
 
@@ -1082,6 +1104,10 @@ S'y ajoutent `sc` (condition d'affichage : indice d'une expression), `rgb`
 (couleur dynamique : indice d'une expression), `mg` (aimants :
 `[[indice, rayon en pixels], …]`) et `av` (vitesse variable d'une animation :
 indice d'une expression, voir `an`), qui peuvent désigner un objet postérieur.
+Depuis le 2026-11-16, `vw` est l'indice de la vue où l'objet est dessiné
+(0 : `v`, 1 : la première de `vs`…) ; absent, il l'est dans la première à la
+lecture d'une figure, dans celle où on l'ajoute dans l'éditeur. Un objet
+peut s'appuyer sur ceux d'une autre vue : il les voit dans la sienne.
 
 Depuis le 2026-11-14 aussi, pour les figures de GeoGebra : `cp` est la
 légende d'un objet, écrite à la place de son nom (`sn`) ; `ho` fait d'un

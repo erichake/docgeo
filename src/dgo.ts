@@ -3,7 +3,7 @@ import {
     bandBackground,
     type BackgroundFit,
 } from "./background";
-import type { construction } from "./construction";
+import type { construction, FigureView } from "./construction";
 import {
     formulaIdentifiers,
     parseFormula,
@@ -47,6 +47,7 @@ import {
 } from "./objects/construction_object";
 import { partOf } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
+import { createRegion } from "./objects/region_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
 import { createDirectionPoint } from "./objects/direction_point_object";
@@ -187,6 +188,8 @@ export interface DgoFigure {
     dgo: number;
     // The view and the coordinate system.
     v: Settings;
+    // The other views, each with its part of the window.
+    vs?: Settings[];
     // Degrees rather than radians, as DGPad by default.
     deg?: number;
     // See construction.segmentsOverPolygons.
@@ -314,6 +317,7 @@ export const LOOKS: Record<string, Look> = {
     PlE: POLYGON,
     Loc: CURVE,
     Cur: CURVE,
+    Reg: POLYGON,
     Lst: LIST,
     Seq: LIST,
     Pts: LIST,
@@ -658,6 +662,12 @@ const VIEW: Record<string, Property> = {
         isFlag,
     ),
     th: field(grid_object, "THETA", Math.PI / 2, isNumber),
+    bg: field(
+        grid_object,
+        "background",
+        null,
+        (value) => value === null || isColor(value),
+    ),
     ph: field(grid_object, "PHI", (5 * Math.PI) / 2, isNumber),
     rt: range("RESTRICT_THETA", [-Math.PI / 2, Math.PI / 2]),
     rp: range("RESTRICT_PHI", [null, null]),
@@ -844,14 +854,15 @@ export interface Region {
     h: number;
 }
 
-// The figure's own objects, without the grid's.
+// The figure's own objects, without its views' grids.
 export function figureObjects(c: construction): construction_object[] {
-    const grid = c.GRID;
-    const internal = new Set<construction_object>([
-        grid,
-        grid.floorOccluder,
-        ...grid.floorOccluder.points,
-    ]);
+    const internal = new Set<construction_object>(
+        c.views.flatMap(({ grid }) => [
+            grid,
+            grid.floorOccluder,
+            ...grid.floorOccluder.points,
+        ]),
+    );
     return c.OBJS.V.filter((object) => !internal.has(object));
 }
 
@@ -869,12 +880,17 @@ export const gzipped = (figure: unknown): Promise<Blob> =>
             .pipeThrough(new CompressionStream("gzip")),
     ).blob();
 
-// Saved as the given region of the window shows it.
+// Saved as the given region of the window shows it, the whole window when
+// the figure has several views.
 export async function describeDgo(
     c: construction,
-    { x, y, w, h }: Region = { x: 0, y: 0, w: c.width, h: c.height },
+    region?: Region,
 ): Promise<DgoFigure> {
-    const grid = c.GRID;
+    const [width, height] = c.windowSize;
+    const { x, y, w, h } =
+        region && c.views.length === 1
+            ? region
+            : { x: 0, y: 0, w: width, h: height };
     const objects = figureObjects(c);
     const indices = new Map(objects.map((object, index) => [object, index]));
     const images: Record<string, string> = {};
@@ -907,16 +923,26 @@ export async function describeDgo(
         }
         return styleIndices.get(json)!;
     };
+    const several = c.views.length > 1;
+    const view = (
+        { grid, rect }: FigureView,
+        [dx, dy]: Vec2,
+        size: Settings,
+    ): Settings => ({
+        o: [grid.ORG[0] - dx, grid.ORG[1] - dy],
+        u: grid.UNIT[0],
+        ...(grid.UNIT[1] !== grid.UNIT[0] && { uy: grid.UNIT[1] }),
+        ...size,
+        ...(several && { cw: rect[2] }),
+        ...describe(VIEW, grid),
+    });
+    const [first, ...others] = c.views;
     const figure: DgoFigure = {
         dgo: VERSION,
-        v: {
-            o: [grid.ORG[0] - x, grid.ORG[1] - y],
-            u: grid.UNIT[0],
-            ...(grid.UNIT[1] !== grid.UNIT[0] && { uy: grid.UNIT[1] }),
-            w,
-            h,
-            ...describe(VIEW, grid),
-        },
+        v: view(first, [x, y], { w, h }),
+        ...(others.length && {
+            vs: others.map((other) => view(other, [0, 0], {})),
+        }),
         ...(!c.degrees && { deg: 0 }),
         ...(c.segmentsOverPolygons && { sop: 1 }),
         ...(c.prefs.background.color !== BACKGROUND && {
@@ -924,7 +950,9 @@ export async function describeDgo(
         }),
         ...(backgroundImage && { bgi: keys.get(backgroundImage)! }),
         ...(backgroundImage && fit !== "repeat" && { bgf: fit }),
-        o: objects.map((object) => dgoEntry(object, context, styleIndex)),
+        o: objects.map((object) =>
+            c.inView(object.view, () => dgoEntry(object, context, styleIndex)),
+        ),
     };
     if (c.macros.length)
         figure.mac = describeMacros(
@@ -975,6 +1003,7 @@ export function dgoEntry(
     [tag, parameters] = objectEntry(object, context),
 ): unknown[] {
     const style = describe(STYLE, object, lookTag(object, tag));
+    if (object.view) style.vw = object.view;
     if (object.condition) style.sc = context.index(object.condition);
     if (object.dynamicColor) style.rgb = context.index(object.dynamicColor);
     const rate =
@@ -1119,6 +1148,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         throw new Error(`Unsupported DGO version: ${figure.dgo}`);
     const {
         v: view,
+        vs: views = [],
         deg = 1,
         sop = 0,
         bg = BACKGROUND,
@@ -1145,13 +1175,28 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     };
     c.macros = readMacros(macros, styles, images);
 
-    const { o: origin, u: unit, uy = unit, w: width, h: height } = view;
-    check(isPair(origin) && isNumber(unit) && unit > 0);
-    check(isNumber(uy) && uy > 0);
+    const { w: width, h: height } = view;
     check(isNumber(width) && isNumber(height));
     c.savedSize = [width, height];
-    const grid = c.GRID;
-    apply(VIEW, grid, view);
+    check(Array.isArray(views) && views.every(isRecord));
+    const several = views.length > 0;
+    // Each view's column of the window, then its coordinate system, its
+    // origin from its top left corner.
+    const grids = [view, ...views].map((settings, index) => {
+        const { cw: share = 1 } = settings;
+        check(isNumber(share) && share > 0);
+        if (index) c.addView(share);
+        else c.views[0].share = share;
+        const grid = c.views[index].grid;
+        apply(VIEW, grid, settings);
+        const { o: origin, u: unit, uy = unit } = settings;
+        check(isPair(origin) && isNumber(unit) && unit > 0);
+        check(isNumber(uy) && uy > 0);
+        grid.UNIT = [unit, uy, unit];
+        return grid;
+    });
+    c.arrangeViews();
+    const [grid] = grids;
     // Before the background image, GeoGebra's graphics view's color.
     const { gv = null } = view;
     check(gv === null || isColor(gv));
@@ -1161,26 +1206,32 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
             bandBackground(gv as string, grid.viewInset),
         );
     c.paintBackground();
-    grid.UNIT = [unit, uy, unit];
     // Otherwise, a DGPad figure keeps its origin where it was in the window,
     // as in DGPad; another 3D one, where it was from the window's center.
-    const offset: Vec2 = centered
-        ? [
-              Math.round((c.width - width) / 2),
-              Math.round((c.height - height) / 2),
-          ]
-        : [0, 0];
-    grid.ORG = centered
-        ? [origin[0] + offset[0], origin[1] + offset[1]]
-        : grid.is2D || grid.FRAME2D
-          ? origin
-          : [
-                origin[0] + (c.width - width) / 2,
-                origin[1] + (c.height - height) / 2,
-            ];
+    const offset: Vec2 =
+        centered && !several
+            ? [
+                  Math.round((c.width - width) / 2),
+                  Math.round((c.height - height) / 2),
+              ]
+            : [0, 0];
+    const [windowWidth, windowHeight] = c.windowSize;
+    grids.forEach((grid, index) => {
+        const [x, y] = [view, ...views][index].o as Vec2;
+        const [, , w, h] = c.views[index].rect;
+        grid.ORG =
+            centered && !several
+                ? [x + offset[0], y + offset[1]]
+                : grid.is2D || grid.FRAME2D
+                  ? [x, y]
+                  : [
+                        x + ((windowWidth - width) * w) / 2,
+                        y + ((windowHeight - height) * h) / 2,
+                    ];
+    });
     c.beginBatch();
     addDgoEntries(c, entries, styles, images, offset);
-    grid.createSVG();
+    grids.forEach((grid) => grid.createSVG());
     c.endBatch();
     c.invalidateProjection();
 }
@@ -1419,6 +1470,16 @@ export function readEntries(
             const object = BUILDERS[tag](parameters, read(name));
             const settings = style(styleValue);
             apply(STYLE, object, settings, lookTag(object, tag));
+            // Drawn in the view it names, else in the one it is added in.
+            const { vw: view } = settings;
+            if (view !== undefined) {
+                check(
+                    Number.isInteger(view) &&
+                        (view as number) >= 0 &&
+                        (view as number) < c.views.length,
+                );
+                c.moveToView(object, view as number);
+            }
             styled.push([object, settings]);
             objects.push(object);
         }),
@@ -2586,6 +2647,18 @@ const BUILDERS: Record<string, Builder> = {
         const bound = (value: Json) =>
             value === null || isNumber(value) ? value : read(value, []);
         return createCurve(c, name, read(value, ["x"]), bound(min), bound(max));
+    },
+    Reg: (parameters, { c, name, formula, vec3 }) => {
+        const { source, refs } = formula(parameters, construction_object);
+        const node = parseFormula(source);
+        checkNames(formulaIdentifiers(node), refs, ["x", "y"]);
+        return createRegion(c, name, {
+            node,
+            source,
+            variables: ["x", "y"],
+            refs,
+            vec3,
+        });
     },
     Lst: (parameters, reader) => {
         check(Array.isArray(parameters));

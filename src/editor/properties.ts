@@ -188,6 +188,11 @@ export function propertiesPanel(options: {
     let selected: construction_object[] = [];
     // The grid the figure tab shows, while it does.
     let shownGrid: grid_object | null = null;
+    // The grid of the view last pressed, which the figure tab shows.
+    const activeGrid = () => {
+        const c = options.scene();
+        return c.views[c.active].grid;
+    };
     let all = false;
     // Programs as blocks rather than text, once chosen; until then, only
     // turtles.
@@ -267,7 +272,7 @@ export function propertiesPanel(options: {
         showTab(true);
         mark(false);
         $("body").removeClass("dge-properties-wide");
-        shownGrid = options.scene().GRID;
+        shownGrid = activeGrid();
         figureFields.push(
             ...viewSettings(figurePane, {
                 scene: options.scene,
@@ -1681,7 +1686,7 @@ export function propertiesPanel(options: {
             else refreshPicker();
         } else {
             selected = objects;
-            if (figure || shownGrid !== options.scene().GRID) showFigure();
+            if (figure || shownGrid !== activeGrid()) showFigure();
         }
     }
 

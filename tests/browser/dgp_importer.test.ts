@@ -1936,7 +1936,7 @@ E1=Expression("E1","","","","5","-1","0");`,
         expect(after[4]).not.toEqual(before[4]);
         expectClose(value("longM"), 7.346482612705435);
         const origin = c.GRID.ORG;
-        c.resize(c.width + 200, c.height + 100);
+        c.resize(0, c.width + 200, c.height + 100);
         expect(c.GRID.ORG).toBe(origin);
     });
 

@@ -308,6 +308,8 @@ function mountButtonTools(object: construction_object): void {
 const studio = {
     prefs: new preferences(),
     mountObject: mountButtonTools,
+    // A step to undo once the border of two views moved.
+    viewsChanged: () => void record(),
 } as Studio;
 studio.scene = construction.create(studio);
 const scene = () => studio.scene;
@@ -545,6 +547,7 @@ $("head").append(`<style>
     .dge-name { position: fixed; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); z-index: 13; }
     .dge-name input { min-width: 2ch; margin: 0 0 0 -5px; padding: 1px 4px; border: 1px solid #2563eb; border-radius: 4px; outline: 3px solid rgb(37 99 235 / 0.2); background: #fff; font-family: Verdana, sans-serif; }
     svg.dge-grip { cursor: pointer; }
+    svg.dge-active-view { outline: 2px solid #93c5fd; outline-offset: -2px; }
     svg.dge-stretch { cursor: ew-resize; }
     svg.dge-stretch-up { cursor: ns-resize; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
@@ -1166,6 +1169,15 @@ const menus: Menu[] = [
                 enabled: () => !!book,
             },
             {
+                label: message("new_view"),
+                run: () => void addView(),
+            },
+            {
+                label: message("delete_view"),
+                run: () => void deleteView(),
+                enabled: () => scene().views.length > 1,
+            },
+            {
                 label: `${message("open")}…`,
                 shortcut: shortcut("O"),
                 run: chooseFigure,
@@ -1503,14 +1515,15 @@ onEnlarge((out, duration) => {
 });
 function widen(on: boolean): void {
     const c = scene();
-    const [x, y] = c.GRID.ORG;
-    const before = c.svg.dom().getBoundingClientRect().left;
+    const before = c.views.map(({ svg }) => svg.dom().getBoundingClientRect());
     const body = $("body").stl("transition", "none");
     body.toggleClass("dge-blocks-wide", on);
-    const { left, width, height } = c.svg.dom().getBoundingClientRect();
+    c.views.forEach(({ svg, grid }, n) => {
+        const { left, width, height } = svg.dom().getBoundingClientRect();
+        c.resize(n, width, height);
+        grid.ORG = [grid.ORG[0] + before[n].left - left, grid.ORG[1]];
+    });
     body.stl("transition", "");
-    c.resize(width, height);
-    c.GRID.ORG = [x + before - left, y];
     c.traceEpoch++;
     c.invalidateProjection();
 }
@@ -5820,6 +5833,10 @@ async function reframe(
 ): Promise<void> {
     const figure = await asSaved(() => describeDgo(scene()));
     const { v } = figure;
+    // Where each view starts in the window, in pixels.
+    const lefts = scene().views.map(
+        ({ rect }) => rect[0] * scene().windowSize[0],
+    );
     if (held) closeRing();
     const saved: DgoFigure | null = step && JSON.parse(step.figure);
     rebuild(
@@ -5833,19 +5850,33 @@ async function reframe(
                       o: step!.o,
                       u: step!.u,
                   },
+                  ...(saved.vs && {
+                      vs: saved.vs.map((view, n) => ({
+                          ...view,
+                          ...step!.views![n],
+                      })),
+                  }),
               }
-            : { ...figure, ...patch, v: { ...v, ...view } },
+            : { ...figure, ...patch, v: { ...(patch.v ?? v), ...view } },
     );
     const c = scene();
+    // The views it shares with the figure keep what they show where it
+    // was in the window, their border moved or not.
     if (step) {
-        c.GRID.ORG = v.o as Vec2;
-        c.GRID.UNIT = [v.u, v.u, v.u] as Vec3;
+        [v, ...(figure.vs ?? [])].forEach(({ o, u }, n) => {
+            const grid = c.views[n]?.grid;
+            if (!grid) return;
+            const [x, y] = o as Vec2;
+            grid.ORG = [x + lefts[n] - c.views[n].rect[0] * c.windowSize[0], y];
+            grid.UNIT = [u, u, u] as Vec3;
+        });
         c.invalidateProjection();
         c.flush();
     }
     if (ghosts) ghosts = showGhosts(c);
     showAxes();
     showSpace();
+    showActiveView();
     // The arguments kept, taken again in the figure rebuilt.
     if (kept) {
         rearm();
@@ -6854,7 +6885,15 @@ $("body").on(
 
 // Each step's figure, its view without the window and the camera, and the
 // origin and unit its pinned points' coordinates are given in.
-let history: { figure: string; o: unknown; u: unknown }[] = [];
+// Each step: the figure without the views' origins and units, which a
+// pan or a zoom changes without a step, and those of its first view and
+// of the others.
+let history: {
+    figure: string;
+    o: unknown;
+    u: unknown;
+    views?: { o: unknown; u: unknown }[];
+}[] = [];
 let position = -1;
 let recording = Promise.resolve();
 // A change of the figure that fails is told, and doesn't stop the next
@@ -6894,11 +6933,18 @@ function record(): Promise<void> {
         .then(async () => {
             const figure = await asSaved(() => describeDgo(scene()));
             const { o, u, ...view } = figure.v;
-            const step = JSON.stringify({ ...figure, v: camera(view, false) });
+            const views = figure.vs?.map(({ o, u }) => ({ o, u }));
+            const step = JSON.stringify({
+                ...figure,
+                v: camera(view, false),
+                ...(figure.vs && {
+                    vs: figure.vs.map(({ o: _o, u: _u, ...view }) => view),
+                }),
+            });
             if (step === history[position]?.figure) return;
             history = [
                 ...history.slice(0, position + 1),
-                { figure: step, o, u },
+                { figure: step, o, u, ...(views && { views }) },
             ];
             position = history.length - 1;
             showChanged(unsaved());
@@ -7399,6 +7445,97 @@ async function addPage(): Promise<void> {
         name: message("page_name", String(n)),
         figure: blank(scene()),
     });
+}
+
+// ************************** VIEWS *******************************
+
+// A new view, a column at the right of the others, all as wide, each
+// keeping its center: with the settings of the view last pressed, its
+// origin at its center.
+async function addView(): Promise<void> {
+    await recording;
+    const c = scene();
+    const figure = await asSaved(() => describeDgo(c));
+    const views = [figure.v, ...(figure.vs ?? [])];
+    const [width, height] = c.windowSize;
+    const share = 1 / (views.length + 1);
+    const { o: _o, w: _w, h: _h, cw: _cw, ...settings } = views[c.active];
+    const columns = views.map((view, n) => {
+        const [x, y] = view.o as Vec2;
+        return {
+            ...view,
+            o: [x + ((share - c.views[n].rect[2]) * width) / 2, y],
+            cw: share,
+        };
+    });
+    columns.push({
+        ...settings,
+        o: [(share * width) / 2, height / 2],
+        cw: share,
+    });
+    const [v, ...vs] = columns;
+    await reframe({}, undefined, { v, vs });
+    changed();
+}
+
+// The view last pressed, its column given to the one on its left (on its
+// right for the first), which keeps its center, its objects moved to it.
+async function deleteView(): Promise<void> {
+    await recording;
+    const c = scene();
+    const deleted = c.active;
+    const heir = deleted ? deleted - 1 : 1;
+    const figure = await asSaved(() => describeDgo(c));
+    const views = [figure.v, ...(figure.vs ?? [])];
+    const [width] = c.windowSize;
+    const [x, y] = views[heir].o as Vec2;
+    const share = c.views[deleted].rect[2];
+    views[heir] = {
+        ...views[heir],
+        o: [x + (share * width) / 2, y],
+        cw: c.views[heir].rect[2] + share,
+    };
+    views.splice(deleted, 1);
+    const moved = (view: number): number =>
+        view === deleted ? heir - +(heir > deleted) : view - +(view > deleted);
+    const styles = [...(figure.st ?? [])];
+    const o = figure.o.map((entry) => {
+        const style = entry[3] === undefined ? {} : styles[entry[3] as number];
+        const view = (style.vw as number | undefined) ?? 0;
+        if (moved(view) === view) return entry;
+        const { vw: _vw, ...rest } = style;
+        styles.push(moved(view) ? { ...rest, vw: moved(view) } : rest);
+        return [...entry.slice(0, 3), styles.length - 1];
+    });
+    const [first, ...vs] = views;
+    const { cw, ...v } = first;
+    await reframe({}, undefined, {
+        v: { ...v, w: figure.v.w, h: figure.v.h, ...(vs.length ? { cw } : {}) },
+        vs,
+        st: styles,
+        o,
+    });
+    changed();
+}
+
+// The view last pressed, outlined when there are several; the figure tab
+// shows its settings.
+let shownActive: [construction, number] | null = null;
+$("body").on("pointerdown", () => showActiveView(), {
+    capture: true,
+    passive: true,
+});
+function showActiveView(): void {
+    const c = scene();
+    if (shownActive?.[0] === c && shownActive[1] === c.active) return;
+    shownActive = [c, c.active];
+    c.views.forEach(({ svg }, n) =>
+        svg.toggleClass(
+            "dge-active-view",
+            c.views.length > 1 && n === c.active,
+        ),
+    );
+    properties.refresh();
 }
 
 // Formulas read other pages by their names, which are unique.

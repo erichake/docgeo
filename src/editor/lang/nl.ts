@@ -45,6 +45,8 @@ const nl: Texts = {
         new_figure: "Nieuwe figuur",
         new_page: "Nieuwe pagina",
         delete_page: "Pagina verwijderen",
+        new_view: "Nieuwe weergave",
+        delete_view: "Weergave verwijderen",
         page_name: "Pagina %",
         delete_page_confirm: "Pagina ‘%’ verwijderen?",
         rename_page: "Naam wijzigen",

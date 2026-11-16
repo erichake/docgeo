@@ -30,6 +30,13 @@ macros), décrite dans `TRANSFORMATIONS.md`, est un chantier ouvert, aux
 mêmes règles : outils et commandes dans l'éditeur, calcul des images dans
 le moteur, léger. Lire ce mémo avant d'y toucher.
 
+Exception : les vues multiples d'une figure (une seule construction,
+plusieurs vues côte à côte, comme les graphiques de GeoGebra), décrites
+dans `VUES.md`, sont un chantier ouvert : leur affichage et leur lecture
+vont dans le moteur, puisque le lecteur doit ouvrir les figures qui en
+ont ; leur création et leur suppression relèvent de l'éditeur. Le poids du
+lecteur est mesuré à chaque étape. Lire ce mémo avant d'y toucher.
+
 ### Format natif `.dgo`
 
 `.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement

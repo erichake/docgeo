@@ -44,6 +44,8 @@ const zh_TW: Texts = {
         new_figure: "新增圖形",
         new_page: "新增頁面",
         delete_page: "刪除頁面",
+        new_view: "新增檢視",
+        delete_view: "刪除檢視",
         page_name: "第 % 頁",
         delete_page_confirm: "刪除頁面「%」？",
         rename_page: "重新命名",

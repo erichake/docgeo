@@ -204,6 +204,8 @@ export class construction_object {
     // Its geometry reads the window (see usesView in dgp_formula.ts), so is
     // recomputed on every zoom, pan or resize.
     readsView = false;
+    // The index of the view it is drawn in (see VUES.md).
+    view: number;
 
     constructor(
         c: construction,
@@ -214,6 +216,7 @@ export class construction_object {
         this.C = c;
         this.prefs = c.prefs;
         this.svg = c.svg;
+        this.view = c.view;
         this.type = type;
         this.familytype = "";
         this.name = this.class.uniqueName(this, name);
@@ -271,6 +274,10 @@ export class construction_object {
     }
 
     refresh(): void {
+        this.C.inView(this.view, () => this.computeAll());
+    }
+
+    private computeAll(): void {
         this.embeds?.forEach((point) => {
             point.computeGeometry();
             point.project();

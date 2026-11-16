@@ -208,7 +208,9 @@ export function viewSettings(
 ): DOMElement[] {
     const fields: DOMElement[] = [];
     const c = options.scene();
-    const grid = c.GRID;
+    // Of the view last pressed, with its own background beside others.
+    const grid = c.views[c.active].grid;
+    const own = c.views.length > 1;
     const commit = options.changed;
     // The grid drawn again (the 3D axes take their style when created);
     // `projection`: the figure too, as a 3D floor or perspective changes it.
@@ -971,10 +973,15 @@ export function viewSettings(
         "background",
         byDefault(
             message("background"),
-            c.prefs.background.color,
-            BACKGROUND,
+            own
+                ? (grid.background ?? c.prefs.background.color)
+                : c.prefs.background.color,
+            own ? c.prefs.background.color : BACKGROUND,
             (value) => {
-                c.prefs.background.color = value;
+                if (own)
+                    grid.background =
+                        value === c.prefs.background.color ? null : value;
+                else c.prefs.background.color = value;
                 c.paintBackground();
                 redraw();
             },

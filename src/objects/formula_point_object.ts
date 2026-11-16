@@ -31,7 +31,7 @@ export class formula_point_object extends point_object {
     // projection plain point-arithmetic formulas rely on.
     private vec3: boolean;
     // Whether it reads the window or where points are drawn.
-    private view: boolean;
+    private readsWindow: boolean;
     // The free numbers a drag shifts, one per coordinate (a GeoGebra point
     // like "(a + x(F), b)", see changeableNumber in ggb_translate.ts):
     // DGPad itself never lets a formula point move.
@@ -53,8 +53,8 @@ export class formula_point_object extends point_object {
         super(c, name, [0, 0, 0], "intersection");
         this.formula = formula;
         const nodes = programNodes(formula);
-        this.view = nodes.some(usesView) || nodes.some(usesCoords2D);
-        this.readsView = this.view;
+        this.readsWindow = nodes.some(usesView) || nodes.some(usesCoords2D);
+        this.readsView = this.readsWindow;
         this.refs = refs;
         this.vec3 = vec3;
         this.addParents(...refs.values());
@@ -93,7 +93,7 @@ export class formula_point_object extends point_object {
         // A DGPad 3D figure's 2D point (see GRID.FRAME2D).
         const plane =
             this.vec3 && this.C.GRID.FRAME2D !== null && this.flatValue;
-        this.readsView = plane || this.view;
+        this.readsView = plane || this.readsWindow;
         this.coords =
             typeof value === "number"
                 ? [value, 0, 0]

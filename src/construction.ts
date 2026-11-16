@@ -34,6 +34,33 @@ export type Gesture = "drag" | "down" | "up";
 export interface DgpadLike {
     prefs: preferences;
     mountObject?: (object: construction_object) => void;
+    // After the border of two views was moved.
+    viewsChanged?: () => void;
+}
+
+// Left, top, width and height of a view, in fractions of the window's.
+export type ViewRect = [number, number, number, number];
+const VIEW_EVENTS = ["pointerdown", "pointermove", "wheel"] as const;
+// The narrowest a view gets by moving its border, in pixels.
+const NARROWEST = 40;
+
+// A view of the figure (see VUES.md): its column of the window, its
+// coordinate system, and its SVG, where its objects are drawn.
+export interface FigureView {
+    grid: grid_object;
+    svg: DOMElement;
+    traceLayer: DOMElement;
+    // Above every level, as DGPad's texts over its canvas.
+    panelLayer: DOMElement;
+    // Each level (see construction_object.level) and its type layers.
+    levels: Map<number, { group: DOMElement; layers: Map<number, DOMElement> }>;
+    // Its share of the window's width, relative to the other views', and
+    // its part of the window.
+    share: number;
+    rect: ViewRect;
+    width: number;
+    height: number;
+    measured: { pass: number; width: number; height: number };
 }
 
 export class construction {
@@ -42,17 +69,15 @@ export class construction {
     dgpad: DgpadLike;
     prefs: Preferences;
     OBJS: objects_collector;
-    GRID!: grid_object;
-    svg!: DOMElement;
-    traceLayer!: DOMElement;
-    // Above every level, as DGPad's texts over its canvas.
-    private panelLayer!: DOMElement;
-    // Each level (see construction_object.level) and its type layers.
-    private levels = new Map<
-        number,
-        { group: DOMElement; layers: Map<number, DOMElement> }
-    >();
+    views: FigureView[] = [];
+    // The view whose coordinate system and SVG GRID, svg, width and height
+    // give: that of the object computed, or of the pointer's gesture.
+    view = 0;
+    // The view last pressed, which the editor's settings change.
+    active = 0;
     private typeLayers: number[] = [];
+    // Between two views, the handles that move their border.
+    private dividers: DOMElement[] = [];
     // As in GeoGebra, an edge shared by segments and polygons is painted
     // by the segments last, rather than in construction order as in DGPad
     // (see edgeStroke).
@@ -88,30 +113,174 @@ export class construction {
     private batchedObjects: construction_object[] | null = null;
     // The object each view of a layer shows.
     private viewObjects = new WeakMap<Element, construction_object>();
-    private viewportWidth = 0;
-    private viewportHeight = 0;
-    private measuredSize = { pass: -1, width: 0, height: 0 };
     private planeBasis = {
         phi: NaN,
         theta: NaN,
         basis: [] as unknown as [Vec3, Vec3],
     };
-    private keydownListener!: EventListener;
+    private keydownListener: EventListener;
+    private viewListeners: EventListener[];
 
     private constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
         this.prefs = dgpad.prefs;
         // All construction objects :
-        this.OBJS = new objects_collector();
+        this.OBJS = new objects_collector(this);
         this.animations = new animations(this);
-        this.createSVG();
-        this.GRID = createGrid(this);
-        // Needs c.GRID assigned first: creating a real occluder polygon
-        // triggers hidden-line's projectionFrame lookup (c.GRID.
-        // projectionFrame), which would otherwise run before GRID exists.
-        this.GRID.initFloorOccluder();
-        this.viewportWidth = this.width;
-        this.viewportHeight = this.height;
+        const layers = new Set<number>();
+        Object.values(this.prefs).forEach((pref) => {
+            if ("layer" in pref) layers.add(pref.layer);
+        });
+        layers.delete(this.prefs.panel.layer);
+        this.typeLayers = [...layers].sort((a, b) => a - b);
+        this.addView();
+        this.keydownListener = $("body").on(
+            "keydown",
+            (event) => this.keydown(event),
+            false,
+        );
+        this.viewListeners = VIEW_EVENTS.map((type) =>
+            $(document.documentElement).on(type, this.enterView, {
+                capture: true,
+                passive: true,
+            }),
+        );
+    }
+
+    // The view under the pointer becomes the current one before anything
+    // answers it, the one pressed for a whole gesture.
+    private enterView = (event: Event): void => {
+        if ((event as PointerEvent).buttons && event.type === "pointermove")
+            return;
+        const index = this.views.findIndex(({ svg }) =>
+            svg.dom().contains(event.target as Node),
+        );
+        if (index < 0) return;
+        this.view = index;
+        if (event.type === "pointerdown") this.active = index;
+    };
+
+    get GRID(): grid_object {
+        return this.views[this.view].grid;
+    }
+
+    get svg(): DOMElement {
+        return this.views[this.view].svg;
+    }
+
+    get traceLayer(): DOMElement {
+        return this.views[this.view].traceLayer;
+    }
+
+    // The window's size, all views together.
+    get windowSize(): Vec2 {
+        const [, , w, h] = this.views[0].rect;
+        return this.inView(0, () => [this.width / w, this.height / h]);
+    }
+
+    // Computed in this view, then back in the current one.
+    inView<T>(view: number, compute: () => T): T {
+        const current = this.view;
+        this.view = view;
+        const result = compute();
+        this.view = current;
+        return result;
+    }
+
+    // A new view, a column at the right of the others, with its grid: its
+    // index. Its share is relative to the other views' (see arrangeViews).
+    addView(share = 1): number {
+        const index = this.views.length;
+        const svg = this.createSVG(index);
+        const view: FigureView = {
+            grid: null as unknown as grid_object,
+            svg,
+            traceLayer: svg
+                .shape("g")
+                .att("data-layer", "trace")
+                .stl("pointer-events", "none"),
+            panelLayer: svg
+                .shape("g")
+                .att("data-layer", this.prefs.panel.layer),
+            levels: new Map(),
+            share,
+            rect: [0, 0, 1, 1],
+            width: 0,
+            height: 0,
+            measured: { pass: -1, width: 0, height: 0 },
+        };
+        svg.add(view.panelLayer, view.traceLayer);
+        this.views.push(view);
+        this.arrangeViews();
+        this.inView(index, () => {
+            view.grid = createGrid(this);
+            // Needs the grid assigned first: creating a real occluder
+            // polygon triggers hidden-line's projectionFrame lookup.
+            view.grid.initFloorOccluder();
+            view.width = this.width;
+            view.height = this.height;
+        });
+        return index;
+    }
+
+    // The views side by side, each a column as wide as its share of their
+    // shares' sum, a line and a handle between two (but in a web page, see
+    // fit.ts).
+    arrangeViews(): void {
+        const total = this.sharesTotal;
+        const handles = this.fixedSize ? 0 : this.views.length - 1;
+        while (this.dividers.length > handles) this.dividers.pop()!.dispose();
+        while (this.dividers.length < handles)
+            this.dividers.push(this.divider(this.dividers.length + 1));
+        let x = 0;
+        this.views.forEach((view, index) => {
+            const width = view.share / total;
+            view.rect = [x, 0, width, 1];
+            view.svg
+                .stl("left", `${x * 100}%`)
+                .stl("top", "0")
+                .stl("width", `${width * 100}%`)
+                .stl("height", "100%")
+                .stl("box-shadow", x ? "inset 1px 0 #c0c0c0" : "");
+            this.dividers[index - 1]?.stl("left", `${x * 100}%`);
+            x += width;
+        });
+    }
+
+    private get sharesTotal(): number {
+        return this.views.reduce((sum, { share }) => sum + share, 0);
+    }
+
+    // The handle on the left border of view `index`: dragged, it moves the
+    // border, what both views show staying where it is on the screen.
+    private divider(index: number): DOMElement {
+        const handle = $.create("div").stl(
+            "position:absolute;top:0;height:100%;width:9px;margin-left:-4px;z-index:1;cursor:col-resize;touch-action:none",
+        );
+        $("body").add(handle);
+        return handle.drag(
+            (_, [dx]) => {
+                const [left, right] = [
+                    this.views[index - 1],
+                    this.views[index],
+                ];
+                // In shares: of their sum, the window's width.
+                const width = this.windowSize[0] / this.sharesTotal;
+                const narrowest = NARROWEST / width;
+                const moved = Math.max(
+                    narrowest - left.share,
+                    Math.min(right.share - narrowest, dx / width),
+                );
+                left.share += moved;
+                right.share -= moved;
+                const { grid } = right;
+                grid.ORG = [grid.ORG[0] - moved * width, grid.ORG[1]];
+                this.arrangeViews();
+                this.invalidateProjection();
+            },
+            undefined,
+            () => this.dgpad.viewsChanged?.(),
+        );
     }
 
     mouseclick(_ev: PointerEvent): void {}
@@ -217,6 +386,14 @@ export class construction {
         else object.createSVG();
     }
 
+    // Drawn in that view from now on.
+    moveToView(object: construction_object, view: number): void {
+        if (object.view === view) return;
+        object.view = view;
+        if (object.hasView) object.createSVG();
+        this.invalidateGeometry(object);
+    }
+
     // Added, removed, shown or hidden: what depends on them without being built from them.
     // A polygon or a solid hides segments, a plane cuts faces and, as a
     // sphere, is drawn in part by the floor.
@@ -297,9 +474,12 @@ export class construction {
             object.children = [];
             object.removeSVG();
         });
-        this.svg.dispose();
+        this.views.forEach(({ svg }) => svg.dispose());
+        this.dividers.forEach((divider) => divider.dispose());
         $("body").off("keydown", this.keydownListener);
-        this.levels.clear();
+        VIEW_EVENTS.forEach((type, n) =>
+            $(document.documentElement).off(type, this.viewListeners[n], true),
+        );
         construction.constructions.splice(
             construction.constructions.indexOf(this),
             1,
@@ -338,18 +518,19 @@ export class construction {
         return this.svg.svgPoint(event);
     }
 
-    resize(width: number, height: number): void {
-        if (width === this.viewportWidth && height === this.viewportHeight)
-            return;
+    resize(index: number, width: number, height: number): void {
+        const view = this.views[index];
+        if (width === view.width && height === view.height) return;
         // As in DGPad, its figures keep their origin where it was; another
         // 3D one, where it was from the window's center (see readDgo).
-        if (!this.GRID.is2D && !this.GRID.FRAME2D)
-            this.GRID.ORG = [
-                this.GRID.ORG[0] + (width - this.viewportWidth) / 2,
-                this.GRID.ORG[1] + (height - this.viewportHeight) / 2,
+        const { grid } = view;
+        if (!grid.is2D && !grid.FRAME2D)
+            grid.ORG = [
+                grid.ORG[0] + (width - view.width) / 2,
+                grid.ORG[1] + (height - view.height) / 2,
             ];
-        this.viewportWidth = width;
-        this.viewportHeight = height;
+        view.width = width;
+        view.height = height;
         this.invalidateProjection();
     }
 
@@ -428,22 +609,28 @@ export class construction {
     }
 
     get width(): number {
-        if (this.fixedSize) return this.fixedSize[0];
-        return this.OBJS.updating ? this.passSize().width : this.svg.width();
+        const view = this.views[this.view];
+        if (this.fixedSize) return this.fixedSize[0] * view.rect[2];
+        return this.OBJS.updating
+            ? this.passSize(view).width
+            : view.svg.width();
     }
 
     get height(): number {
-        if (this.fixedSize) return this.fixedSize[1];
-        return this.OBJS.updating ? this.passSize().height : this.svg.height();
+        const view = this.views[this.view];
+        if (this.fixedSize) return this.fixedSize[1] * view.rect[3];
+        return this.OBJS.updating
+            ? this.passSize(view).height
+            : view.svg.height();
     }
 
     // Measured once per update pass: at each object's render, between DOM
     // writes, the measure would force a layout each time.
-    private passSize(): { width: number; height: number } {
-        const size = this.measuredSize;
+    private passSize(view: FigureView): { width: number; height: number } {
+        const size = view.measured;
         if (size.pass !== this.OBJS.pass) {
-            size.width = this.svg.width();
-            size.height = this.svg.height();
+            size.width = view.svg.width();
+            size.height = view.svg.height();
             size.pass = this.OBJS.pass;
         }
         return size;
@@ -454,7 +641,7 @@ export class construction {
     // in that order. Restyled, just after the view it replaces.
     mountObject(obj: construction_object): void {
         const view = obj.dom.dom();
-        const layer = this.layer(obj.level, obj.layer).dom();
+        const layer = this.layer(obj.level, obj.layer, obj.view).dom();
         let before = layer.lastElementChild;
         // The editor's marks, not objects, lie among the views.
         while (
@@ -468,84 +655,77 @@ export class construction {
         this.dgpad.mountObject?.(obj);
     }
 
-    layer(level: number, layer: number): DOMElement {
-        if (layer === this.prefs.panel.layer) return this.panelLayer;
-        let entry = this.levels.get(level);
+    layer(level: number, layer: number, index = this.view): DOMElement {
+        const { svg, panelLayer, levels } = this.views[index];
+        if (layer === this.prefs.panel.layer) return panelLayer;
+        let entry = levels.get(level);
         if (!entry) {
-            const group = this.svg.shape("g").att("data-level", level);
+            const group = svg.shape("g").att("data-level", level);
             const layers = new Map(
                 this.typeLayers.map((layer) => {
-                    const child = this.svg.shape("g").att("data-layer", layer);
+                    const child = svg.shape("g").att("data-layer", layer);
                     group.add(child);
                     return [layer, child];
                 }),
             );
-            const above = [...this.levels.keys()]
+            const above = [...levels.keys()]
                 .filter((other) => other > level)
                 .sort((a, b) => a - b)[0];
-            (above === undefined
-                ? this.panelLayer
-                : this.levels.get(above)!.group
-            )
+            (above === undefined ? panelLayer : levels.get(above)!.group)
                 .dom()
                 .before(group.dom());
             entry = { group, layers };
-            this.levels.set(level, entry);
+            levels.set(level, entry);
         }
         return entry.layers.get(layer)!;
     }
 
-    createSVG(): void {
-        this.svg = $.createSVG();
-        this.bindSceneEvents(this.svg);
+    private createSVG(index: number): DOMElement {
+        const svg = $.createSVG();
+        this.bindSceneEvents(svg);
         $("body").add(
-            this.svg
+            svg
                 .stl(
                     "position:absolute;border:0;user-select:none;-webkit-user-select:none",
                 )
                 // Until its figure is built (see reveal), rather than the
                 // default scene, 3D floor included, flashing before it.
-                .stl("visibility", "hidden")
+                .stl(
+                    "visibility",
+                    index
+                        ? (this.views[0].svg.dom() as SVGElement).style
+                              .visibility
+                        : "hidden",
+                )
                 .stl("background", this.prefs.background.color)
-                .att(
-                    "width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg",
-                ),
+                .att("xmlns", "http://www.w3.org/2000/svg"),
         );
-
-        const layers = new Set<number>();
-        Object.values(this.prefs).forEach((pref) => {
-            if ("layer" in pref) layers.add(pref.layer);
+        svg.observeResize((width, height) => {
+            if (!this.fixedSize && this.views[index]?.svg === svg)
+                this.resize(index, width, height);
         });
-        layers.delete(this.prefs.panel.layer);
-        this.typeLayers = [...layers].sort((a, b) => a - b);
-        this.panelLayer = this.svg
-            .shape("g")
-            .att("data-layer", this.prefs.panel.layer);
-        this.svg.add(this.panelLayer);
-        this.traceLayer = this.svg
-            .shape("g")
-            .att("data-layer", "trace")
-            .stl("pointer-events", "none");
-        this.svg.add(this.traceLayer);
-        this.svg.observeResize((width, height) => {
-            if (!this.fixedSize) this.resize(width, height);
-        });
+        return svg;
     }
 
-    // Its background: its image, if any, over its color.
+    // Each view's background: its color, else the figure's image, if any,
+    // over its color.
     paintBackground(): void {
         const { color, image, fit } = this.prefs.background;
-        this.svg.stl(
-            "background",
-            image ? `url("${image}") ${BACKGROUND_FITS[fit]},${color}` : color,
+        const figure = image
+            ? `url("${image}") ${BACKGROUND_FITS[fit]},${color}`
+            : color;
+        this.views.forEach(({ svg, grid }) =>
+            svg.stl("background", grid.background ?? figure),
         );
     }
 
     // Its traces start once it's shown, not with the moves of its opening.
     reveal(): void {
         this.traceEpoch++;
-        this.traceLayer.findAll("path").forEach((path) => path.att("d", ""));
-        this.svg.stl("visibility", "");
+        this.views.forEach(({ svg, traceLayer }) => {
+            traceLayer.findAll("path").forEach((path) => path.att("d", ""));
+            svg.stl("visibility", "");
+        });
     }
 
     private bindSceneEvents(element: DOMElement): void {
@@ -580,11 +760,6 @@ export class construction {
                 event.preventDefault();
                 this.mousewheel(event);
             },
-            false,
-        );
-        this.keydownListener = $("body").on(
-            "keydown",
-            (event) => this.keydown(event),
             false,
         );
     }

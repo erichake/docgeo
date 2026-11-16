@@ -29,11 +29,13 @@ const ICONS = {
 
 // `value`, as the editor writes it: the region's size and place w,h,x,y,
 // then the view framed: origin ox,oy, unit u and, in 3D, the camera's
-// angles θ,φ. Otherwise, the window the figure was saved with.
+// angles θ,φ. Otherwise, or with several views, the window the figure was
+// saved with.
 function framing(c: construction, value: string): Region {
     const numbers = value.split(",").map(Number);
     const grid = c.GRID;
     if (
+        c.views.length === 1 &&
         (numbers.length === 7 || numbers.length === 9) &&
         numbers.every(Number.isFinite) &&
         numbers[0] > 0 &&
@@ -71,21 +73,27 @@ export async function fitFigure(app: Fitted, value: string): Promise<void> {
     const { w, h } = region;
     const figure = await describeDgo(app.scene, region);
     const body = $("body");
+    // Each view in its part of the region.
     const place = (): void => {
         const [width, height] = [body.width(), body.height()];
         const scale = Math.min(width / w, height / h);
-        app.scene.svg
-            .stl("left", `${(width - w * scale) / 2}px`)
-            .stl("top", `${(height - h * scale) / 2}px`)
-            .stl("width", `${w * scale}px`)
-            .stl("height", `${h * scale}px`);
+        const [left, top] = [(width - w * scale) / 2, (height - h * scale) / 2];
+        app.scene.views.forEach(({ svg, rect: [x, y, rw, rh] }) =>
+            svg
+                .stl("left", `${left + x * w * scale}px`)
+                .stl("top", `${top + y * h * scale}px`)
+                .stl("width", `${rw * w * scale}px`)
+                .stl("height", `${rh * h * scale}px`),
+        );
     };
     const build = (): void => {
         app.scene.dispose();
         app.scene = construction.create(app);
         app.scene.fixedSize = [w, h];
-        app.scene.svg.att("viewBox", `0 0 ${w} ${h}`);
         readDgo(app.scene, figure, true);
+        app.scene.views.forEach(({ svg, rect: [, , rw, rh] }) =>
+            svg.att("viewBox", `0 0 ${w * rw} ${h * rh}`),
+        );
         app.scene.flush();
         place();
         body.stl("background", app.prefs.background.color);

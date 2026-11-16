@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 320 / 456,
-70 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-321 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+Point de reprise d'une nouvelle conversation (état au 2026-11-16 : 323 / 456,
+71 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
+324 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
@@ -235,6 +235,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 312 / 456 (68 %)   | 338,0 Ko | item 75 : textes de JLaTeXMath réparés pour KaTeX, `RotateText` (+3, +10 réelles) |
 | 2026-11-15 | 317 / 456 (70 %)   | 338,3 Ko | item 76 : `Distance` de droites, arcs comme nombres, textes sur plusieurs lignes, scripts (+5) |
 | 2026-11-15 | 320 / 456 (70 %)   | 339,5 Ko | item 77 : ordre de lecture, demi-plans, point dans une sphère, cercle de l'espace, traces et fond par script (+3) |
+| 2026-11-16 | 323 / 456 (71 %)   | 344,4 Ko | item 78 : graphique 2 (seconde vue), inéquations de x et y (+3) |
 
 ## À faire, par rapport gain / coût
 
@@ -1525,3 +1526,18 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       progressent, dont d2tvhp8c, rntpnfWn et xz5yuwqq par les scripts).
       Aucune figure perdue ni « sans perte » avec un écart. Moteur
       +1,2 Ko, import +1,8 Ko (90,7 Ko).
+- [x] **78. Graphique 2, inéquations de x et y** (synthese_couleurs,
+      signalée hors corpus). Le graphique 2 à côté du graphique 1 devient
+      une seconde vue de la figure (`VUES.md`), en colonne : sa largeur, son
+      repère, son style et son fond, ses objets (`ev` & 3 = 3), qui étaient
+      jusqu'ici cachés sans être signalés (13 figures comptées sans perte
+      perdaient ainsi des cases, curseurs, textes ou points : Ec24atSP,
+      TdCCkj2B, JMZ3E8tj, figures de l'IREM…). Le graphique 2 seul devient
+      l'unique vue. Une inéquation de x et y montrée (`functionnvar`,
+      `≤`, `∧`…, les inéquations qu'elle appelle, `a(x, y)`, écrites en
+      elle) est sa région (`Reg` du `.dgo`), une cachée ne dessine rien.
+      **+3 figures** (321 → 324 pour `roots.py` : Z6kJGCg5, rntpnfWn,
+      yEsr5mak), aucune perdue. Reste : les figures 3D à graphique 2
+      (p2phkeyw, s6thhndj, yxfyhpuz, mVcNuwvp…), qui demandent une vue
+      plane à côté de la vue 3D (`VUES.md`). Moteur +4,9 Ko (vues en
+      colonnes redimensionnables et régions), import +1,5 Ko (90,4 Ko).

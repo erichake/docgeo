@@ -45,6 +45,8 @@ const fr: Texts = {
         new_figure: "Nouvelle figure",
         new_page: "Nouvelle page",
         delete_page: "Supprimer la page",
+        new_view: "Nouvelle vue",
+        delete_view: "Supprimer la vue",
         page_name: "Page %",
         delete_page_confirm: "Supprimer la page « % » ?",
         rename_page: "Renommer",

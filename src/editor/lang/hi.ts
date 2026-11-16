@@ -45,6 +45,8 @@ const hi: Texts = {
         new_figure: "नई आकृति",
         new_page: "नया पृष्ठ",
         delete_page: "पृष्ठ हटाएँ",
+        new_view: "नया दृश्य",
+        delete_view: "दृश्य हटाएँ",
         page_name: "पृष्ठ %",
         delete_page_confirm: "पृष्ठ “%” हटाएँ?",
         rename_page: "नाम बदलें",

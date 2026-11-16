@@ -2980,6 +2980,23 @@ reprend les objets intégrés de son modèle. Dans l'éditeur,
 `tests/browser/nested_objects.test.ts`. Moteur +0,42 Ko (+0,20 Ko en
 gzip) ; éditeur +0,58 Ko (+0,13 Ko en gzip).
 
+### Vues multiples — 2026-11-16
+
+Conception dans `VUES.md`. Les vues sont des colonnes côte à côte,
+redimensionnables en tirant leur séparation, chacune avec ses réglages.
+La vue active (la dernière appuyée) est entourée de bleu quand il y en a
+plusieurs ; l'onglet « Figure » règle la sienne (axes, grille, et « Fond »,
+propre à la vue). Menu Fichier : « Nouvelle vue » ajoute une colonne à
+droite, toutes de même largeur, avec les réglages de la vue active ;
+« Supprimer la vue » (la vue active, s'il y en a plusieurs) donne sa
+largeur à la colonne voisine et y passe ses objets. Les deux, et le
+déplacement d'une séparation (`studio.viewsChanged`), font une étape
+d'annulation. Le panneau de construction reste unique ; un objet ajouté
+l'est dans la vue sous le pointeur (`vw` n'est appliqué que s'il est
+écrit). L'origine et l'unité de chaque vue restent hors des étapes
+d'annulation (`history[…].views`). `widen` recale chaque vue. Manuel à
+faire (Fichier, onglet « Figure »).
+
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 
 `editor.html?embed` expose `load` et `save` par le protocole `docgeo: 1`

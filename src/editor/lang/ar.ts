@@ -44,6 +44,8 @@ const ar: Texts = {
         new_figure: "شكل جديد",
         new_page: "صفحة جديدة",
         delete_page: "حذف الصفحة",
+        new_view: "عرض جديد",
+        delete_view: "حذف العرض",
         page_name: "الصفحة %",
         delete_page_confirm: "حذف الصفحة «%»؟",
         rename_page: "إعادة التسمية",

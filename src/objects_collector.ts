@@ -1,3 +1,4 @@
+import type { construction } from "./construction";
 import type { construction_object } from "./objects/construction_object";
 import { expression_object } from "./objects/expression_object";
 import { grid_object } from "./objects/grid_object";
@@ -19,7 +20,6 @@ export class objects_collector {
     // Cylinders and cones, which hide segments as polygons do (see
     // hidden_line.ts).
     solids: construction_object[] = [];
-    private grid?: grid_object;
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
     private nextSequence = 0;
@@ -31,6 +31,8 @@ export class objects_collector {
     pass = 0;
     updating = false;
 
+    constructor(private c: construction) {}
+
     add<T extends construction_object>(o: T): T {
         o.sequence = this.nextSequence++;
         this.frame++;
@@ -39,7 +41,6 @@ export class objects_collector {
         if (o.familytype === "polygon") this.polygons.push(o);
         if (o.familytype === "sphere") this.spheres.push(o);
         if (o.familytype === "solid") this.solids.push(o);
-        if (o instanceof grid_object) this.grid = o;
         return o;
     }
 
@@ -95,7 +96,7 @@ export class objects_collector {
         // below, which already (if bluntly) covers it by reprojecting
         // everything.
         if (touchesPolygon) this.markProjectionDirty();
-        else if (touchesSphere) this.markRenderDirty(this.grid!);
+        else if (touchesSphere) this.markRenderDirty(this.c.views[0].grid);
     }
 
     markProjectionDirty(): void {
@@ -112,6 +113,8 @@ export class objects_collector {
     }
 
     update(): void {
+        const { c } = this;
+        const current = c.view;
         this.frame++;
         this.pass++;
         this.updating = true;
@@ -134,6 +137,7 @@ export class objects_collector {
             this.dirty.clear();
             marked.forEach((object) => {
                 updated.add(object);
+                c.view = object.view;
                 if (object.geometryDirty) {
                     object.embeds?.forEach((point) => point.computeGeometry());
                     object.computeGeometry();
@@ -161,6 +165,7 @@ export class objects_collector {
         // are drawn, and their scripts may set other objects' visibility
         // or opacity.
         objects.forEach((object) => {
+            c.view = object.view;
             if (object.projectionDirty)
                 object.embeds?.forEach((point) => point.project());
             if (
@@ -181,6 +186,7 @@ export class objects_collector {
         });
         let polygonsProjected = false;
         objects.forEach((object) => {
+            c.view = object.view;
             if (object.projectionDirty) {
                 object.project();
                 object.projectionDirty = false;
@@ -192,13 +198,16 @@ export class objects_collector {
             }
         });
         objects.forEach((object) => {
+            c.view = object.view;
             if (object.renderDirty) {
                 if (object.dynamicColor) object.paint();
                 if (object.hasView) object.draw();
                 object.renderDirty = false;
             }
         });
-        if (polygonsProjected) paintByDepth(this.grid!.C);
+        c.view = 0;
+        if (polygonsProjected) paintByDepth(c);
+        c.view = current;
         this.updating = false;
     }
 }
