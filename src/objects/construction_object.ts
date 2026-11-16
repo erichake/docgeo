@@ -7,8 +7,7 @@ import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
 export type PartKind = "side" | "vertex" | "face";
-export type DgoRef =
-    number | [PartKind, number, number] | ["Fp" | "Fl", unknown];
+export type DgoRef = number | [PartKind, number, number] | [string, unknown];
 
 export const objectIndex = (
     object: construction_object,
@@ -24,15 +23,16 @@ export const objectIndex = (
           ? embeddedRef(object, index)
           : index(object);
 
-// Its formula, after its .dgo type.
+// Its entry without name, a formula only for a point or a list given by
+// one.
 function embeddedRef(
     object: construction_object,
     index: (object: construction_object) => number,
 ): DgoRef {
-    const [tag, [formula]] = object.dgo({
+    const [tag, parameters] = object.dgo({
         index: (other) => objectIndex(other, index),
-    } as DgoContext) as ["Fp" | "Fl", unknown[]];
-    return [tag, formula];
+    } as DgoContext) as [string, unknown[]];
+    return [tag, tag === "Fp" || tag === "Fl" ? parameters[0] : parameters];
 }
 
 // Written in the definition of the object it is given to (see embedded).
@@ -133,12 +133,12 @@ export class construction_object {
         rank: number;
     };
     virtualParts?: Map<string, construction_object>;
-    // A point written in the definition of the object it is given to, as
-    // (0, 7) in Line((0, 7), (1, 7)): out of the construction, that object
-    // computes it first, among its embeddedPoints, and depends on what it
-    // reads.
+    // An object written in the definition of the object it is given to, as
+    // (0, 7) in Line((0, 7), (1, 7)) or Line(A, B) in
+    // Intersection(Line(A, B), c): out of the construction, that object
+    // computes it first, among its embeds, and depends on what it reads.
     embedded?: boolean;
-    embeddedPoints?: construction_object[];
+    embeds?: construction_object[];
     // A final of a macro's application (see macro_object.ts): the
     // application, its rank, and its .dgo type in the macro's body.
     output?: { node: construction_object; rank: number; tag: string };
@@ -258,7 +258,9 @@ export class construction_object {
     addParents(...parents: construction_object[]): void {
         parents.forEach((parent) => {
             if (parent.embedded) {
-                (this.embeddedPoints ??= []).push(parent);
+                // Its own first, which it computes after.
+                this.addParents(...(parent.embeds ?? []));
+                (this.embeds ??= []).push(parent);
                 return this.addParents(...parent.parents);
             }
             parent = parent.reference?.owner ?? parent;
@@ -269,7 +271,7 @@ export class construction_object {
     }
 
     refresh(): void {
-        this.embeddedPoints?.forEach((point) => {
+        this.embeds?.forEach((point) => {
             point.computeGeometry();
             point.project();
         });

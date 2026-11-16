@@ -5,6 +5,8 @@ import {
     dgoEntry,
     figureObjects,
     lookTag,
+    readEmbedded,
+    UNEMBEDDED,
     LOOKS,
     objectStyle,
     readDgo,
@@ -56,7 +58,7 @@ import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import {
     embeddedPoint,
-    type formula_point_object,
+    formula_point_object,
 } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
@@ -267,10 +269,17 @@ export const formatArg = (arg: Arg): string =>
             : arg.reference
               ? `${commandName(findCommand(PART_COMMANDS[arg.reference.kind])!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
               : arg.embedded
-                ? arg instanceof point_list_object
-                    ? listText(arg)!
-                    : pointText(arg as formula_point_object, true)
+                ? embeddedText(arg)
                 : formatName(arg.name);
+
+// An object written in a definition, as typed: a point's coordinates or
+// formula, another's line without its name.
+function embeddedText(object: construction_object): string {
+    if (object instanceof formula_point_object) return pointText(object, true);
+    const objects = figureObjects(object.C);
+    const line = lineOf(object, figureIndex(object.C), objects)!;
+    return line.slice(line.indexOf(" = ") + 3);
+}
 
 // What Element writes: L[(n)-1], and L[(i)-1][(j)-1] for a list of lists.
 const ELEMENT = /^(.+)\[\((.*)\)-1\]$/;
@@ -492,7 +501,7 @@ export function lineOf(
         typeof ref === "number"
             ? objects[ref]
             : ref.length === 2
-              ? object.embeddedPoints!.find(
+              ? object.embeds!.find(
                     (point) =>
                         JSON.stringify(
                             objectIndex(point, (owner) => index.get(owner)!),
@@ -780,7 +789,8 @@ export function resolveArgument(
             const named = findCommand(call.command)?.name === "Element";
             const [list, ...ranks] = named
                 ? [
-                      call.args.length > 1 && resolveArgument(c, call.args[0]),
+                      call.args.length > 1 &&
+                          resolveArgument(c, call.args[0], "Element"),
                       ...call.args.slice(1),
                   ]
                 : [listed(call.command), ...call.args];
@@ -823,7 +833,9 @@ export function resolveArgument(
                 findCommand(call.command)?.name ?? "",
             )
         ) {
-            const resolved = call.args.map((arg) => resolveArgument(c, arg));
+            const resolved = call.args.map((arg) =>
+                resolveArgument(c, arg, "Vertex"),
+            );
             // The rank also first, as GeoGebra's Vertex.
             const [owner, rank] =
                 typeof resolved[0] === "number" ? resolved.reverse() : resolved;
@@ -849,6 +861,34 @@ export function resolveArgument(
                 owner as construction_object,
                 rank,
             );
+        }
+        // An object written in the definition, out of the figure, but in
+        // one taking its item or its part, which would have to name it.
+        if (
+            call?.kind === "list" ||
+            call?.kind === "equation" ||
+            (call?.kind === "call" &&
+                findCommand(call.command) &&
+                !findCommand(call.command)!.formula)
+        ) {
+            if (["Element", ...Object.values(PART_COMMANDS)].includes(command))
+                throw new TextError(
+                    "arguments",
+                    commandName(findCommand(command)!),
+                );
+            const { overload, args } = resolve(c, line);
+            if (UNEMBEDDED.includes(overload.tag))
+                throw new TextError(
+                    "arguments",
+                    (call as { command: string }).command,
+                );
+            const index = figureIndex(c);
+            return readEmbedded(c, [
+                overload.tag,
+                overload.encode(args, (object) =>
+                    objectIndex(object, (owner) => index.get(owner)!),
+                ),
+            ]);
         }
         // Coordinates, or a point's formula, which the object will hold.
         const point =

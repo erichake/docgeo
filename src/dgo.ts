@@ -39,6 +39,7 @@ import { createCircle3pts } from "./objects/circle3pts_object";
 import { createCircle } from "./objects/circle_object";
 import {
     construction_object,
+    embed,
     isDash,
     objectEntry,
     objectIndex,
@@ -1296,38 +1297,53 @@ export interface Scope {
     offset: Vec2;
 }
 
-// Reads the entries after `objects`, which their indices go on from, each
-// with the style `style` finds for its fourth element.
-export function readEntries(
+// What reads entries after `objects`, which their indices go on from.
+function entryReader(
     scope: Scope,
     objects: construction_object[],
-    entries: Json[],
-    style: (value: Json) => Settings,
-): [construction_object, Settings][] {
+): (name: string) => Reader {
     const { c } = scope;
     const vec3 = !c.GRID.is2D;
-    const styled: [construction_object, Settings][] = [];
     const indexed = objectAt(objects);
-    // A point given by its formula, out of the figure.
+    // An object written in the definition, out of the figure: its entry
+    // without name, a formula for a point or a list given by one.
     const at = <C extends Classes>(
         value: Json,
         ...classes: C
     ): Instance<C[number]> => {
-        if (!Array.isArray(value) || (value[0] !== "Fp" && value[0] !== "Fl"))
+        if (!Array.isArray(value) || !own(BUILDERS, value[0] as string))
             return indexed(value, ...classes);
-        const [tag, text] = list(value, 2);
+        const [tag, parameters] = list(value, 2) as [string, Json];
         let object: construction_object;
         if (tag === "Fp")
-            object = embeddedPoint(c, ...pointFormula(text), vec3);
-        else {
-            const { source, refs } = formula(text, construction_object);
+            object = embeddedPoint(c, ...pointFormula(parameters), vec3);
+        else if (tag === "Fl") {
+            const { source, refs } = formula(parameters, construction_object);
             const node = parseFormula(source);
             checkNames(formulaIdentifiers(node), refs);
             object = embeddedList(c, node, refs, vec3);
+        } else {
+            check(!UNEMBEDDED.includes(tag));
+            // Built as in the figure, without being added to it.
+            const built = Object.assign(Object.create(c) as construction, {
+                add: <T>(object: T) => object,
+            });
+            object = embed(
+                BUILDERS[tag](parameters, { ...read(""), c: built }),
+            );
         }
         check(classes.some((type) => object instanceof type));
         return object as Instance<C[number]>;
     };
+    const read = (name: string): Reader => ({
+        ...scope,
+        name,
+        at,
+        points,
+        formula,
+        pointFormula,
+        vec3,
+    });
     const points = (values: Json, count: number): point_object[] =>
         list(values, count).map((value) => at(value, point_object));
     // A formula's text, and the objects of the given classes its names
@@ -1359,6 +1375,34 @@ export function readEntries(
         return [program, refs];
     };
 
+    return read;
+}
+
+// An object written in another's definition, read in the figure.
+export const readEmbedded = (
+    c: construction,
+    value: Json,
+): construction_object => {
+    const objects = figureObjects(c);
+    return withObjects(new Set(objects.map(({ name }) => name)), () =>
+        entryReader(
+            { c, root: c, macros: c.macros, images: {}, offset: [0, 0] },
+            objects,
+        )("").at(value, construction_object),
+    );
+};
+
+// Reads the entries after `objects`, which their indices go on from, each
+// with the style `style` finds for its fourth element.
+export function readEntries(
+    scope: Scope,
+    objects: construction_object[],
+    entries: Json[],
+    style: (value: Json) => Settings,
+): [construction_object, Settings][] {
+    const { c } = scope;
+    const styled: [construction_object, Settings][] = [];
+    const read = entryReader(scope, objects);
     const names = [
         ...objects.map((object) => object.name),
         ...entries.flatMap((entry) =>
@@ -1372,15 +1416,7 @@ export function readEntries(
             const [tag, name, parameters, styleValue] = list(entry, 3, 4);
             check(typeof tag === "string" && own(BUILDERS, tag));
             check(typeof name === "string" && name !== "" && !c.getObj(name));
-            const object = BUILDERS[tag](parameters, {
-                ...scope,
-                name,
-                at,
-                points,
-                formula,
-                pointFormula,
-                vec3,
-            });
+            const object = BUILDERS[tag](parameters, read(name));
             const settings = style(styleValue);
             apply(STYLE, object, settings, lookTag(object, tag));
             styled.push([object, settings]);
@@ -1424,6 +1460,10 @@ export function privateConstruction(
 // manipulation changes, what acts on the figure, and images, whose keys
 // are the figure's.
 const UNBUILT = ["Pt", "VecF", "Btn", "Evt", "Html", "Img"];
+
+// Never written in another's definition: what is moved, edited, shown or
+// applied by itself.
+export const UNEMBEDDED = [...UNBUILT, "On", "Ex", "Txt", "Mac", "Out"];
 
 // The figure's macros: what can be checked before reading their bodies,
 // read with each application.
@@ -1998,9 +2038,11 @@ const BUILDERS: Record<string, Builder> = {
             new dilation_object(reader.c, name, o, point, k);
     }),
     Tra: transformation(2, 2, ([vector], reader) => {
-        const u = isNumber(vector)
-            ? reader.at(vector, vector_object, point_object)
-            : radius(vector, reader);
+        // An object, written in the definition or not, or a formula.
+        const u =
+            isNumber(vector) || (Array.isArray(vector) && !isRecord(vector[1]))
+                ? reader.at(vector, vector_object, point_object)
+                : radius(vector, reader);
         check(typeof u !== "number");
         return (name, point) =>
             new translation_object(

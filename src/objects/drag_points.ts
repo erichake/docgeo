@@ -16,7 +16,7 @@ function freePoints(
     // A polygon's own vertices, which it computes.
     const own = (object as { ownVertices?: construction_object[] }).ownVertices;
     return (
-        !object.embeddedPoints &&
+        !object.embeds &&
         object.parents.every((parent) => {
             if (seen.has(parent) || own?.includes(parent)) return true;
             seen.add(parent);

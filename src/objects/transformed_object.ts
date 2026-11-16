@@ -416,6 +416,7 @@ export function createTransformed(
         ),
     );
     object.parents = [];
+    object.embeds = template.embeds;
     object.addParents(...template.parents);
     object.readsView = template.readsView;
     object.look = look;

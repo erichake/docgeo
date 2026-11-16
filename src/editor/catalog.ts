@@ -22,7 +22,7 @@ import { revolution_object } from "../objects/revolution_object";
 import { straightImage } from "../objects/transformed_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
 import { formulaSource } from "../import/dgp_formula";
-import type { formula_point_object } from "../objects/formula_point_object";
+import { formula_point_object } from "../objects/formula_point_object";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
 
@@ -189,16 +189,21 @@ export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
     if (arg instanceof FormulaArg) return param === "real" || param === "shift";
     if (arg instanceof TextArg) return param === "text";
+    // Written in the definition: a point or a list given by a formula only
+    // where one is; never what a formula reads, a locus traces or a
+    // checkbox shows.
     if (
         arg.embedded &&
-        param !==
-            (arg instanceof point_list_object
-                ? arg.nested
-                    ? "lists"
-                    : "points"
-                : param === "shift"
-                  ? "shift"
-                  : "point")
+        (arg instanceof formula_point_object || arg instanceof point_list_object
+            ? param !==
+              (arg instanceof point_list_object
+                  ? arg.nested
+                      ? "lists"
+                      : "points"
+                  : param === "shift"
+                    ? "shift"
+                    : "point")
+            : ["any", "traced", "readable"].includes(param))
     )
         return false;
     const kind = kindOf(arg);
@@ -335,9 +340,11 @@ const isIndex = (value: unknown): value is DgoRef =>
         value[1] >= 0 &&
         Number.isSafeInteger(value[2]) &&
         value[2] >= 1) ||
+    // An object written in the definition, unlike a formula and its names.
     (Array.isArray(value) &&
         value.length === 2 &&
-        (value[0] === "Fp" || value[0] === "Fl"));
+        typeof value[0] === "string" &&
+        (typeof value[1] !== "object" || Array.isArray(value[1])));
 
 // The item of rank n of a list, from 1, as GeoGebra's L(n): a formula
 // reading the list, L[(n)-1], and L[(i)-1][(j)-1] in a list of lists, the
@@ -1040,7 +1047,7 @@ export const COMMANDS: Command[] = [
                     return [
                         shift instanceof FormulaArg
                             ? realParameter(shift, index)
-                            : point.embedded
+                            : point.embedded && point.formula
                               ? realParameter(
                                     new FormulaArg(
                                         formulaSource(point.formula),

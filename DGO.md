@@ -364,6 +364,21 @@ Depuis le 2026-11-12, une référence à une liste peut de même être
 `Élément(c, 1)` dans `Polygone(Élément(c, 1))`, définie par sa formule
 comme un `Fl` (note 30).
 
+Depuis le 2026-11-16, une référence peut être tout objet écrit dans la
+définition de l'objet, comme `Droite(A, B)` dans
+`Intersection(Droite(A, B), Cercle(O, 2))` : son entrée sans nom ni style,
+`[type, paramètres]`, par exemple `["Line", [0, 3]]`, ses propres
+références pouvant l'être à leur tour (`["Line", [["Mid", [0, 1]], 2]]`).
+`Fp` et `Fl` gardent leur forme `[type, formule]` ci-dessus. Comme eux, il
+ne crée aucune entrée dans `o`, n'est jamais dessiné, et l'objet qui le
+prend dépend directement de ce qu'il lit. Ses parties ne se désignent pas :
+ni `["side", ["Poly", …], k]`, ni le point d'une liste écrite ainsi. Sont
+exclus les types que l'on déplace, édite, montre ou applique pour
+eux-mêmes : `Pt`, `VecF`, `On`, `Ex`, `Txt`, `Html`, `Img`, `Btn`, `Evt`,
+`Mac`, `Out`. Un tableau de deux éléments dont le second n'est pas un objet
+JSON n'est donc jamais une formule `[texte, {nom: indice}]`, ce qui
+distingue, dans `Tra`, un vecteur écrit dans la définition d'une formule.
+
 `Mid` et `Med` acceptent aussi `[segment]`, notamment une référence de côté :
 le calcul suit les deux extrémités actuelles de ce segment, y compris lorsque
 le nombre de côtés du polygone change. Les anciennes formes `[A, B]` gardent

@@ -2870,13 +2870,15 @@ coordonnées ou la formule d'un point : `Droite((0, 7), (1, 7))`,
 `Conique((1, 2), (3, 4), (3, 1), (5, 1), (-2, 2))`, `Segment(A, (3; 90°))`,
 `Droite((0, k), (1, k))`, `Polygone(A, (4, 1), Point(A + [0, 3]))`. Décidé
 avec l'auteur : ces points sont intégrés à l'objet, qui reste seul sur sa
-ligne (« une ligne, un objet », comme le vecteur libre), et ils sont fixes,
+ligne (« une ligne, un objet nommé » : ce qui est écrit dans sa définition
+lui est intégré, sans nom ni ligne propre, voir « Objets écrits dans une
+définition »), et ils sont fixes,
 pas libres, même de coordonnées numériques : l'objet ne se glisse pas
 (`drag_points.ts`), il suit seulement ce que lisent leurs formules.
 
 Le moteur en fait des points définis par une formule (`embeddedPoint`),
 hors de la construction, sans nom ni vue : `addParents` les range dans
-`embeddedPoints` de l'objet, qui les calcule et les projette juste avant
+`embeds` de l'objet (anciennement `embeddedPoints`), qui les calcule et les projette juste avant
 lui (`refresh`, collecteur, application de macro), et donne à l'objet les
 parents de leurs formules. Un seul endroit pour toutes les commandes, sans
 toucher aux classes d'objets. Le `.dgo` les écrit dans l'argument,
@@ -2938,6 +2940,45 @@ contient une liste ; `points` la refuse : `Polygone(c)` n'est pas lu.
 Qu'une liste contienne des listes se lit sur sa valeur pour `{a, b}`.
 `tests/browser/point_lists.test.ts`. Moteur +0,91 Ko (+0,33 Ko en gzip) ;
 éditeur +1,02 Ko (+0,33 Ko en gzip).
+
+### Objets écrits dans une définition — 2026-11-16
+
+Comme dans GeoGebra, un argument peut être une commande qui construit un
+objet : `Intersection(Droite(A, B), Cercle(O, M), 1)`,
+`Perpendiculaire(A, Droite(B, C))`, `Polygone(Liste(c))`,
+`Polygone({(1, 2), A, (3, 0)})`, `Intersection(x + y = 1, Droite(A, B))`,
+`Rotation(A, Segment(B, D), 30°)`, `Prisme(Polygone(A, B, C), D)`, et
+ainsi de suite à toute profondeur
+(`Intersection(Droite(Milieu(A, B), C), Droite(A, D))`). Décidé avec
+l'auteur, comme pour les points écrits dans une définition : la ligne
+garde un seul objet nommé, ces objets lui sont intégrés.
+
+- Ils ne sont jamais dessinés ni désignables, et n'entrent pas dans la
+  construction.
+- Leurs parties restent internes : `Sommet(Polygone(A, B, C), 1)`,
+  `Côté(…)`, `Face(…)` et `Élément(Liste(c), 2)` sont refusés. Pour s'en
+  servir, l'utilisateur sort l'objet sur sa propre ligne.
+- Leurs points écrits en coordonnées restent fixes, et l'objet qui en
+  prend ne se glisse pas (`drag_points.ts`), comme pour les points.
+- Ils ne sont ni un initial de macro, ni ce que montre une case à cocher,
+  ni ce que trace un lieu, ni ce que lit une formule.
+- Ne s'écrit pas dans une définition ce que l'on déplace, édite, montre ou
+  applique pour lui-même (`UNEMBEDDED` de `dgo.ts`) : point libre ou sur
+  objet, curseur, texte, image, bouton, application de macro.
+
+Le moteur les lit comme une entrée sans nom (`DGO.md`, références) :
+`readEntries` construit l'objet par le constructeur de son type sur une
+construction qui ne l'ajoute pas, puis `embed` le sort de ses parents ;
+`addParents` range dans `embeds` de l'objet qui le prend ses propres
+objets intégrés puis lui-même, calculés dans cet ordre avant lui. Aucune
+classe d'objet n'est touchée, sauf l'image par une transformation, qui
+reprend les objets intégrés de son modèle. Dans l'éditeur,
+`resolveArgument` résout une commande, une liste `{…}` ou une équation
+écrite en argument comme une ligne (`resolve`), puis la lit par
+`readEmbedded` ; `formatArg` la relit par `lineOf`, sans le nom.
+
+`tests/browser/nested_objects.test.ts`. Moteur +0,42 Ko (+0,20 Ko en
+gzip) ; éditeur +0,58 Ko (+0,13 Ko en gzip).
 
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 
