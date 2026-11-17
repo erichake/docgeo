@@ -135,11 +135,9 @@ export class text_object extends construction_object {
         if (!this.isVisible || !this.projectionDefined) return;
         // Clicked, as GeoGebra's text with a click script, if it has a
         // program for it.
-        const clickable = this.children.some(
-            (child) => (child as { gesture?: unknown }).gesture === "down",
-        );
         this.textElement.stl(
-            "pointer-events:" + (clickable ? "auto;cursor:pointer" : "none"),
+            "pointer-events:" +
+                (this.clickable ? "auto;cursor:pointer" : "none"),
         );
         const [x, y] = this.position;
         if (this.content !== this.renderedContent) {

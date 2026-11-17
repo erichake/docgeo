@@ -20,6 +20,7 @@ import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
 import { text_object } from "../objects/text_object";
+import { clickable } from "./tools";
 import { blocksView, isTurtle, releaseBlocks } from "./blocks/view";
 import { accepts } from "./catalog";
 import {
@@ -1292,16 +1293,16 @@ export function propertiesPanel(options: {
         else if (line) definition(object, undefined, line);
         if (
             object instanceof point_object ||
-            object instanceof text_object ||
+            clickable(object) ||
             (object instanceof expression_object && !object.program)
         )
             programs(object);
     }
 
     // Those it can still have: a turtle from a point, a program for each
-    // gesture on one that is dragged, for a click on a text, for the change
-    // of an expression, and, as DGPad's "oninit", for the opening of the
-    // figure.
+    // gesture on one that is dragged, for a click on a text or a shape, for
+    // the change of an expression, and, as DGPad's "oninit", for the
+    // opening of the figure.
     function starts(owner: construction_object): string[] {
         const kinds =
             owner instanceof point_object
@@ -1310,7 +1311,7 @@ export function propertiesPanel(options: {
                   ? ["change", "init"]
                   : owner instanceof button_object
                     ? ["init"]
-                    : owner instanceof text_object
+                    : clickable(owner)
                       ? ["down"]
                       : [];
         const own = ownPrograms(options.scene(), owner).map(programHat);
@@ -1319,9 +1320,7 @@ export function propertiesPanel(options: {
 
     // A point's or an expression's programs, one of them shown, or blocks
     // to start one.
-    function programs(
-        owner: point_object | expression_object | text_object,
-    ): void {
+    function programs(owner: construction_object): void {
         const c = options.scene();
         const own = ownPrograms(c, owner);
         const shown = own.find(({ name }) => name === expanded) ?? own[0];

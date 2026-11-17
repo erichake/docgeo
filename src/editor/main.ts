@@ -34,7 +34,6 @@ import {
 import type { construction_object } from "../objects/construction_object";
 import type { grid_object } from "../objects/grid_object";
 import { point_object, type magnet_target } from "../objects/point_object";
-import type { text_object } from "../objects/text_object";
 import { button_object } from "../objects/button_object";
 import type { circle1_object } from "../objects/circle1_object";
 import { event_object, type Trigger } from "../objects/event_object";
@@ -1022,14 +1021,7 @@ const properties = propertiesPanel({
     start: (kind, object) =>
         kind === "turtle"
             ? editTurtle(object)
-            : startEvent(
-                  object as
-                      | point_object
-                      | expression_object
-                      | button_object
-                      | text_object,
-                  kind === "change" ? null : (kind as Trigger),
-              ),
+            : startEvent(object, kind === "change" ? null : (kind as Trigger)),
     remove: (program) => {
         scene().removeObject(program);
         done();
@@ -4038,10 +4030,7 @@ function editTurtle(turtle: construction_object): void {
 
 // The program of the point's gesture, of the change of the expression's
 // value, or of the opening of the figure, in blocks, made if it has none.
-function startEvent(
-    owner: point_object | expression_object | button_object | text_object,
-    gesture: Trigger | null,
-): void {
+function startEvent(owner: construction_object, gesture: Trigger | null): void {
     const c = scene();
     const existing = figureObjects(c).find(
         (object) =>
@@ -4058,7 +4047,7 @@ function startEvent(
 // From the menu's tool, which is put down.
 function answer(tool: Tool, owner: construction_object): void {
     cancel();
-    startEvent(owner as point_object | expression_object, tool.gesture ?? null);
+    startEvent(owner, tool.gesture ?? null);
 }
 
 // The properties of a tool's program, which give back the palette they take

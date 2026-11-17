@@ -480,6 +480,7 @@ export class locus_object extends construction_object {
         const dom = t.svg.shape("g");
         t.hitArea = t.svg
             .shape("path")
+            .tap(() => t.C.gesture(t, "down"))
             .stl(
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
             )

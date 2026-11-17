@@ -456,6 +456,7 @@ export class polygon_object extends construction_object {
         const [drag, grab] = pointsDrag(t);
         t.hitArea = t.svg
             .shape("path")
+            .tap(() => t.C.gesture(t, "down"))
             .stl(
                 "fill:transparent;stroke:transparent;pointer-events:fill;cursor:pointer",
             )

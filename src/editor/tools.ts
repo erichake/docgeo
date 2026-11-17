@@ -3,6 +3,13 @@ import type { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
+import { curve_object } from "../objects/curve_object";
+import { image_object } from "../objects/image_object";
+import { locus_object } from "../objects/locus_object";
+import { polygon_object } from "../objects/polygon_object";
+import { primitive_circle_object } from "../objects/primitive_circle_object";
+import { primitive_line_object } from "../objects/primitive_line_object";
+import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { text_object } from "../objects/text_object";
 import {
     accepts,
@@ -536,11 +543,25 @@ const SPACE = ["family_planes", "family_solids"];
 export const itemLabel = ({ tools: [tool] }: Item): string =>
     tool.label ? message(tool.label) : commandName(tool.command);
 
-// The point a turtle starts from, the point dragged, the text clicked or
-// the expression whose value changes that a program answers.
+// What a program may answer the click on (see event_object.ts), but a
+// point.
+export const clickable = (object: construction_object): boolean =>
+    [
+        text_object,
+        polygon_object,
+        primitive_line_object,
+        primitive_circle_object,
+        primitive_quadric_object,
+        curve_object,
+        locus_object,
+        image_object,
+    ].some((kind) => object instanceof kind);
+
+// The point a turtle starts from, the point dragged, the text or shape
+// clicked or the expression whose value changes that a program answers.
 function answers({ mode, gesture }: Tool, object: construction_object) {
     if (mode === "turtle") return object instanceof point_object;
-    if (gesture === "down" && object instanceof text_object) return true;
+    if (gesture === "down" && clickable(object)) return true;
     return gesture
         ? object instanceof point_object && object.moveable
         : object instanceof expression_object && !object.program;

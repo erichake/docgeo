@@ -2834,7 +2834,7 @@ const BUILDERS: Record<string, Builder> = {
             e === "init"
                 ? reader.at(parameters.on, expression_object, button_object)
                 : e === "down"
-                  ? reader.at(parameters.on, point_object, text_object)
+                  ? reader.at(parameters.on, construction_object)
                   : reader.at(
                         parameters.on,
                         e ? point_object : expression_object,

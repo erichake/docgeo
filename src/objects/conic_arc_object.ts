@@ -160,6 +160,7 @@ export class conic_arc_object extends primitive_quadric_object {
         const t = _this as conic_arc_object;
         t.hitArea = t.svg
             .shape("path")
+            .tap(() => t.C.gesture(t, "down"))
             .stl(
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke",
             )

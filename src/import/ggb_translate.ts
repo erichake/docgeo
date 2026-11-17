@@ -166,6 +166,9 @@ const FORMULA_COMMANDS = new Set([
     "FractionText",
     "TableText",
     "RotateText",
+    "Text",
+    "First",
+    "Last",
     "Slope",
     "Length",
     "PathParameter",
@@ -176,7 +179,17 @@ const FORMULA_COMMANDS = new Set([
     "Angle",
 ]);
 // The commands whose list listFormula reads from their own sources.
-const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode", "Insert"]);
+const LIST_COMMANDS = new Set([
+    "Take",
+    "First",
+    "Last",
+    "Mode",
+    "Insert",
+    "Reverse",
+    "Sort",
+]);
+// What a seed draws again (see drawFormula).
+const RANDOM_DRAWS = ["Random", "RandomBetween", "RandomUniform"];
 // A command whose saved list GeoGebra drew at random.
 const RANDOM_LIST = /\b(?:random|Random[A-Za-z]*|Shuffle|Sample)\s*[([]/;
 const BINDING_COMMANDS = new Set([
@@ -329,6 +342,19 @@ const POINT_SHAPES: Record<number, [number, boolean]> = {
     5: [2, true],
 };
 const POINT_KINDS: Kind[] = ["point", "pointOn"];
+
+// What a click script may belong to, as in GeoGebra.
+const CLICKED: Kind[] = [
+    ...POINT_KINDS,
+    "text",
+    "line",
+    "circle",
+    "polygon",
+    "quadric",
+    "locus",
+    "curve",
+    "image",
+];
 // Cube(A, B, C)'s outputs, after the polyhedron itself: vertices D to H,
 // then its faces and edges as vertex indices (A..H = 0..7), in GeoGebra's
 // order (see PlatonicSolidsFactory.getCube), which also numbers its nets.
@@ -1136,6 +1162,16 @@ export function translateGgb(
     const functions = new Set<string>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
+    // A drawn text's source, which a formula reads as its value.
+    const texts = new Map<string, string>();
+    // The variable of the hidden number a script's UpdateConstruction
+    // draws again, 0 for the values GeoGebra saved, from which the random
+    // objects are drawn (see uniform).
+    let seed: string | null = null;
+    let draws = 0;
+    // The variables of the numbers and lists drawn from the seed, or read
+    // from them only, which no manipulation changes.
+    const fixed = new Set<string>();
     const commandOutputs = new Set<string>();
     const inequalities = new Set<string>();
     // How an object is defined, as an expression.
@@ -1415,7 +1451,12 @@ export function translateGgb(
             (kinds.includes("expression") &&
                 (segments.has(word) || is(word, ["angle"])));
         const known = objects.get(source);
-        if (known && !vectors.has(source) && !locals.has(source))
+        if (
+            known &&
+            !vectors.has(source) &&
+            !locals.has(source) &&
+            !texts.has(source)
+        )
             return readable(source) ? known.variable : null;
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
@@ -1504,16 +1545,20 @@ export function translateGgb(
                         kinds.length > 0 &&
                         is(word, ["line"]) &&
                         linePoint(word);
-                    const fn = functions.has(word)
-                        ? kinds.length > 0 && objects.get(word)!.variable
-                        : list
-                          ? ([n]: string[]) => `(${list.item(n) ?? "?"})`
-                          : start
-                            ? ([x]: string[]) => {
-                                  const p = objects.get(start)!.variable;
-                                  return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
-                              }
-                            : FUNCTIONS[word];
+                    const fn =
+                        seed && RANDOM_DRAWS.includes(word)
+                            ? ([a, b]: string[]) =>
+                                  drawFormula(word, a, b, locals)
+                            : functions.has(word)
+                              ? kinds.length > 0 && objects.get(word)!.variable
+                              : list
+                                ? ([n]: string[]) => `(${list.item(n) ?? "?"})`
+                                : start
+                                  ? ([x]: string[]) => {
+                                        const p = objects.get(start)!.variable;
+                                        return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
+                                    }
+                                  : FUNCTIONS[word];
                     if (!fn) return null;
                     const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
@@ -1525,6 +1570,8 @@ export function translateGgb(
                     result += expand ? "(" : `${fn}(`;
                     index++;
                 } else if (word === "π" || word === "pi") result += "π";
+                else if (word === "NaN" && !objects.has(word))
+                    result += "(0/0)";
                 else if (word === "ℯ") result += "exp(1)";
                 else if (word === "true" || word === "false") result += word;
                 // GeoGebra's imaginary unit, typed "i" in a script.
@@ -1554,6 +1601,10 @@ export function translateGgb(
                         .get(word)!
                         .map((end) => objects.get(end)!.variable);
                     result += `(${q}-${p})`;
+                } else if (texts.has(word) && kinds.length > 0) {
+                    const value = textFormula(texts.get(word)!);
+                    if (value === null) return null;
+                    result += value;
                 } else if (readable(word)) {
                     const variable = objects.get(word)!.variable;
                     // A point plus a number: GeoGebra adds it to each
@@ -1760,7 +1811,12 @@ export function translateGgb(
                 return args.length === 1 && is(args[0], ["line"])
                     ? slopeFormula(args[0])
                     : null;
+            // A text's number of characters.
             case "Length":
+                if (texts.has(args[0])) {
+                    const text = textFormula(args[0]);
+                    return text && `(${text}.length)`;
+                }
                 return args.length === 1
                     ? lengthFormula(args[0], locals)
                     : null;
@@ -1815,16 +1871,33 @@ export function translateGgb(
             }
             case "TableText":
                 return tableFormula(args, locals);
+            // A text's first or last n characters.
+            case "First":
+            case "Last": {
+                const value = texts.has(args[0]) && textFormula(args[0]);
+                const n =
+                    args.length === 2
+                        ? formula(args[1], VALUE_KINDS, locals)
+                        : "1";
+                if (!value || n === null || args.length > 2) return null;
+                return name === "First"
+                    ? `(${value}.slice(0,${n}))`
+                    : `(${value}.slice(-(${n})))`;
+            }
+            // Wherever it is placed: what reads it doesn't.
+            case "Text":
+                return args.length === 1 ||
+                    (args.length === 2 && points(args[1]))
+                    ? textFormula(args[0])
+                    : null;
             // "\\rotatebox{90}{ \\text{ abc }  }" (relevé dans GeoGebra),
             // a LaTeX text kept as is. Drawn turned (see latex.ts).
             case "RotateText": {
                 // A text not in LaTeX isn't read by a formula: its own
                 // expression is.
-                const source = expressions.get(args[0]);
-                const parts = source === undefined ? null : textParts(source);
-                const value = parts
-                    ? `(""${parts.map((part) => (typeof part === "string" ? `+"${part.replace(/[\\"]/g, "\\$&")}"` : `+(${part.formula})`)).join("")})`
-                    : formula(args[0], TEXT_KINDS, locals);
+                const value =
+                    textFormula(expressions.get(args[0]) ?? args[0]) ??
+                    formula(args[0], TEXT_KINDS, locals);
                 const angle = formula(args[1], TEXT_KINDS, locals);
                 if (args.length !== 2 || !value || !angle) return null;
                 const text = elements.get(args[0]);
@@ -2112,6 +2185,39 @@ export function translateGgb(
         return `[windowcx()${x}windoww()/2,windowcy()${y}windowh()/2]`;
     };
 
+    // The list of `count` items in the order of their keys: the n-th item is
+    // the one with n - 1 keys before it, equal keys kept in order. Only of
+    // a short list, its formula growing as its size squared.
+    const sortedList = (
+        list: ListFormula,
+        count: number,
+        keys: (string | null)[],
+    ): ListFormula | null => {
+        const indices = Array.from({ length: count }, (_, i) => i + 1);
+        const items = indices.map((i) => list.item(String(i)));
+        if (!(count <= 20) || items.includes(null) || keys.includes(null))
+            return null;
+        const rank = (i: number) =>
+            `1${indices
+                .filter((j) => j !== i)
+                .map(
+                    (j) =>
+                        `+((${keys[j - 1]})${j < i ? "<=" : "<"}(${keys[i - 1]})?1:0)`,
+                )
+                .join("")}`;
+        return {
+            count: list.count,
+            item: (n) =>
+                indices
+                    .slice(0, -1)
+                    .reduceRight(
+                        (rest, i) =>
+                            `((${rank(i)})==(${n})?(${items[i - 1]}):${rest})`,
+                        `(${items[count - 1]})`,
+                    ),
+        };
+    };
+
     // A GeoGebra list as its size and its n-th item (from 1), as formulas.
     const listFormula = (
         source: string,
@@ -2189,6 +2295,46 @@ export function translateGgb(
             const n = formula(args[1], VALUE_KINDS, locals);
             return (
                 (n !== null && listFormula(args[0], locals)?.sub?.(n)) || null
+            );
+        }
+        if (name === "Reverse" && args.length === 1) {
+            const list = listFormula(args[0], locals);
+            return (
+                list && {
+                    count: list.count,
+                    item: (n) => list.item(`${list.count}-(${n})+1`),
+                }
+            );
+        }
+        // Sort(list) or Sort(list, keys), of a list whose size is known.
+        if (name === "Sort" && args.length <= 2) {
+            const [list, keys = list] = args.map((arg) =>
+                listFormula(arg, locals),
+            );
+            const count = list && evaluateConstant(list.count);
+            if (!list || !keys || count === null || keys.count !== list.count)
+                return null;
+            return sortedList(
+                list,
+                count,
+                Array.from({ length: count }, (_, i) =>
+                    keys.item(String(i + 1)),
+                ),
+            );
+        }
+        // Drawn again from the seed: sorted by random keys.
+        if (name === "Shuffle" && seed && args.length === 1) {
+            const list = listFormula(args[0], locals);
+            const count = list && evaluateConstant(list.count);
+            // Its keys a hidden list, which a Sequence's variable can't be read by.
+            if (!list || count === null || locals.size) return null;
+            const keys = hiddenExpression(
+                `[${Array.from({ length: count }, () => uniform(locals))}]`,
+            );
+            return sortedList(
+                list,
+                count,
+                Array.from({ length: count }, (_, i) => `${keys}[${i}]`),
             );
         }
         // Sequence(b) and Sequence(a, b): the integers up to b.
@@ -2459,10 +2605,12 @@ export function translateGgb(
             `${name}(${sources.join(",")})`,
             new Map(),
             fresh,
-            values ? { array: values, guard: "true" } : undefined,
+            values
+                ? { array: values, guard: seed ? `${seed}==0` : "true" }
+                : undefined,
         );
         if (!value || (type === "list") !== value.depth > 0) return false;
-        const program = `var $qs=1;${value.code}${value.value}`;
+        const program = `var $qs=${seed ? `${seed}==0?1:floor(${seed}*2147483646)+1` : 1};${value.code}${value.value}`;
         if (type === "numeric") {
             hiddenExpression(program, label);
             return true;
@@ -2714,6 +2862,40 @@ export function translateGgb(
         );
         return objects.get(label)!.variable;
     };
+
+    // A number in [0, 1) drawn from the seed, its own for each call and
+    // each value of the locals (a Sequence's variable).
+    const uniform = (locals: Map<string, string>): string => {
+        const h = `abs(sin(${seed}*${12.9898 + ++draws * 0.7}+(${[...locals.values()].join("+") || 0})*78.233+${draws}))*43758.5453`;
+        return `(${h}-floor(${h}))`;
+    };
+    // Random(a, b), RandomBetween(a, b) or RandomUniform(a, b) from the
+    // seed, but its draw at import while it is 0.
+    const drawFormula = (
+        name: string,
+        a: string,
+        b: string,
+        locals: Map<string, string>,
+    ): string => {
+        const u = uniform(locals);
+        if (name === "RandomUniform") return `((${a})+${u}*((${b})-(${a})))`;
+        const first = (FUNCTIONS.Random as Expansion)([a, b]);
+        const value = `floor((${a})+${u}*((${b})-(${a})+1))`;
+        return first === "?"
+            ? `(${value})`
+            : `((${seed})==0?${first}:${value})`;
+    };
+    // Whether the formula reads only what is drawn from the seed.
+    const readsFixed = (source: string): boolean =>
+        [...formulaIdentifiers(parseFormula(source))].every((name) =>
+            fixed.has(name),
+        );
+    // The formula with the seed at 0.
+    const unseeded = (source: string): string =>
+        source.replace(
+            new RegExp(`${seed!.replace(/\$/g, "\\$")}(?![\\w$])`, "g"),
+            "0",
+        );
 
     const defineFunction = (
         label: string,
@@ -3487,15 +3669,26 @@ export function translateGgb(
             }
     };
 
-    // A random number or point keeps the value GeoGebra saved.
-    const savedValue: Handler = (_, [label]) => {
-        const element = elements.get(label);
-        const coords = element && pointCoords(element);
-        return coords
-            ? define(label, "point", "Point", vectorLiteral(coords))
-            : element?.getAttribute("type") === "numeric" &&
-                  numeric(label, element);
-    };
+    // A random number or point keeps the value GeoGebra saved, a number
+    // drawn again from the seed (`draw`, of the command's inputs) if any.
+    const savedValue =
+        (draw: (inputs: string[]) => string): Handler =>
+        (inputs, [label]) => {
+            const element = elements.get(label);
+            const coords = element && pointCoords(element);
+            const source = seed ? draw(inputs) : undefined;
+            const drawn =
+                source !== undefined && formula(source, VALUE_KINDS) !== null;
+            return coords
+                ? define(label, "point", "Point", vectorLiteral(coords))
+                : element?.getAttribute("type") === "numeric" &&
+                      numeric(
+                          label,
+                          element,
+                          drawn ? source : undefined,
+                          drawn,
+                      );
+        };
 
     // Polygon(A, B, n)'s vertices in the plane, the k-th being A + (B -
     // A)·(1 - w^k)/(1 - w) as complex numbers (see planar); Polygon(A, B,
@@ -4915,6 +5108,9 @@ export function translateGgb(
                 formulaPoint(content, label);
                 return true;
             }
+            // Drawn from the seed: kept as GeoGebra saved it until it changes.
+            if (type === "numeric" && seed && unseeded(content) !== content)
+                return numeric(label, element, `If(${inputs})`);
             if (type === "numeric")
                 return define(
                     label,
@@ -5090,12 +5286,14 @@ export function translateGgb(
         },
         LowerSum: riemannSum("min"),
         UpperSum: riemannSum("max"),
-        Random: savedValue,
-        RandomBetween: savedValue,
-        RandomUniform: savedValue,
+        Random: savedValue((inputs) => `Random(${inputs})`),
+        RandomBetween: savedValue((inputs) => `Random(${inputs})`),
+        RandomUniform: savedValue((inputs) => `RandomUniform(${inputs})`),
         // Drawn at import when GeoGebra saved no value, as for a text.
         RandomElement: (inputs, outputs) =>
-            savedValue(inputs, outputs) ||
+            savedValue(
+                ([list]) => `Element(${list},Random(1,Length(${list})))`,
+            )(inputs, outputs) ||
             formulaCommand("Element")(
                 [inputs[0], `Random(1,Length(${inputs[0]}))`],
                 outputs,
@@ -5243,10 +5441,12 @@ export function translateGgb(
     };
 
     // A list of points is drawn, other lists only read by formulas.
+    // A random list (`drawn`, its command) is drawn again from the seed.
     const defineList = (
         label: string,
         element: Element,
         source: string,
+        drawn?: string,
     ): boolean => {
         const list = listFormula(source);
         if (!list) return false;
@@ -5268,13 +5468,29 @@ export function translateGgb(
             const items = splitArguments(text.slice(1, -1))!.map((item) =>
                 formula(item, VALUE_KINDS),
             );
+            const again = drawn === undefined ? null : listFormula(drawn);
+            const fresh =
+                again && evaluateConstant(again.count) === items.length
+                    ? items.map((_, n) => again.item(String(n + 1)))
+                    : [];
             define(
                 label,
                 "expression",
                 "Expression",
-                ["", "", "", `[${items}]`, "0", "0"].map(literal),
+                [
+                    "",
+                    "",
+                    "",
+                    fresh.length && !fresh.includes(null)
+                        ? `(${seed})==0?[${items}]:[${fresh}]`
+                        : `[${items}]`,
+                    "0",
+                    "0",
+                ].map(literal),
                 "h:1",
             );
+            if (fresh.length && !fresh.includes(null))
+                fixed.add(objects.get(label)!.variable);
             lists.set(label, {
                 ...named(objects.get(label)!.variable, 1),
                 count: list.count,
@@ -5297,9 +5513,16 @@ export function translateGgb(
         );
     };
 
-    const numeric = (label: string, element: Element): boolean => {
+    // `drawn`: of a random command, whose saved value holds until the seed
+    // changes, whatever its bounds read, as that of a formula drawing from
+    // the seed what no manipulation changes.
+    const numeric = (
+        label: string,
+        element: Element,
+        source = expressions.get(label),
+        drawn = false,
+    ): boolean => {
         const slider = child(element, "slider");
-        const source = expressions.get(label);
         const value = attribute(element, "value", "val") ?? "";
         const style = expressionStyle(element, !!slider);
         if (slider) {
@@ -5340,25 +5563,42 @@ export function translateGgb(
         }
         const dependent =
             source === undefined ? null : formula(source, VALUE_KINDS);
+        // Drawn from the seed alone: the value GeoGebra saved until a
+        // script draws it again.
+        const seeded =
+            seed !== null &&
+            dependent !== null &&
+            NUMBER.test(value) &&
+            unseeded(dependent) !== dependent &&
+            (drawn || readsFixed(unseeded(dependent)));
         // A free number GeoGebra saved undefined stays so.
-        const content =
-            dependent !== null && !isConstant(dependent)
-                ? dependent
-                : value === "NaN"
-                  ? "0/0"
-                  : value;
-        if (content !== dependent && !NUMBER.test(content) && content !== "0/0")
+        const content = seeded
+            ? `(${seed})==0?${value}:(${dependent})`
+            : dependent !== null && !isConstant(dependent)
+              ? dependent
+              : value === "NaN"
+                ? "0/0"
+                : value;
+        if (
+            !seeded &&
+            content !== dependent &&
+            !NUMBER.test(content) &&
+            content !== "0/0"
+        )
             return false;
         // Untranslated, it keeps its saved value, but is reported.
         if (source !== undefined && dependent === null)
             unsupported.push(`numeric ${label}`);
-        return define(
+        define(
             label,
             "expression",
             "Expression",
             ["", "", "", content, "0", "0"].map(literal),
             style,
         );
+        if (seeded || (seed && content === dependent && readsFixed(content)))
+            fixed.add(objects.get(label)!.variable);
+        return true;
     };
 
     // A function of x as GeoGebra writes it in a text, its numbers' values
@@ -5575,6 +5815,15 @@ export function translateGgb(
         return addSum() ? parts : null;
     };
 
+    // A text as a formula, its parts joined.
+    const textFormula = (source: string): string | null => {
+        const parts = textParts(source);
+        return (
+            parts &&
+            `(""${parts.map((part) => (typeof part === "string" ? `+"${part.replace(/[\\"]/g, "\\$&")}"` : `+(${part.formula})`)).join("")})`
+        );
+    };
+
     const textStyle = (element: Element): string => {
         const color = child(element, "objColor");
         const background = child(element, "bgColor");
@@ -5755,6 +6004,7 @@ export function translateGgb(
             define(anchor, "point", "Point", vectorLiteral([x / z, y / z, 0]));
         }
         if (!points(anchor)) return false;
+        texts.set(label, source);
         const offset = ["x", "y"].map((name) =>
             literal(Number(attribute(element, "labelOffset", name) ?? 0)),
         );
@@ -6599,7 +6849,14 @@ export function translateGgb(
             if (
                 outputs.some(Boolean) &&
                 !(list && element
-                    ? defineList(outputs[0], element, list)
+                    ? defineList(
+                          outputs[0],
+                          element,
+                          list,
+                          random && seed
+                              ? `${name}(${sources.join(",")})`
+                              : undefined,
+                      )
                     : handler?.(inputs(name, sources), outputs)) &&
                 !scriptCommand(name, sources, outputs, random)
             )
@@ -6628,6 +6885,19 @@ export function translateGgb(
     // GeoGebra may save an object before those it reads, e.g. a
     // spreadsheet's CellRange before its cells: it is translated once they
     // are.
+    if (
+        [...construction.querySelectorAll("ggbscript")].some((script) =>
+            /UpdateConstruction/.test(script.getAttribute("val") ?? ""),
+        ) &&
+        [...construction.querySelectorAll("command, expression")].some((node) =>
+            RANDOM_LIST.test(
+                node.tagName === "command"
+                    ? `${node.getAttribute("name")}(${indexedAttributes(child(node, "input"))})`
+                    : (node.getAttribute("exp") ?? ""),
+            ),
+        )
+    )
+        seed = hiddenExpression("0");
     const pending: { node: Element; reads: string[] }[] = [];
     [...construction.children].forEach((node) => {
         const label = node.getAttribute("label") ?? "";
@@ -6788,7 +7058,8 @@ export function translateGgb(
     };
 
     // Its lines, each a SetValue, an assignment or an UpdateConstruction,
-    // which has nothing to draw again: the import keeps random numbers.
+    // which draws the random objects again by changing the seed, if there
+    // is one.
     // "#" starts a comment.
     // A button's own program may change its caption, the button being
     // defined after it under its label.
@@ -6810,11 +7081,9 @@ export function translateGgb(
         };
         const command = (text: string, top: boolean): string | null => {
             // The view a script's next commands are about: there is one.
-            if (
-                /^(?:UpdateConstruction\(\s*\)|SetActiveView\(.*\)|ZoomIn\(\s*1\s*\))$/.test(
-                    text,
-                )
-            )
+            if (/^UpdateConstruction\(\s*\)$/.test(text))
+                return seed ? `${seed}.setExpression(random());` : "";
+            if (/^(?:SetActiveView\(.*\)|ZoomIn\(\s*1\s*\))$/.test(text))
                 return "";
             const call = COMMAND_EXPRESSION.exec(text);
             const args = call && splitArguments(call[2])?.map((a) => a.trim());
@@ -7040,9 +7309,9 @@ export function translateGgb(
         return true;
     };
 
-    // A click script, run when a button, a text or a point is clicked, and
-    // an update script are translated: a button keeps its place in the
-    // window. The other scripts aren't.
+    // A click script, run when a button, a text, a point or a shape is
+    // clicked, and an update script are translated: a button keeps its
+    // place in the window. The other scripts aren't.
     elements.forEach((element, label) => {
         const scripts = [...element.children].filter(
             (item) =>
@@ -7073,9 +7342,7 @@ export function translateGgb(
             [...script.attributes].every(
                 ({ name }) => name === "val" || name === "onUpdate",
             ) &&
-            (click === null ||
-                type === "button" ||
-                is(label, ["text", ...POINT_KINDS]))
+            (click === null || type === "button" || is(label, CLICKED))
                 ? scriptProgram(
                       click ?? "",
                       type === "button" && IDENTIFIER.test(label)

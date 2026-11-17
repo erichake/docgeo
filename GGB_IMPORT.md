@@ -77,10 +77,11 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-16 : 323 / 456,
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 323 / 456,
 71 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-324 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
-dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
+325 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
+(légendes LaTeX écrites telles quelles, item 83) restent fausses.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
 `python3 tools/ggb_corpus/roots.py` avant de choisir, l'ordre évolue) :
@@ -103,7 +104,7 @@ dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
 4. scripts restants (12, chacun pour une raison différente : JavaScript
    hors périmètre, redéfinitions (`M = Point(r)`, `P' = Rotate(…)`,
    `Nl = N`), script de mise à jour d'une droite (FGpkP4QP, une
-   tangente), clic sur une image (pa6q3mgr), `StartAnimation(false)`
+   tangente), `StartAnimation(false)`
    (mFbjcE5n), points que l'élève doit construire (xkpxfWc6 : échec
    normal), `SetCaption`, `SetFixed`, `ParseToNumber`, `RunClickScript`).
 
@@ -237,6 +238,8 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 320 / 456 (70 %)   | 339,5 Ko | item 77 : ordre de lecture, demi-plans, point dans une sphère, cercle de l'espace, traces et fond par script (+3) |
 | 2026-11-16 | 323 / 456 (71 %)   | 344,4 Ko | item 78 : graphique 2 (seconde vue), inéquations de x et y (+3) |
 | 2026-11-16 | 324 / 456 (71 %)   | 345,2 Ko | item 79 : graphique à gauche ou à droite de la vue 3D en vue plane (+0) |
+| 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 83 : scripts de clic des formes, `Text` dans une formule, `NaN` (+1, fausse) |
+| 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 84 : textes lus dans une formule, `Sort`, `Reverse`, nouveau tirage par `UpdateConstruction` (+0) |
 
 ## À faire, par rapport gain / coût
 
@@ -1582,3 +1585,55 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       colonne y est ramenée (curseur k). **+0 figure** du corpus (aucune
       perdue, aucun élément signalé en plus), moteur +1,9 Ko (dont 0,4 pour
       les commandes contre le bord), import +0,2 Ko (93,6 Ko).
+- [x] **83. Scripts de clic des formes, `Text` dans une formule, `NaN`**
+      (about_numbers, signalée hors corpus : un pentagone dont chaque
+      trapèze, cliqué, montre une réponse). Le script de clic d'un
+      polygone, d'une droite, d'un segment, d'un cercle, d'un arc, d'une
+      conique, d'une courbe, d'un lieu ou d'une image devient, comme celui
+      d'un texte, son programme « quand on clique » (`Evt` `"down"`),
+      lancé par un clic sur sa zone sensible (une image ne prend le
+      pointeur que si elle a un tel programme), proposé et montré en blocs
+      par l'éditeur. `Text(x)` et `Text(x, P)` sont lus dans une formule
+      (`RotateText(Text[n + 1], 72°)`, `"+ " + (Text[…])`), la place `P`
+      étant sans effet sur ce qui lit le texte ; `NaN` y est `0/0`, d'où un
+      texte `If(c, "…", NaN)` indéfini, donc caché, quand `c` est faux.
+      **+1 figure** comptée (324 → 325 : pa6q3mgr, clic sur une image), mais
+      elle reste fausse : ses légendes LaTeX (`\bf\large C`, `\times b`)
+      s'écrivent telles quelles (erreur silencieuse que le script refusé
+      cachait). Scripts de clic débloqués aussi dans bnzkszkf, qvqpgpbh,
+      tmanuss4, um9gyg9e et wneppahy, plus 5 nombres de p9azagtm. Aucune
+      figure perdue. Le reste d'about_numbers est l'item 84. Moteur
+      +0,4 Ko (zones sensibles, image cliquable), import DGP +0,1 Ko,
+      import GeoGebra +0,2 Ko (93,8 Ko).
+- [x] **84. Textes lus dans une formule, `Sort`, `Reverse`, nouveau tirage
+      par `UpdateConstruction`** (about_numbers, qui s'ouvre et se
+      manipule désormais comme dans GeoGebra). Une formule lit un texte
+      dessiné par sa définition (`First(t, n)` et `Last(t, n)` ses
+      premiers ou derniers caractères, `Length(t)` leur nombre).
+      `Reverse(l)` ; `Sort(l)` et `Sort(l, clés)` d'une liste de taille
+      connue (au plus 20 éléments : le n-ième est celui qui a n − 1 clés
+      avant lui). Surtout, `UpdateConstruction()` d'un script tire de
+      nouveau les objets aléatoires, au lieu de ne rien faire : quand une
+      figure en a un et des objets aléatoires, l'import crée une graine,
+      nombre caché qui vaut 0, que l'instruction change
+      (`graine.setExpression(random())`, en blocs « random fraction »).
+      Tant qu'elle vaut 0, chaque objet aléatoire garde la valeur
+      enregistrée par GeoGebra ; ensuite il est tiré de la graine (nombre
+      pseudo-aléatoire propre à chaque tirage) : `Random`,
+      `RandomBetween`, `RandomUniform` (commandes, et dans les formules),
+      `RandomElement`, les listes `Shuffle` et `Sequence` de tirages
+      (triées par des clés tirées, rangées dans une liste cachée), les
+      `Sequence` calculées par script (graine de leur générateur). Un
+      nombre qui mêle un tirage et des objets qu'aucune manipulation ne
+      change (tirages, ou nombres qui n'en lisent que) garde lui aussi sa
+      valeur enregistrée tant que la graine vaut 0, `If` compris. Rien de
+      nouveau dans le moteur ni dans `.dgo` : la graine, nombre constant,
+      entre dans l'état élève, seule trace d'un nouveau tirage. Corpus :
+      12 figures ont `UpdateConstruction` et des tirages, aucune encore
+      sans perte (autres causes) ; leurs écarts à l'ouverture tombent de
+      36 à 2 (ebahgfd4), de 35 à 2 (gvsa5c8q), de 8 à 1 (mjbsjcbp), de 5
+      à 0 (qvqpgpbh, wneppahy), de 2 à 1 (tmanuss4), ceux qui restent
+      étant antérieurs et sans tirage ; éléments signalés en moins dans
+      ebahgfd4, gvsa5c8q, mjbsjcbp, um9gyg9e, zpbaqvsr, dv9yqmqu,
+      sy7cy5zh, tmanuss4. **+0 figure** (325), aucune perdue. Moteur
+      inchangé, import GeoGebra +2,8 Ko (96,6 Ko).

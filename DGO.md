@@ -546,7 +546,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Img`   | image                                                                       | `[clé, largeur, hauteur, A, B?, C?]` (9)                 |
 | `Html`  | texte HTML dans un cadre de la fenêtre                                      | `[[x, y, largeur, hauteur], rayon, texte]` (11)          |
 | `Btn`   | bouton qui exécute un script                                                | objet (13)                                               |
-| `Evt`   | script lancé par une `Ex`, un point ou un texte                             | `{"on": expression ou point, "s": script}` (24)          |
+| `Evt`   | script lancé par une `Ex`, un point, un texte ou une forme                  | `{"on": expression ou point, "s": script}` (24)          |
 | `Mac`   | application d'une macro-construction                                        | `[macro, méthode, initiaux, branches?]` (25)             |
 | `Out`   | final de rang k d'une application                                           | `[application, k]` (25)                                  |
 
@@ -804,7 +804,11 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     ou un autre programme le déplace ; `"down"` et `"up"` (« onmousedown »,
     « onmouseup »), quand on l'appuie et le relâche. Depuis le 2026-11-14,
     `on` peut aussi être un texte (`Txt`) avec `"down"` : quand on clique
-    dessus (script de clic d'un texte de GeoGebra). Plusieurs programmes
+    dessus (script de clic d'un texte de GeoGebra). Depuis le 2026-11-17,
+    `on` peut aussi être une forme (polygone, droite, segment, cercle, arc,
+    conique, courbe, lieu, image) avec `"down"`, de même (script de clic
+    d'une forme de GeoGebra) ; une image n'en reçoit le clic que si elle a
+    un tel programme. Plusieurs programmes
     d'un même geste s'exécutent chacun, dans l'ordre de la figure. Le script
     fixe aussi la place des points libres (`SET_EXP`). Avec `"e": "init"`,
     programme « oninit » de DGPad d'une expression ou d'un bouton `on`

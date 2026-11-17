@@ -313,6 +313,7 @@ export class primitive_circle_object extends construction_object {
         const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.hitArea = t.svg
             .shape("circle")
+            .tap(() => t.C.gesture(t, "down"))
             .att("cx", 0)
             .att("cy", 0)
             .att("r", 1)

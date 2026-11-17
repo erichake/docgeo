@@ -80,6 +80,11 @@ export class image_object extends construction_object {
         const shown = this.isVisible && this.transform !== null;
         this.dom.stl("display", shown ? "block" : "none");
         if (!shown) return;
+        // Clicked if it has a program for it: otherwise what is under it is.
+        this.image.stl(
+            "pointer-events:" +
+                (this.clickable ? "auto;cursor:pointer" : "none"),
+        );
         this.image.att("transform", this.transform!);
         this.frame?.att("transform", this.transform!);
     }
@@ -92,7 +97,7 @@ export class image_object extends construction_object {
             .att("width", t.width)
             .att("height", t.height)
             .att("preserveAspectRatio", "none")
-            .stl("pointer-events", "none")
+            .tap(() => t.C.gesture(t, "down"))
             .stl("opacity", t.opacity ?? 1);
         const dom = t.svg.shape("g").add(t.image);
         t.frame = undefined;

@@ -96,6 +96,7 @@ export abstract class primitive_arc_object extends primitive_circle_object {
         const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.hitArea = t.svg
             .shape("path")
+            .tap(() => t.C.gesture(t, "down"))
             .stl(
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke",
             )

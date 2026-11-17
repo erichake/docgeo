@@ -380,6 +380,13 @@ export class construction_object {
 
     render(): void {}
 
+    // It has a program run when it is clicked (see event_object.ts).
+    get clickable(): boolean {
+        return this.children.some(
+            (child) => (child as { gesture?: unknown }).gesture === "down",
+        );
+    }
+
     // Where GeoGebra writes its name, at the start of the text's baseline on
     // the screen: null when it has nowhere to.
     nameAt(): Vec2 | null {

@@ -474,6 +474,18 @@ function validateReferences(
     }
 }
 
+// What a program run when it is clicked may belong to, but a point.
+const CLICKABLE = new Set<ObjectKind>([
+    "text",
+    "line",
+    "circle",
+    "polygon",
+    "quadric",
+    "locus",
+    "curve",
+    "image",
+]);
+
 // DGPad's programs of a point's gestures.
 const GESTURES: Record<string, Gesture> = {
     ondrag: "drag",
@@ -3576,11 +3588,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // and a point's turtle ("onlogo") is compiled into the
             // Expression its List draws. An Expression's "onchange" runs
             // when its value changes, a point's "ondrag", "onmousedown" and
-            // "onmouseup" at these gestures (see event_object.ts), a text's
-            // "onmousedown" (DocGeo's) when it is clicked. The
-            // "oninit" of an Expression or a button runs once, as DGPad
-            // runs it when it opens the figure. The other programs never
-            // run.
+            // "onmouseup" at these gestures (see event_object.ts), the
+            // "onmousedown" (DocGeo's) of a text or a shape when it is
+            // clicked. The "oninit" of an Expression or a button runs once,
+            // as DGPad runs it when it opens the figure. The other programs
+            // never run.
             parameters: [object, string],
             validate: (args, lineNumber, variables) => {
                 const modes = JSON.parse(literalString(args[1]));
@@ -3610,7 +3622,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             : mode === "oninit"
                               ? kind !== "expression" && kind !== "button"
                               : !point &&
-                                !(mode === "onmousedown" && kind === "text"),
+                                !(
+                                    mode === "onmousedown" &&
+                                    kind !== undefined &&
+                                    CLICKABLE.has(kind)
+                                ),
                     )
                 )
                     throw new Error(

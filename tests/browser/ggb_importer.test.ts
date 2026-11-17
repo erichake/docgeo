@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { bandBackground } from "../../src/background";
 import { describeDgo, readDgo } from "../../src/dgo";
+import { builtView, figureState, figureValues } from "../../src/figure_state";
 import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { angle_object } from "../../src/objects/angle_object";
@@ -3865,6 +3866,49 @@ ${conic("circle", "(x - a)^(2) + y^(2) = 4", [1, 1, 0, 0, -2, 0])}
         expect(div("w").querySelector(".katex")).not.toBeNull();
     });
 
+    it("reads texts and Text in a formula, sorted lists, and a text If undefined", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="n"><value val="1500"/></element>
+<element type="point" label="F"><coords x="1" y="2" z="1"/></element>
+<command name="RotateText"><input a0="Text[&quot;+ &quot; + (Text[n + 1, F])]" a1="36°"/><output a0="r"/></command>
+<element type="text" label="r"><startPoint x="0" y="0" z="1"/></element>
+<command name="If"><input a0="n &gt; 1000" a1="If[n &lt; 2000, &quot;mille&quot;, Text[n]]" a2="NaN"/><output a0="m"/></command>
+<element type="text" label="m"><show object="false"/></element>
+<command name="Text"><input a0="n"/><output a0="s"/></command>
+<element type="text" label="s"><show object="false"/></element>
+<command name="Text"><input a0="First[s, 2] + &quot;|&quot; + Last[s, 3]"/><output a0="u"/></command>
+<element type="text" label="u"><startPoint x="0" y="0" z="1"/></element>
+<command name="Length"><input a0="s"/><output a0="len"/></command>
+<element type="numeric" label="len"><value val="4"/></element>
+<command name="Reverse"><input a0="Sort[{3, 1, 2}, {30, 10, 20}]"/><output a0="l"/></command>
+<element type="list" label="l"/>
+<expression label="e" exp="Element(l, 1) * 100 + Element(l, 2) * 10 + Element(l, 3)"/>
+<element type="numeric" label="e"><value val="321"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect((c.getObj("r") as text_object).content).toBe(
+            "\\rotatebox{36}{\\text{ + 1501 }}",
+        );
+        expect((c.getObj("u") as text_object).content).toBe("15|500");
+        expect(
+            ["len", "e"].map(
+                (name) => (c.getObj(name) as expression_object).value,
+            ),
+        ).toEqual([4, 321]);
+        const m = c.getObj("m") as expression_object;
+        expect(m.value).toBe("mille");
+        const n = c.getObj("n") as expression_object;
+        n.value = 5;
+        c.invalidateGeometry(n);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(m.value).toBeNull();
+    });
+
     it("computes tangents, slopes, lengths, derivatives and integrals", async () => {
         const c = createConstruction();
         const point = (label: string, x: number, y: number) =>
@@ -4411,6 +4455,118 @@ r.setExpression(0);`);
         ]).toEqual([true, 3.5, "1", [4 - 6, 19 - 14]]);
         (restored.getObj("a") as expression_object).value = 5;
         restored.gesture(restored.getObj("t")!, "down");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect((restored.getObj("a") as expression_object).value).toBe(0);
+    });
+
+    it("draws random objects again at a script's UpdateConstruction", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<command name="Random"><input a0="1" a1="9"/><output a0="n"/></command>
+<element type="numeric" label="n"><value val="5"/></element>
+<command name="Shuffle"><input a0="{1, 2, 3}"/><output a0="l" randomResult="{3, 1, 2}"/></command>
+<element type="list" label="l"/>
+<command name="Sequence"><input a0="Random[1, 9]" a1="i" a2="1" a3="3"/><output a0="s" randomResult="{8, 8, 7}"/></command>
+<element type="list" label="s"/>
+<expression label="m" exp="Random(10, 20) + 1"/>
+<element type="numeric" label="m"><value val="13"/></element>
+<expression label="t" exp="Element(l, 1) + Sum(s)"/>
+<element type="numeric" label="t"><value val="26"/></element>
+<element type="button" label="b"><caption val="New"/><ggbscript val="UpdateConstruction[]"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const value = (name: string) =>
+            (c.getObj(name) as expression_object).value;
+        const values = () => ["n", "l", "s", "m", "t"].map(value);
+        // GeoGebra's saved values, until the button is pressed.
+        expect(values()).toEqual([5, [3, 1, 2], [8, 8, 7], 13, 26]);
+        const button = c.getObj("b") as button_object;
+        const program = button.program!.program;
+        const [seed] = button.program!.targets.values();
+        const blocks = programBlocks(program, true, formatName)!;
+        expect(blocksProgram(blocks, formatName)).toMatch(
+            /^\S+\.setExpression\(random\(\)\);$/,
+        );
+        const view = builtView(c);
+        const base = figureValues(c, view);
+        const drawn = new Set<string>();
+        for (let run = 0; run < 8; run++) {
+            button.run();
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+            const [n, l, s, m, t] = values() as [
+                number,
+                number[],
+                number[],
+                number,
+                number,
+            ];
+            expect(Number.isInteger(n) && n >= 1 && n <= 9).toBe(true);
+            expect([...l].sort()).toEqual([1, 2, 3]);
+            expect(
+                s.every((k) => Number.isInteger(k) && k >= 1 && k <= 9),
+            ).toBe(true);
+            expect(m >= 11 && m <= 21).toBe(true);
+            expect(t).toBe(l[0] + s[0] + s[1] + s[2]);
+            drawn.add(JSON.stringify([n, l, s, m]));
+        }
+        expect(drawn.size).toBeGreaterThan(4);
+        // The seed, a number, is all the student's state keeps of it.
+        const state = figureState(c, base, view);
+        expect(Object.keys(state)).toEqual([seed.name]);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(
+            ["n", "l", "s", "m", "t"].map(
+                (name) => (restored.getObj(name) as expression_object).value,
+            ),
+        ).toEqual(values());
+    });
+
+    it("runs a shape's click script when it is clicked, as blocks", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="0"/></element>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="0" y="4" z="1"/></element>
+<command name="Polygon"><input a0="A" a1="B" a2="C"/><output a0="q" a1="c" a2="a_1" a3="b"/></command>
+<element type="polygon" label="q"><fixed val="true"/><ggbscript val="a = 1 - a"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const event = c.OBJS.V.find(
+            (object) => object instanceof event_object,
+        ) as event_object;
+        expect(event.owner).toBe(c.getObj("q"));
+        const blocks = programBlocks(event.program.program, true, formatName)!;
+        expect(blocksProgram(blocks, formatName)).toBe(
+            "a.setExpression(1 - a);",
+        );
+        const area = (c.getObj("q") as polygon_object).hitArea.dom();
+        const press = (type: string) =>
+            area.dispatchEvent(
+                new PointerEvent(type, {
+                    pointerId: 1,
+                    isPrimary: true,
+                    bubbles: true,
+                }),
+            );
+        press("pointerdown");
+        press("pointerup");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect((c.getObj("a") as expression_object).value).toBe(1);
+        // Kept in .dgo.
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        restored.gesture(restored.getObj("q")!, "down");
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect((restored.getObj("a") as expression_object).value).toBe(0);
     });
