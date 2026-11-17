@@ -17,6 +17,7 @@ import { isOccluded } from "./hidden_line";
 import {
     construction_object,
     type DgoContext,
+    GROUND,
     writeName,
 } from "./construction_object";
 import type { curve_object } from "./curve_object";
@@ -237,7 +238,14 @@ export class point_object extends construction_object {
         this.readsView = true;
     }
 
+    inGround(): boolean {
+        return Math.abs(this.z) < GROUND;
+    }
+
+    // Its screen position is that of its view: drawn from another one, its
+    // children see it there (see screen).
     project(): void {
+        if (this.view !== this.C.view) return;
         this.projectionDefined = false;
         if (!this.defined) return;
         const screen = this.C.pt3D(this.COORDS);

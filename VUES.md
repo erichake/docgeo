@@ -41,6 +41,12 @@ même figure en même temps, et tout s'y met à jour en direct.
   les deux vues reste en place à l'écran (l'origine de celle de droite est
   décalée d'autant) ; à la fin, `dgpad.viewsChanged()` (l'éditeur y fait
   une étape d'annulation). Largeur minimale 40 px.
+- **Commandes contre le bord** : un curseur, une case, un champ ou un
+  bouton, placés en pixels, qui dépassent le bord droit de leur vue (colonne
+  plus étroite que la fenêtre où l'auteur les a placés, panneau de
+  l'éditeur ouvert) y sont dessinés et manipulés contre ce bord (`placed`),
+  leur position enregistrée inchangée (symetrie_axiale_3D.ggb : le curseur
+  k, à 604 px d'un graphique de 785 px). Moteur +0,4 Ko.
 - `construction_object.view` : l'indice de la vue où l'objet est dessiné,
   celle qui est courante à sa création (dans l'éditeur, un objet créé
   par la zone de saisie l'est dans la vue active). `moveToView` le change.
@@ -48,9 +54,21 @@ même figure en même temps, et tout s'y met à jour en direct.
   les voit dans la sienne. La position à l'écran d'un point
   (`point_object.screen`) est celle de sa vue ; lue depuis une autre vue,
   elle y est projetée. C'est ce qui permet au segment de la vue 2 de
-  s'appuyer sur des points de la vue 1. Dans le corpus GeoGebra, un objet
-  n'est presque jamais montré dans deux graphiques à la fois (3 sur 263) :
-  il l'est alors dans le premier seulement.
+  s'appuyer sur des points de la vue 1. Un point ne se projette que dans
+  sa vue (`project` ne fait rien ailleurs).
+- **Plusieurs vues pour un objet** (2026-11-17) : un objet peut être
+  dessiné aussi dans d'autres vues (`alsoIn`, `construction.alsoShow`),
+  chacune par un **jumeau** (`twins`) : un `Proxy` d'un objet dont le
+  prototype est l'objet lui-même, créé et monté avec lui (`createSVG`,
+  `removeSVG`), projeté et dessiné après lui dans sa vue (`draw`). Pendant
+  ce dessin seulement (`drawn`), le jumeau garde son propre état (vue, DOM,
+  projection) ; à tout autre moment il lit et écrit l'objet : ses gestes
+  (glisser le point depuis l'autre vue) changent l'objet, calculés dans la
+  vue sous le pointeur. Il ne figure ni dans la construction ni dans le
+  fichier, où l'objet a la clé `vws`. Un jumeau dessine comme son objet les
+  côtés communs à un polygone et à un segment (`edgeStroke`). Limite : dans
+  une vue 3D supplémentaire, il ne cache aucun autre objet et n'entre pas
+  dans le tri par profondeur. Moteur +1,4 Ko.
 - **Plane ou 3D par vue** (depuis le 2026-11-16) : ce que _calcule_ la
   figure (points à 2 ou 3 coordonnées, transformations et cercles du plan
   ou de l'espace, valeurs lues par les formules et l'état élève) dépend de
@@ -60,6 +78,10 @@ même figure en même temps, et tout s'y met à jour en direct.
   déplacement), traces, éclairage des polygones, droites partielles. Une
   vue plane d'une figure de l'espace la montre de dessus (plan z = 0, sans
   rotation ni sol) ; un point libre s'y déplace dans son plan horizontal.
+  Comme le graphique de GeoGebra (2026-11-17), elle ne dessine les points,
+  droites, segments et polygones que s'ils sont dans le plan z = 0
+  (`inGround`, à 1e-8 près ; `visibility: hidden` sinon) : l'image par un
+  demi-tour d'axe Oy y paraît, pas celle par un quart de tour.
   Les parties cachées (`hidden_line.ts`, `paintByDepth`, occulteur du sol,
   plans qui coupent les faces) ne traitent que les objets d'une même vue.
   Les scripts de GeoGebra qui tournent la vue 3D ou y montrent un axe
@@ -103,9 +125,13 @@ gauche si elle y est (`planeFirst`, `moveView`). Y sont dessinés
 (`inPlane`) : les commandes (curseurs, y compris d'angle, cases,
 boutons, champs, images), jamais dans la vue 3D, et ce que GeoGebra ne
 montre que dans le graphique (bit 3 de `ev`, texte sans bit 2) ; ce que
-montrent les deux vues est dans la vue 3D (décision de l'auteur : un
-objet, une vue ; 59 objets 2D du corpus, surtout des segments et des
-points). Ce que ne montre ni la vue 3D ni le graphique est caché. Les
+montrent les deux vues est dans la vue 3D et aussi dans la vue plane
+(`inBoth`, `vws:1` ; depuis le 2026-11-17, avant : dans la vue 3D
+seulement), objets de l'espace compris (points, segments, droites,
+demi-droites, vecteurs, polygones), que la vue plane ne montre que dans le
+plan z = 0, mais ni plans ni solides. De même, ce que montrent deux
+graphiques côte à côte est dans le premier et aussi dans le second. Ce que
+ne montre ni la vue 3D ni le graphique est caché. Les
 positions en pixels de `screenPosition` (branche caméra) et de
 `flatStart` sont celles du graphique, donc de la colonne plane.
 

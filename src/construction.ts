@@ -166,7 +166,8 @@ export class construction {
 
     // The grid of the first 3D view, which GeoGebra's scripts turn.
     get spaceGrid(): grid_object | undefined {
-        return this.views.find(({ grid }) => !grid.is2D)?.grid;
+        // Not yet given while its grid is made.
+        return this.views.find(({ grid }) => grid?.is2D === false)?.grid;
     }
 
     // Points in space rather than in the plane: a view is 3D (see VUES.md).
@@ -414,7 +415,14 @@ export class construction {
         order.splice(to, 0, ...order.splice(from, 1));
         const place = order.map((_, index) => order.indexOf(index));
         this.views = order.map((index) => this.views[index]);
-        this.OBJS.V.forEach((object) => (object.view = place[object.view]));
+        this.OBJS.V.forEach((object) => {
+            object.view = place[object.view];
+            if (object.alsoIn.length)
+                this.alsoShow(
+                    object,
+                    object.alsoIn.map((view) => place[view]),
+                );
+        });
         this.view = place[this.view];
         this.active = place[this.active];
         this.arrangeViews();
@@ -424,8 +432,17 @@ export class construction {
     moveToView(object: construction_object, view: number): void {
         if (object.view === view) return;
         object.view = view;
+        object.alsoIn = object.alsoIn.filter((other) => other !== view);
         if (object.hasView) object.createSVG();
         this.invalidateGeometry(object);
+    }
+
+    // Drawn also in these other views, each by a twin (see VUES.md).
+    alsoShow(object: construction_object, views: number[]): void {
+        object.alsoIn = [...new Set(views)].filter(
+            (view) => view !== object.view && view < this.views.length,
+        );
+        if (object.hasView) object.createSVG();
     }
 
     // Added, removed, shown or hidden: what depends on them without being built from them.

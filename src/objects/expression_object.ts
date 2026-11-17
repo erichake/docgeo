@@ -650,6 +650,7 @@ export class expression_object extends construction_object {
     private renderedText: string | null = null;
     private check?: DOMElement;
     private field?: DOMElement;
+    private fieldWidth = 0;
 
     constructor(
         c: construction,
@@ -854,9 +855,31 @@ export class expression_object extends construction_object {
         );
     }
 
+    // Where it is drawn: a control pinned past the right edge of its view,
+    // narrower than the window it was placed in, against that edge.
+    get placed(): Vec2 {
+        const [x, y] = this.screen;
+        if (this.field && !this.fieldWidth)
+            this.fieldWidth = (
+                this.field.find("div")!.dom() as HTMLElement
+            ).offsetWidth;
+        const width = this.anchor
+            ? -Infinity
+            : this.box
+              ? CHECKBOX_OFFSET[0] + CHECKBOX_SIZE
+              : this.field
+                ? this.fieldWidth
+                : this.isCursor
+                  ? (this.vertical ? 0 : this.cursorLength) +
+                    this.cursorRadius +
+                    CURSOR_BORDER
+                  : -Infinity;
+        return [Math.min(x, Math.max(this.C.width - width, 0)), y];
+    }
+
     mousedrag(ev: PointerEvent): void {
         const [px, py] = this.C.pointerPosition(ev);
-        const [x, y] = this.screen;
+        const [x, y] = this.placed;
         const min = this.min!;
         const max = this.max!;
         const along = Math.min(
@@ -904,7 +927,7 @@ export class expression_object extends construction_object {
     render(): void {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
-        const [x, y] = this.screen;
+        const [x, y] = this.placed;
         if (this.box && this.check) {
             const [left, top] = [
                 x + CHECKBOX_OFFSET[0],

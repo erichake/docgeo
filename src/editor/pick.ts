@@ -229,9 +229,9 @@ export function arcDistance(
 // object of `hits` is.
 // How far from its start the pointer is along a slider's track.
 export const alongSlider = (
-    { screen, vertical }: expression_object,
+    { placed, vertical }: expression_object,
     [x, y]: Vec2,
-): number => (vertical ? screen[1] - y : x - screen[0]);
+): number => (vertical ? placed[1] - y : x - placed[0]);
 
 // As in DGPad, the slider whose track's end is there, which lengthens it.
 export const sliderEndAt = (
@@ -251,8 +251,8 @@ export const sliderEndAt = (
         )
             return false;
         const across = object.vertical
-            ? at[0] - object.screen[0]
-            : at[1] - object.screen[1] - CURSOR_OFFSET_Y;
+            ? at[0] - object.placed[0]
+            : at[1] - object.placed[1] - CURSOR_OFFSET_Y;
         return (
             Math.abs(alongSlider(object, at) - object.cursorLength) < 20 &&
             Math.abs(across) < object.size / 2 + 5

@@ -107,6 +107,8 @@ export function edgeStroke(
     p2: point_object,
 ): { solid: boolean; dashed: boolean } {
     const strokes = edgeStrokes(c);
+    // A twin draws as its object.
+    object = object.twinOf ?? object;
     const objects = strokes.get(p1)?.get(p2) ??
         strokes.get(p2)?.get(p1) ?? [object];
     const drawn = objects.filter((stroke, index) =>

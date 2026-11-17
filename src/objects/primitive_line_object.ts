@@ -13,7 +13,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, GROUND } from "./construction_object";
 import {
     hiddenIntervalsBetween,
     intervalsToPath,
@@ -149,6 +149,13 @@ export class primitive_line_object extends construction_object {
     // Where its name was last written: GeoGebra keeps a line's by the end
     // nearest to it.
     private lastNameAt: Vec2 = [0, 0];
+
+    inGround(): boolean {
+        const [x, y, z] = this.VEC;
+        return (
+            this.P1.inGround() && Math.abs(z) <= GROUND * Math.hypot(x, y, z)
+        );
+    }
 
     constructor(
         c: construction,

@@ -5,6 +5,21 @@ import type { ScriptValue } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
+// The twin being drawn: it alone keeps its own state (its view, DOM and
+// projection); at any other moment, as during its gestures, a twin reads
+// and writes its object (see VUES.md, « Plusieurs vues »).
+let drawn: construction_object | null = null;
+
+const asTwin = (twin: construction_object, action: () => void): void => {
+    const previous = drawn;
+    drawn = twin;
+    action();
+    drawn = previous;
+};
+
+// GeoGebra's tolerance: how far from z = 0 an object still lies in it.
+export const GROUND = 1e-8;
+
 // What an object's .dgo description needs from the file being written.
 export type PartKind = "side" | "vertex" | "face";
 export type DgoRef = number | [PartKind, number, number] | [string, unknown];
@@ -206,6 +221,11 @@ export class construction_object {
     readsView = false;
     // The index of the view it is drawn in (see VUES.md).
     view: number;
+    // The other views it is also drawn in, each by a twin.
+    alsoIn: number[] = [];
+    twins: construction_object[] = [];
+    // Of a twin, the object it draws.
+    twinOf?: construction_object;
 
     constructor(
         c: construction,
@@ -353,6 +373,11 @@ export class construction_object {
 
     project(): void {}
 
+    // Lies in the plane z = 0, as far as it says.
+    inGround(): boolean {
+        return true;
+    }
+
     render(): void {}
 
     // Where GeoGebra writes its name, at the start of the text's baseline on
@@ -382,6 +407,25 @@ export class construction_object {
     }
 
     draw(): void {
+        this.drawHere();
+        this.twins.forEach((twin) =>
+            asTwin(twin, () =>
+                this.C.inView(twin.view, () => {
+                    twin.project();
+                    twin.drawHere();
+                }),
+            ),
+        );
+    }
+
+    // A plane view of a figure in space shows its plane z = 0, as
+    // GeoGebra's graphics view (see VUES.md).
+    private drawHere(): void {
+        if (this.C.space)
+            this.dom.stl(
+                "visibility",
+                this.C.GRID?.is2D && !this.inGround() ? "hidden" : "",
+            );
         this.render();
         const at = this.showName ? this.nameSpot() : null;
         if (!at) {
@@ -428,7 +472,37 @@ export class construction_object {
 
     removeSVG(): void {
         this.dom?.dispose();
+        this.disposeTwins();
         this.hasView = false;
+    }
+
+    private disposeTwins(): void {
+        this.twins.forEach((twin) => asTwin(twin, () => twin.dom.dispose()));
+        this.twins = [];
+    }
+
+    private makeTwin(view: number): construction_object {
+        const own = Object.create(this) as construction_object;
+        const twin: construction_object = new Proxy(own, {
+            get: (target, key) =>
+                drawn === twin
+                    ? Reflect.get(target, key, twin)
+                    : Reflect.get(this, key, this),
+            set: (target, key, value) =>
+                drawn === twin
+                    ? Reflect.set(target, key, value, twin)
+                    : Reflect.set(this, key, value, this),
+        });
+        Object.assign(own, { view, twinOf: this, twins: [] });
+        asTwin(twin, () => {
+            twin.nameLabel = undefined;
+            twin.dom = this.class
+                .createSVG(twin)
+                .stl("stroke-opacity", this.strokeOpacity);
+            if (this.inert) twin.dom.att("data-inert", "");
+            this.C.mountObject(twin);
+        });
+        return twin;
     }
 
     createSVG(): void {
@@ -440,6 +514,8 @@ export class construction_object {
         if (this.inert) this.dom.att("data-inert", "");
         this.C.mountObject(this);
         previous?.dispose();
+        this.disposeTwins();
+        this.twins = this.alsoIn.map((view) => this.makeTwin(view));
         this.hasView = true;
         // Shown by a script during an update: drawn along with the rest,
         // rather than now from objects not yet updated, whose screen

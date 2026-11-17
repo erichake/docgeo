@@ -6142,7 +6142,12 @@ function moveWidget(
               }
             : {
                   expression: widget,
-                  grab: vSub(at, widget.screen!),
+                  grab: vSub(
+                      at,
+                      widget instanceof image_object
+                          ? widget.screen!
+                          : widget.placed,
+                  ),
                   from: widget.screen!,
               };
     event.preventDefault();
@@ -7589,12 +7594,22 @@ async function deleteView(): Promise<void> {
     const moved = (view: number): number =>
         view === deleted ? heir - +(heir > deleted) : view - +(view > deleted);
     const styles = [...(figure.st ?? [])];
+    // The other views it is also drawn in lose the deleted one.
     const o = figure.o.map((entry) => {
         const style = entry[3] === undefined ? {} : styles[entry[3] as number];
-        const view = (style.vw as number | undefined) ?? 0;
-        if (moved(view) === view) return entry;
-        const { vw: _vw, ...rest } = style;
-        styles.push(moved(view) ? { ...rest, vw: moved(view) } : rest);
+        const view = moved((style.vw as number | undefined) ?? 0);
+        const also = ((style.vws as number[] | undefined) ?? [])
+            .filter((other) => other !== deleted)
+            .map(moved)
+            .filter((other) => other !== view);
+        const { vw: _vw, vws: _vws, ...rest } = style;
+        const next = {
+            ...rest,
+            ...(view ? { vw: view } : {}),
+            ...(also.length ? { vws: also } : {}),
+        };
+        if (JSON.stringify(next) === JSON.stringify(style)) return entry;
+        styles.push(next);
         return [...entry.slice(0, 3), styles.length - 1];
     });
     const [first, ...vs] = views;

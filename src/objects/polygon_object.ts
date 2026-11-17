@@ -303,6 +303,10 @@ export class polygon_object extends construction_object {
         ];
     }
 
+    inGround(): boolean {
+        return this.points.every((point) => point.inGround());
+    }
+
     project(): void {
         // Also when refreshed alone, as just built.
         this.ownVertices.forEach((vertex) => vertex.project());

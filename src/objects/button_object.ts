@@ -66,6 +66,11 @@ export class button_object extends construction_object {
         ];
     }
 
+    // Pinned past the right edge of its view, against that edge.
+    get placed(): Vec2 {
+        return [Math.min(this.screen[0], this.C.width), this.screen[1]];
+    }
+
     run(): void {
         if (this.program) runProgram(this.C, this.program);
     }
@@ -73,7 +78,7 @@ export class button_object extends construction_object {
     render(): void {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
-        const [x, y] = this.screen;
+        const [x, y] = this.placed;
         const height = Math.max(HEIGHT, this.fontSize + 20);
         const width = Math.max(
             BUTTON_WIDTH,

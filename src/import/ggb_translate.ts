@@ -1238,14 +1238,27 @@ export function translateGgb(
                 ((views(element) & 8) === 0 && type !== "text"))
         );
     };
-    // Drawn in the plane view: shown in its graphics view and not in the
-    // 3D view, where what both show is drawn.
-    const inPlane = (element: Element): boolean =>
+    // Shown in the graphics view of the plane view.
+    const inGraphics = (element: Element): boolean =>
         plane !== null &&
         (plane === "1"
             ? (views(element) & 1) === 0
-            : (views(element) & 2) !== 0) &&
-        !inSpace(element);
+            : (views(element) & 2) !== 0);
+    // Drawn in the plane view: shown in its graphics view and not in the
+    // 3D view.
+    const inPlane = (element: Element): boolean =>
+        inGraphics(element) && !inSpace(element);
+    // Drawn in DocGeo's first view and also in its second: shown in both
+    // graphics views side by side, or in the 3D view and in the graphics
+    // view, which draws an object of space while it lies in the plane
+    // z = 0 (see inGround), not a plane nor a solid.
+    const inBoth = (element: Element): boolean =>
+        (second === "beside" && (views(element) & 3) === 2) ||
+        (inGraphics(element) &&
+            inSpace(element) &&
+            !/^(?!(point|segment|line|ray|vector|polygon)3d$).*3d$|^(quadric|polyhedron|net)/.test(
+                element.getAttribute("type")!,
+            ));
     // Drawn in DocGeo's second view: shown only in the graphics view of
     // the right column, or in the plane view of a figure in space.
     const inSecond = (element: Element): boolean =>
@@ -6591,6 +6604,19 @@ export function translateGgb(
                 !scriptCommand(name, sources, outputs, random)
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);
+            // GeoGebra draws the border of a polygon only without sides of
+            // its own: with them, hidden or not, its sides are its border.
+            else if (
+                element?.getAttribute("type")?.startsWith("polygon") &&
+                objects.has(outputs[0]) &&
+                outputs.some((output) =>
+                    elements
+                        .get(output)
+                        ?.getAttribute("type")
+                        ?.startsWith("segment"),
+                )
+            )
+                push(null, "STL", [ref(outputs[0]), literal("s:0")]);
             outputs.forEach((output) => translated.add(output));
         } else {
             const label = node.getAttribute("label") ?? "";
@@ -7174,12 +7200,18 @@ export function translateGgb(
         drawn.forEach((part) => push(null, "STL", [ref(part), literal(style)]));
     });
 
-    // What only the second graphics view shows is drawn in its view.
+    // What only the second graphics view shows is drawn in its view, what
+    // both show in both.
     elements.forEach((element, label) => {
         const drawn = parts.get(label) ?? [label];
-        if (inSecond(element) && objects.has(drawn[0]))
+        const view = inSecond(element)
+            ? "vw:1"
+            : inBoth(element)
+              ? "vws:1"
+              : null;
+        if (view && objects.has(drawn[0]))
             drawn.forEach((part) =>
-                push(null, "STL", [ref(part), literal("vw:1")]),
+                push(null, "STL", [ref(part), literal(view)]),
             );
     });
 

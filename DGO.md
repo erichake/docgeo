@@ -1127,6 +1127,10 @@ Depuis le 2026-11-16, `vw` est l'indice de la vue où l'objet est dessiné
 (0 : `v`, 1 : la première de `vs`…) ; absent, il l'est dans la première à la
 lecture d'une figure, dans celle où on l'ajoute dans l'éditeur. Un objet
 peut s'appuyer sur ceux d'une autre vue : il les voit dans la sienne.
+Depuis le 2026-11-17, `vws` liste les autres vues où l'objet est aussi
+dessiné (`[1]`, `[0, 2]`…), pour l'objet de GeoGebra montré dans deux vues
+à la fois ; une vue plane d'une figure de l'espace n'y dessine ses points,
+droites, segments et polygones que s'ils sont dans le plan z = 0.
 
 Depuis le 2026-11-14 aussi, pour les figures de GeoGebra : `cp` est la
 légende d'un objet, écrite à la place de son nom (`sn`) ; `ho` fait d'un

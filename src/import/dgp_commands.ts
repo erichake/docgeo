@@ -991,6 +991,11 @@ function validateObjectStyle(
             case "vw":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "vws":
+                propertyValue
+                    .split(",")
+                    .forEach((view) => validateNumber(view, lineNumber, 0));
+                break;
             case "sg":
             case "l":
                 validateNumber(propertyValue, lineNumber, -Infinity);
@@ -1202,6 +1207,10 @@ function applyObjectStyle(
             case "vw":
                 if (Number(propertyValue) < target.C.views.length)
                     target.C.moveToView(target, Number(propertyValue));
+                break;
+            // And those it is also drawn in.
+            case "vws":
+                target.C.alsoShow(target, propertyValue.split(",").map(Number));
                 break;
             case "np":
                 if (target instanceof point_object)

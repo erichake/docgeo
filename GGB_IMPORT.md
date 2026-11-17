@@ -1566,3 +1566,19 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       dont l'étiquette montre sa valeur (`labelMode` 2) écrit son aire.
       **+0 figure** du corpus (aucune n'emploie `InteriorAngles`). Moteur
       inchangé (seul l'import, chargé à la demande, change).
+- [x] **81. Bord d'un polygone à côtés** (symetrie_axiale_3D, signalée
+      hors corpus). Comme GeoGebra, un polygone dont la commande nomme
+      aussi les côtés ne trace pas son bord : ce sont ses côtés, même
+      cachés (ici par la condition `k ≟ 1`), qui le tracent. Moteur
+      inchangé, import +0,16 Ko (93,4 Ko).
+- [x] **82. Un objet dans deux vues** (symetrie_axiale_3D). Ce que
+      montrent le graphique et la vue 3D, ou deux graphiques côte à côte,
+      est dessiné dans les deux colonnes (`vws:1`, voir VUES.md « Plusieurs
+      vues pour un objet »), au lieu de la seule vue 3D (ou du seul premier
+      graphique). Les objets de l'espace (points, segments, droites,
+      demi-droites, vecteurs, polygones) n'y paraissent, comme dans
+      GeoGebra, que dans le plan z = 0 : l'image de la maison par le
+      demi-tour d'axe d. Une commande placée au-delà du bord droit de sa
+      colonne y est ramenée (curseur k). **+0 figure** du corpus (aucune
+      perdue, aucun élément signalé en plus), moteur +1,9 Ko (dont 0,4 pour
+      les commandes contre le bord), import +0,2 Ko (93,6 Ko).

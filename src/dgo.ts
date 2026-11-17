@@ -1015,6 +1015,7 @@ export function dgoEntry(
 ): unknown[] {
     const style = describe(STYLE, object, lookTag(object, tag));
     if (object.view) style.vw = object.view;
+    if (object.alsoIn.length) style.vws = object.alsoIn;
     if (object.condition) style.sc = context.index(object.condition);
     if (object.dynamicColor) style.rgb = context.index(object.dynamicColor);
     const rate =
@@ -1497,6 +1498,19 @@ export function readEntries(
                         (view as number) < c.views.length,
                 );
                 c.moveToView(object, view as number);
+            }
+            const { vws: also } = settings;
+            if (also !== undefined) {
+                check(
+                    Array.isArray(also) &&
+                        also.every(
+                            (view) =>
+                                Number.isInteger(view) &&
+                                view >= 0 &&
+                                view < c.views.length,
+                        ),
+                );
+                c.alsoShow(object, also as number[]);
             }
             styled.push([object, settings]);
             objects.push(object);

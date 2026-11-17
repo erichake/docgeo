@@ -4,6 +4,7 @@ import "../../src/construction";
 import type { construction } from "../../src/construction";
 import { describeDgo, readDgo } from "../../src/dgo";
 import { importGgbFromUrl } from "../../src/ggb_importer";
+import type { expression_object } from "../../src/objects/expression_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { segment_object } from "../../src/objects/segment_object";
 import {
@@ -86,6 +87,48 @@ describe("views", () => {
         expect(saved.vs).toEqual(FIGURE.vs);
         expect(saved.st).toEqual(FIGURE.st);
         expect(saved.o).toEqual(FIGURE.o);
+    });
+});
+
+describe("An object drawn in several views", () => {
+    // A drawn in the left view and also in the right one.
+    const TWICE = {
+        ...FIGURE,
+        st: [{ vws: [1] }, { vw: 1 }],
+        o: [
+            ["Pt", "A", [1, 2], 0],
+            ["Pt", "B", [3, -1]],
+            ["Seg", "s", [0, 1], 1],
+        ],
+    };
+
+    it("is drawn there too, dragged from there, saved so", async () => {
+        const c = open(TWICE);
+        const A = c.getObj("A") as point_object;
+        expect(A.alsoIn).toEqual([1]);
+        expect(A.twins).toHaveLength(1);
+        // Its twin dragged in the right view, (20, 20) pixels from (1, 2).
+        c.views[1].svg
+            .dom()
+            .dispatchEvent(new PointerEvent("pointermove", { bubbles: true }));
+        (A.twins[0] as point_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: 540, clientY: 180 }),
+        );
+        c.flush();
+        expectClose(A.coords, [2, 1, 0]);
+        expectClose(A.SCREEN, [280, 260]);
+        const saved = await describeDgo(c);
+        expect(saved.st).toEqual(TWICE.st);
+        expectClose(saved.o[0][2], [2, 1]);
+        expect(saved.o[0][3]).toBe(0);
+        expect(saved.o.slice(1)).toEqual(TWICE.o.slice(1));
+    });
+
+    it("follows its view when the columns move", () => {
+        const c = open(TWICE);
+        c.moveView(1, 0);
+        const A = c.getObj("A")!;
+        expect([A.view, A.alsoIn]).toEqual([1, [0]]);
     });
 });
 
@@ -174,6 +217,38 @@ describe("A plane view beside a 3D view", () => {
         const saved = await describeDgo(c);
         expect(saved.v["3d"]).toBeUndefined();
         expect(saved.vs![0]["3d"]).toBe(1);
+    });
+});
+
+describe("GeoGebra's graphics view beside its 3D view", () => {
+    it("draws what both show in both, objects of space while in z = 0", async () => {
+        const c = createConstruction([1515, 821]);
+        const unsupported = await importGgbFromUrl(
+            c,
+            figure("symetrie_axiale_3D.ggb"),
+        );
+        c.flush();
+        expect(unsupported).toEqual([]);
+        const plane = c.views.findIndex(({ grid }) => grid.is2D);
+        expect(plane).toBe(0);
+        // The house, its image by the half-turn around d, and d.
+        ["q1", "e", "q1'", "e'", "d"].forEach((name) =>
+            expect(c.getObj(name)!.alsoIn, name).toEqual([plane]),
+        );
+        // Neither the plane p, nor the sliders, in the 3D view.
+        ["p", "α", "k"].forEach((name) =>
+            expect(c.getObj(name)!.alsoIn, name).toEqual([]),
+        );
+        const hidden = () =>
+            c.views[plane].svg
+                .dom()
+                .querySelectorAll('[style*="visibility: hidden"]').length;
+        expect(hidden()).toBe(0);
+        const alpha = c.getObj("α") as expression_object;
+        alpha.value = 1.2;
+        c.invalidateGeometry(alpha);
+        c.flush();
+        expect(hidden()).toBeGreaterThan(0);
     });
 });
 

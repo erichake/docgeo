@@ -277,6 +277,8 @@ describe("GGB importer", () => {
         });
         expect(c.getObj("A")!.strokeOpacity).toBe(1);
         expect(c.getObj("q1")!.opacity).not.toBe(178 / 255);
+        // Its sides, not q1, draw its border, even once hidden.
+        expect(c.getObj("q1")!.size).toBe(0);
     });
 
     it("marks right angles with GeoGebra's square, of diagonal arcSize", async () => {
