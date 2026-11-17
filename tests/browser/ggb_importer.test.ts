@@ -4279,6 +4279,97 @@ ${values
         check();
     });
 
+    it("reads GeoGebra's statistics and box plots", async () => {
+        const c = createConstruction();
+        const lists = ["{5}", "{7, 3}", "{4, 9, 1}", "{8, 2, 6, a}"];
+        // Relevé dans GeoGebra.
+        const values: [string, string, number | null][] = [
+            ["Q1", "l0", null],
+            ["Q3", "l0", null],
+            ["Q1", "l1", 3],
+            ["Q3", "l1", 7],
+            ["Q1", "l2", 1],
+            ["Q3", "l2", 9],
+            ["Q1", "l3", 3],
+            ["Q3", "l3", 7],
+            ["Median", "l3", 5],
+            ["mean", "l3", 5],
+            ["SD", "l3", Math.sqrt(5)],
+            ["SampleSD", "l3", Math.sqrt(20 / 3)],
+            ["Mean", "A1:A3", 2],
+            ["BoxPlot", "0.5, 2, {6, 1, 5, 2, 4, 3}", 3.5],
+        ];
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="4"/></element>
+${[1, 2, 3].map((n) => `<element type="numeric" label="A${n}"><value val="${n}"/></element>`).join("")}
+${lists.map((list, n) => `<expression label="l${n}" exp="${list}"/><element type="list" label="l${n}"/>`).join("")}
+${values
+    .map(
+        ([name, inputs], index) =>
+            `<command name="${name}"><input ${inputs
+                .split(/, (?![^{]*})/)
+                .map((input, n) => `a${n}="${input}"`)
+                .join(
+                    " ",
+                )}/><output a0="n${index}"/></command><element type="numeric" label="n${index}"><value val="0"/></element>`,
+    )
+    .join("\n")}
+<expression label="m" exp="Mean(l3) + Q3(l1)"/><element type="numeric" label="m"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const value = (name: string) =>
+            (c.getObj(name) as expression_object).value as number;
+        values.forEach(([name, inputs, expected], index) =>
+            expected === null
+                ? expect(value(`n${index}`), name).toBeNull()
+                : expect(value(`n${index}`), `${name}(${inputs})`).toBeCloseTo(
+                      expected,
+                      9,
+                  ),
+        );
+        expect(value("m")).toBeCloseTo(12, 9);
+        // The box from 2 to 5 on 0.5 ± 2, its median, whiskers and bars.
+        const drawn = c.OBJS.V.filter(
+            (object) => object instanceof list_object,
+        ) as list_object[];
+        expect(drawn.map((list) => list.items)).toEqual([
+            [[[2, -1.5]], [[5, -1.5]], [[5, 2.5]], [[2, 2.5]]],
+            [
+                [
+                    [3.5, -1.5],
+                    [3.5, 2.5],
+                ],
+                [
+                    [1, 0.5],
+                    [2, 0.5],
+                ],
+                [
+                    [5, 0.5],
+                    [6, 0.5],
+                ],
+                [
+                    [1, -1.5],
+                    [1, 2.5],
+                ],
+                [
+                    [6, -1.5],
+                    [6, 2.5],
+                ],
+            ],
+        ]);
+
+        const a = c.getObj("a") as expression_object;
+        a.value = 10;
+        c.invalidateGeometry(a);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(value("n7")).toBeCloseTo(9, 9);
+        expect(value("n8")).toBeCloseTo(7, 9);
+    });
+
     it("reads Mode, Roots, Point(A, v) and UnitVector as GeoGebra computes them", () => {
         const c = createConstruction();
         const values: [string, number][] = [

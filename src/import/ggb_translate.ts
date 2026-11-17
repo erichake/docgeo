@@ -150,7 +150,7 @@ const GGB_DASHES: Record<string, (width: number) => number[]> = {
     20: (width) => [width, 3],
     30: (width) => [8 + width, 4, width, 4],
 };
-const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
+const COMMAND_EXPRESSION = /^([A-Za-z][A-Za-z\d]*)\((.*)\)$/;
 // "+ 0.7" after a point, the whole of its sum's right operand.
 const POINT_SHIFT = /^ ?([+-]) ?(\d+(?:\.\d*)?|\.\d+)(?= ?(?:[)+,-]|$))/;
 // The commands a formula rewrites as a whole (see commandFormula).
@@ -172,6 +172,12 @@ const FORMULA_COMMANDS = new Set([
     "ContingencyTable",
     "Max",
     "Min",
+    "Mean",
+    "SD",
+    "SampleSD",
+    "Median",
+    "Q1",
+    "Q3",
     "IndexOf",
     "RotateText",
     "Text",
@@ -1940,6 +1946,18 @@ export function translateGgb(
                     `var $m=${list.item("1")};for(var $k=2;$k<=${list.count};$k++){$m=${name.toLowerCase()}($m,${item})};$m`,
                 );
             }
+            case "Mean":
+            case "SD":
+            case "SampleSD":
+            case "Median":
+            case "Q1":
+            case "Q3":
+                return args.length === 1 &&
+                    !args[0]
+                        .match(LABEL_WORDS)
+                        ?.some((word) => locals.has(word))
+                    ? statistic(name, args[0])
+                    : null;
             // The first index of a value in a list, undefined if none.
             case "IndexOf": {
                 const list =
@@ -2325,6 +2343,9 @@ export function translateGgb(
         const text = normalizeBrackets(source.trim());
         const known = lists.get(text);
         if (known) return known;
+        const range = /^([A-Z]+\d+):([A-Z]+\d+)$/.exec(text);
+        if (range)
+            return listFormula(`CellRange(${range[1]},${range[2]})`, locals);
         if (/^\{.*\}$/.test(text)) {
             const items = splitArguments(text.slice(1, -1))?.map((item) =>
                 formula(item, VALUE_KINDS, locals),
@@ -3165,6 +3186,102 @@ export function translateGgb(
             return true;
         };
 
+    // A list's items in ascending order, by a hidden Expression's script,
+    // one per list.
+    const sortedArrays = new Map<string, string>();
+    const sortedArray = (source: string): string | null => {
+        const list = listFormula(source);
+        const item = list && list.item("$n");
+        if (!item) return null;
+        let array = sortedArrays.get(source);
+        if (!array) {
+            array = hiddenExpression(
+                `var $t=[],$x,$j,$k;for(var $n=1;$n<=${list.count};$n++){$t.push(${item})};for($j=0;$j<$t.length;$j++){for($k=0;$k<$t.length-1;$k++){if($t[$k]>$t[$k+1]){$x=$t[$k];$t[$k]=$t[$k+1];$t[$k+1]=$x}}};$t`,
+            );
+            sortedArrays.set(source, array);
+        }
+        return array;
+    };
+    // GeoGebra's quartiles are the medians of the items below and above
+    // the median, which neither includes, undefined for a single item
+    // (relevé dans GeoGebra).
+    const statistic = (
+        name: string,
+        source: string,
+        label?: string,
+    ): string | null => {
+        if (name === "Mean" || name === "SD" || name === "SampleSD") {
+            const list = listFormula(source);
+            const item = list && list.item("$n");
+            if (!item) return null;
+            const n = `(${list.count})`;
+            const loop = (body: string) =>
+                `for(var $n=1;$n<=${n};$n++){${body}};`;
+            return hiddenExpression(
+                name === "Mean"
+                    ? `var $s=0;${loop(`$s+=${item}`)}$s/${n}`
+                    : `var $s=0,$q=0,$x;${loop(`$s+=${item}`)}$s=$s/${n};${loop(`$x=${item}-$s;$q+=$x*$x`)}sqrt($q/(${n}${name === "SD" ? "" : "-1"}))`,
+                label,
+            );
+        }
+        const array = sortedArray(source);
+        if (!array) return null;
+        const n = `${array}.length`;
+        const half = `floor(${n}/2)`;
+        const [start, length] =
+            name === "Median"
+                ? ["0", n]
+                : name === "Q1"
+                  ? ["0", half]
+                  : [`${n}-${half}`, half];
+        return hiddenExpression(
+            `(${array}[${start}+floor((${length}-1)/2)]+${array}[${start}+floor(${length}/2)])/2`,
+            label,
+        );
+    };
+
+    // The box from the first quartile to the third, 2s high around y, the
+    // median across it, the whiskers out to the extrema, ended by bars;
+    // its value is the median (relevé dans GeoGebra).
+    const boxPlot: Handler = ([y, s, data, extra], [label]) => {
+        const element = elements.get(label);
+        const values = [y, s].map((value) => formula(value, VALUE_KINDS));
+        const array = data !== undefined && sortedArray(data);
+        if (extra !== undefined || !element || !array || values.includes(null))
+            return false;
+        const [low, middle, high] = [
+            `(${values[0]})-(${values[1]})`,
+            values[0]!,
+            `(${values[0]})+(${values[1]})`,
+        ].map((value) => hiddenExpression(value));
+        const [q1, median, q3] = ["Q1", "Median", "Q3"].map((name) =>
+            statistic(name, data, name === "Median" ? label : undefined)!,
+        );
+        const [min, max] = [`${array}[0]`, `${array}[${array}.length-1]`];
+        region(
+            label,
+            "4",
+            `[[${q1},${q3},${q3},${q1}][k],[${low},${low},${high},${high}][k]]`,
+        );
+        define(
+            auxiliary(),
+            "list",
+            "List",
+            [
+                literal("segment"),
+                literal("5"),
+                literal(
+                    `[[${median},${min},${q3},${min},${max}][k],[${low},${middle},${middle},${low},${low}][k]]`,
+                ),
+                literal(
+                    `[[${median},${q1},${max},${min},${max}][k],[${high},${middle},${middle},${high},${high}][k]]`,
+                ),
+            ],
+            shapeStyle(element, "list"),
+        );
+        return true;
+    };
+
     const target = (label: string): void => {
         const element = elements.get(label);
         const coords = element && pointCoords(element);
@@ -3879,7 +3996,7 @@ export function translateGgb(
 
     // A command a formula computes: a text, a point or a number.
     // Read from its own inputs, which a formula reads, commands included.
-    const formulaInputs = new Set<string>();
+    const formulaInputs = new Set<string>(["BoxPlot"]);
     const formulaCommand = (name: string): Handler => {
         formulaInputs.add(name);
         return (inputs, [label]) => {
@@ -5440,6 +5557,13 @@ export function translateGgb(
         Length: formulaCommand("Length"),
         Radius: formulaCommand("Radius"),
         Sum: formulaCommand("Sum"),
+        Mean: formulaCommand("Mean"),
+        SD: formulaCommand("SD"),
+        SampleSD: formulaCommand("SampleSD"),
+        Median: formulaCommand("Median"),
+        Q1: formulaCommand("Q1"),
+        Q3: formulaCommand("Q3"),
+        BoxPlot: boxPlot,
         UnitVector: formulaCommand("UnitVector"),
         UnitOrthogonalVector: formulaCommand("UnitOrthogonalVector"),
         OrthogonalVector: formulaCommand("OrthogonalVector"),
@@ -7112,6 +7236,15 @@ export function translateGgb(
         BINDING_COMMANDS.has(name) || formulaInputs.has(name)
             ? sources
             : sources.map(resolve);
+
+    // GeoGebra reads a command's name whatever its case: "mean".
+    const names = new Map(
+        Object.keys(HANDLERS).map((name) => [name.toLowerCase(), name]),
+    );
+    construction.querySelectorAll("command").forEach((node) => {
+        const name = names.get(node.getAttribute("name")!.toLowerCase());
+        if (name) node.setAttribute("name", name);
+    });
 
     const translated = new Set<string>();
     const translate = (node: Element): void => {

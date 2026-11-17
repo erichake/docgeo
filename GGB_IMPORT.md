@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 327 / 458,
-71 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-329 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 329 / 459,
+72 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
+331 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
 (légendes LaTeX écrites telles quelles, item 83) restent fausses.
 
@@ -242,6 +242,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 84 : textes lus dans une formule, `Sort`, `Reverse`, nouveau tirage par `UpdateConstruction` (+0) |
 | 2026-11-17 | 325 / 457 (71 %)   | 357,5 Ko | item 86 : surfaces z = f(x, y), lieu d'un curseur, segments coupés par un cylindre (+2) |
 | 2026-11-17 | 328 / 457 (72 %)   | 358,5 Ko | item 87 : tétraèdre, octaèdre, dodécaèdre, icosaèdre (+1)                     |
+| 2026-11-17 | 329 / 459 (72 %)   | 358,5 Ko | item 89 : statistiques, `BoxPlot`, noms de commandes sans casse (+2)          |
 
 ## À faire, par rapport gain / coût
 
@@ -1723,3 +1724,19 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       écrit avec des crochets. Les quatre textes de réponse et la table
       sont ceux de GeoGebra. **+1 figure** (puzzle), aucune perdue. Moteur
       inchangé, importeur GeoGebra 99,5 → 102,4 Ko.
+- [x] **89. Mesures_de_tendance_centrale (signalée hors corpus, ajoutée
+      au corpus sous `tendance.ggb`) : statistiques** : `Mean`, `Median`,
+      `Q1`, `Q3`, `SD` et `SampleSD` d'une liste, aussi dans une formule,
+      calculés par des expressions cachées (la liste triée une fois pour
+      toutes ses statistiques). Les quartiles de GeoGebra sont les médianes
+      des valeurs sous et au-dessus de la médiane, qu'aucune n'inclut,
+      indéfinis pour une seule valeur (relevé dans GeoGebra). `BoxPlot(y, s,
+      liste)` vaut la médiane et se dessine en objets existants : la boîte
+      de Q1 à Q3 sur y ± s (une région), la médiane, les moustaches jusqu'aux
+      extrêmes et leurs barres (une liste de segments). Aussi : un nom de
+      commande se lit quelle que soit sa casse (`mean`, vieux fichier), un
+      appel de commande peut avoir un chiffre dans son nom (`Q1(…)` n'était
+      pas reconnu) et une plage du tableur `A2:A11` en entrée est une liste.
+      Le texte qui renvoie au tableur reste sans objet (DocGeo n'a pas de
+      vue tableur). **+2 figures** (tendance, JAaEteFw), aucune perdue, aucun
+      écart. Moteur inchangé, importeur GeoGebra 102,4 → 104,4 Ko.
