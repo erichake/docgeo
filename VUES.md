@@ -32,15 +32,18 @@ même figure en même temps, et tout s'y met à jour en direct.
   une vue donnée.
 - **Vue active** (`construction.active`) : la dernière vue appuyée. C'est
   celle que règle l'éditeur (onglet « Figure » : axes, grille, fond
-  propre ; « Nouvelle vue », « Supprimer la vue ») ; l'éditeur l'entoure
-  de bleu quand il y a plusieurs vues (`dge-active-view`).
+  propre ; « Nouvelle vue », « Supprimer la vue ») ; l'éditeur la marque
+  d'un liseré bleu sur son bord haut quand il y a plusieurs vues
+  (`dge-active-view`). Le clic qui active une autre vue n'y crée pas de
+  point (palette fermée) : il ne fait que l'activer.
 - **Séparations** : entre deux colonnes, une poignée (`div` de 9 px,
   `col-resize`, sauf en mode page web) déplace leur bord ; ce que montrent
   les deux vues reste en place à l'écran (l'origine de celle de droite est
   décalée d'autant) ; à la fin, `dgpad.viewsChanged()` (l'éditeur y fait
   une étape d'annulation). Largeur minimale 40 px.
 - `construction_object.view` : l'indice de la vue où l'objet est dessiné,
-  celle qui est courante à sa création. `moveToView` le change.
+  celle qui est courante à sa création (dans l'éditeur, un objet créé
+  par la zone de saisie l'est dans la vue active). `moveToView` le change.
 - **Un objet, une vue** : un objet construit sur des objets d'une autre vue
   les voit dans la sienne. La position à l'écran d'un point
   (`point_object.screen`) est celle de sa vue ; lue depuis une autre vue,

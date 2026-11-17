@@ -548,7 +548,8 @@ $("head").append(`<style>
     .dge-name { position: fixed; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); z-index: 13; }
     .dge-name input { min-width: 2ch; margin: 0 0 0 -5px; padding: 1px 4px; border: 1px solid #2563eb; border-radius: 4px; outline: 3px solid rgb(37 99 235 / 0.2); background: #fff; font-family: Verdana, sans-serif; }
     svg.dge-grip { cursor: pointer; }
-    svg.dge-active-view { outline: 2px solid #93c5fd; outline-offset: -2px; }
+    svg.dge-active-view { box-shadow: inset 0 3px #93c5fd !important; }
+    svg.dge-active-view.dge-right-view { box-shadow: inset 1px 0 #c0c0c0, inset 0 3px #93c5fd !important; }
     svg.dge-stretch { cursor: ew-resize; }
     svg.dge-stretch-up { cursor: ns-resize; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
@@ -2301,6 +2302,8 @@ async function enterLine(
     as: Choice = "expression",
 ): Promise<boolean> {
     const c = scene();
+    // Made in the view last pressed, not the one the pointer last crossed.
+    c.view = c.active;
     closeCompletion();
     hideChoice();
     // The sliders of the names the line reads that no object has.
@@ -6869,7 +6872,7 @@ $("body").on(
                 client,
             );
         const field = typing;
-        if (paletteOpen && !field) return;
+        if ((paletteOpen || activated) && !field) return;
         const point = addFreePoint(screen);
         if (!point) return;
         done(point);
@@ -7619,13 +7622,23 @@ async function shiftView(by: -1 | 1): Promise<void> {
     changed();
 }
 
-// The view last pressed, outlined when there are several; the figure tab
-// shows its settings.
+// The view last pressed, marked on its top edge when there are several;
+// the figure tab shows its settings. Pressed to be activated, it takes no
+// point (see the pointerup listener).
 let shownActive: [construction, number] | null = null;
-$("body").on("pointerdown", () => showActiveView(), {
-    capture: true,
-    passive: true,
-});
+let activated = false;
+$("body").on(
+    "pointerdown",
+    () => {
+        const c = scene();
+        activated =
+            c.views.length > 1 &&
+            shownActive?.[0] === c &&
+            shownActive[1] !== c.active;
+        showActiveView();
+    },
+    { capture: true, passive: true },
+);
 function showActiveView(): void {
     const c = scene();
     if (shownActive?.[0] === c && shownActive[1] === c.active) return;
@@ -7633,10 +7646,12 @@ function showActiveView(): void {
     showAxes();
     showSpace();
     c.views.forEach(({ svg }, n) =>
-        svg.toggleClass(
-            "dge-active-view",
-            c.views.length > 1 && n === c.active,
-        ),
+        svg
+            .toggleClass(
+                "dge-active-view",
+                c.views.length > 1 && n === c.active,
+            )
+            .toggleClass("dge-right-view", n > 0),
     );
     properties.refresh();
 }
