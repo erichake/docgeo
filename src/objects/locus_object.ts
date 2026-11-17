@@ -17,6 +17,7 @@ import {
 } from "../vec";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
+import { expression_object } from "./expression_object";
 import { list_object } from "./list_object";
 import { point_on_object } from "./point_on_object";
 import { point_object } from "./point_object";
@@ -39,7 +40,8 @@ const QUADRIC_BOUND_STEPS = 20;
 export class locus_object extends construction_object {
     // A line's locus is its envelope, the curve tangent to all its positions.
     target: point_object | primitive_line_object;
-    driver: point_on_object;
+    // A point on a path, or a slider swept from its min to its max.
+    driver: point_on_object | expression_object;
     points: (Vec3 | null)[] = [];
     screenPoints: (Vec2 | null)[] = [];
     projectionDefined = true;
@@ -51,7 +53,7 @@ export class locus_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         target: point_object | primitive_line_object,
-        driver: point_on_object,
+        driver: point_on_object | expression_object,
     ) {
         super(c, name, "locus");
         this.target = target;
@@ -95,8 +97,14 @@ export class locus_object extends construction_object {
 
     computeGeometry(): void {
         const { target } = this;
-        const samples = this.driverSamples();
-        const savedAlpha = this.driver.alpha;
+        const { driver } = this;
+        const slider = driver instanceof expression_object;
+        const samples = slider
+            ? driver.isCursor
+                ? range(driver.min!, driver.max!, DEFAULT_SAMPLES)
+                : []
+            : this.driverSamples(driver);
+        const saved = slider ? driver.value : driver.alpha;
         const savedPoints = new Map(
             [this.driver, ...this.dependencyChain]
                 .filter(
@@ -119,12 +127,13 @@ export class locus_object extends construction_object {
                 // each trial position must therefore use its own cache
                 // generation.
                 this.C.OBJS.frame++;
-                if (isDirectSample(sample)) {
-                    this.driver.coords = sample.coords;
-                    this.driver.defined = true;
+                if (slider) driver.value = sample as number;
+                else if (isDirectSample(sample)) {
+                    driver.coords = sample.coords;
+                    driver.defined = true;
                 } else {
-                    this.driver.alpha = sample;
-                    this.driver.computeGeometry();
+                    driver.alpha = sample;
+                    driver.computeGeometry();
                 }
                 this.dependencyChain.forEach((object) =>
                     object.computeGeometry(),
@@ -154,13 +163,16 @@ export class locus_object extends construction_object {
             point.coords = state.coords;
             point.defined = state.defined;
         });
-        this.driver.alpha = savedAlpha;
-        this.driver.computeGeometry();
+        if (slider) driver.value = saved as number;
+        else {
+            driver.alpha = saved as Alpha;
+            driver.computeGeometry();
+        }
         this.dependencyChain.forEach((object) => object.computeGeometry());
         this.defined = this.points.filter((point) => point !== null).length > 1;
     }
 
-    private driverSamples(): DriverSample[] {
+    private driverSamples(driver: point_on_object): DriverSample[] {
         const count = Math.max(
             2,
             Math.min(
@@ -170,7 +182,7 @@ export class locus_object extends construction_object {
                     : DEFAULT_SAMPLES,
             ),
         );
-        const support = this.driver.support;
+        const support = driver.support;
         if (!support.defined) return [];
         if (support instanceof primitive_circle_object)
             return range(0, 2 * Math.PI, count);
@@ -552,7 +564,7 @@ export function createLocus(
     c: construction,
     name: string | null | undefined,
     target: point_object | primitive_line_object,
-    driver: point_on_object,
+    driver: point_on_object | expression_object,
 ): locus_object {
     return c.add(new locus_object(c, name, target, driver));
 }

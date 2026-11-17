@@ -21,7 +21,7 @@ import {
     type Program,
     type ScriptValue,
 } from "../import/dgp_formula";
-import type { Vec2, Vec3 } from "../vec";
+import { vAdd, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     construction_object,
     dgoFormula,
@@ -167,11 +167,12 @@ export interface ExpressionProgram {
     vec3: boolean;
 }
 
-// A region's, which imports this module, by its family.
+// A region's or a surface's, which import this module, by their family.
 const functionFormula = (ref: construction_object | undefined) =>
     (ref instanceof expression_object ||
         ref instanceof curve_object ||
-        ref?.familytype === "region") &&
+        ref?.familytype === "region" ||
+        ref?.familytype === "solid") &&
     (ref as expression_object).formula
         ? (ref as expression_object).formula
         : null;
@@ -186,7 +187,19 @@ export function callFunction(
     view: () => FormulaView,
     derivatives: string[] = [],
 ): FormulaValue | null {
-    const formula = functionFormula(refs.get(name));
+    const ref = refs.get(name);
+    // Of a solid or a surface, the segment's ends and a rank (see meet in
+    // dgp_formula.ts): its n-th point on the segment.
+    const solid = ref as { meet?(origin: Vec3, ray: Vec3): number[] };
+    if (args.length === 3 && solid?.meet) {
+        const [p, q, n] = args;
+        if (!ref!.defined || typeof n !== "number" || !Array.isArray(p))
+            return null;
+        const ray = vSub(q as Vec3, p as Vec3);
+        const t = solid.meet(p as Vec3, ray)[n - 1];
+        return t >= 0 && t <= 1 ? vAdd(p as Vec3, vScale(ray, t)) : null;
+    }
+    const formula = functionFormula(ref);
     // A prime ("f'(x)") derives with respect to the function's variable.
     const derived =
         formula &&

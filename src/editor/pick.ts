@@ -24,6 +24,7 @@ import { ray_line_object } from "../objects/ray_line_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
+import { surface_object } from "../objects/surface_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
 import type { revolution_object } from "../objects/revolution_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
@@ -31,6 +32,7 @@ import {
     projectPointOnLine,
     projectPointOnPlane,
     viewDirection,
+    viewRay,
 } from "../projection";
 import { accepts, crossable, meet } from "./catalog";
 import {
@@ -128,6 +130,20 @@ export function nearest(
         return object.projectionDefined && inside(object.contour, screen)
             ? (surfacePoint(object, screen, false) ?? object.CENTER)
             : null;
+    // The point of a surface seen there.
+    if (object instanceof surface_object) {
+        const depth = object.projectionDefined
+            ? object.entryDepth(screen)
+            : null;
+        const view = depth !== null && viewRay(screen, [0, 0, 0], frame);
+        if (!view) return null;
+        const dir = vNormalize(viewDirection(frame))!;
+        const [origin, ray] = view;
+        return vAdd(
+            origin,
+            vScale(ray, (depth! - vDot(origin, dir)) / vDot(ray, dir)),
+        );
+    }
     // A polyhedron's first point: the ring opens at the middle of its
     // outline. The point of a cylinder's or a cone's side seen there.
     if (object instanceof solid_object)

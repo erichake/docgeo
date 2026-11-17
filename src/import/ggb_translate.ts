@@ -96,6 +96,9 @@ export interface GgbTranslation {
     // on the figure.
     rates: Map<string, string>;
     startAnimation: boolean;
+    // The variables of the objects built from nested commands, which
+    // GeoGebra doesn't name.
+    nested: Set<string>;
     // Whether the figure has 3D objects.
     is3D: boolean;
     // Present for a 3D figure: its camera (see applyView3D in
@@ -1105,13 +1108,11 @@ export function translateGgb(
     // Whether GeoGebra turns a plane against its normal in DocGeo, for the
     // planes whose orientation is known: Plane(A, f)'s is turned.
     const turnedPlanes = new Map<string, boolean>([["xOyPlane", false]]);
-    // A cylinder or a cone, by its solid's or its side's label, with its
-    // axis's ends and its radius's formula.
-    const revolutions = new Map<
-        string,
-        { label: string; cone: boolean; axis: [string, string, string] }
-    >();
+    // A cylinder or a cone, by its solid's or its side's label.
+    const revolutions = new Map<string, { label: string; cone: boolean }>();
     const spheres = new Set<string>();
+    // The surfaces z = f(x, y).
+    const surfaces = new Set<string>();
     const vectors = new LazyMap<[string, string]>();
     // A point of each line, where it is known.
     const lineStarts = new Map<string, string>();
@@ -1298,14 +1299,22 @@ export function translateGgb(
     // Drawn in DocGeo's first view and also in its second: shown in both
     // graphics views side by side, or in the 3D view and in the graphics
     // view, which draws an object of space while it lies in the plane
-    // z = 0 (see inGround), not a plane nor a solid.
+    // z = 0 (see inGround), not a plane, a solid nor a point of space's
+    // locus.
     const inBoth = (element: Element): boolean =>
         (second === "beside" && (views(element) & 3) === 2) ||
         (inGraphics(element) &&
             inSpace(element) &&
-            !/^(?!(point|segment|line|ray|vector|polygon)3d$).*3d$|^(quadric|polyhedron|net)/.test(
+            !/^(?!(point|segment|line|ray|vector|polygon)3d$).*3d$|^(quadric|polyhedron|net|functionnvar)/.test(
                 element.getAttribute("type")!,
-            ));
+            ) &&
+            elements
+                .get(
+                    /^Locus\(([^,]*),/.exec(
+                        definitions.get(element.getAttribute("label")!) ?? "",
+                    )?.[1] ?? "",
+                )
+                ?.getAttribute("type") !== "point3d");
     // Drawn in DocGeo's second view: shown only in the graphics view of
     // the right column, or in the plane view of a figure in space.
     const inSecond = (element: Element): boolean =>
@@ -1562,26 +1571,29 @@ export function translateGgb(
                                   drawFormula(word, a, b, locals)
                             : functions.has(word)
                               ? kinds.length > 0 && objects.get(word)!.variable
-                              : twoVariables.has(word)
-                                ? ([x, y]: string[]) =>
-                                      `(${formula(
-                                          twoVariables.get(word)!,
-                                          ["expression"],
-                                          new Map([
-                                              ["x", x],
-                                              ["y", y],
-                                          ]),
-                                      )})`
-                                : list
-                                  ? ([n]: string[]) =>
-                                        `(${list.item(n) ?? "?"})`
-                                  : start
-                                    ? ([x]: string[]) => {
-                                          const p =
-                                              objects.get(start)!.variable;
-                                          return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
-                                      }
-                                    : FUNCTIONS[word];
+                              : surfaces.has(word)
+                                ? kinds.length > 0 &&
+                                  objects.get(word)!.variable
+                                : twoVariables.has(word)
+                                  ? ([x, y]: string[]) =>
+                                        `(${formula(
+                                            twoVariables.get(word)!,
+                                            ["expression"],
+                                            new Map([
+                                                ["x", x],
+                                                ["y", y],
+                                            ]),
+                                        )})`
+                                  : list
+                                    ? ([n]: string[]) =>
+                                          `(${list.item(n) ?? "?"})`
+                                    : start
+                                      ? ([x]: string[]) => {
+                                            const p =
+                                                objects.get(start)!.variable;
+                                            return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
+                                        }
+                                      : FUNCTIONS[word];
                     if (!fn) return null;
                     const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
@@ -1862,39 +1874,32 @@ export function translateGgb(
                 );
                 return `(${p}+(${t})*(${q}-${p}))`;
             }
-            // Intersect(Segment(P, Q), cylinder, n): P + t·(Q - P) at the
-            // n-th root t of |(P - A + t·(Q - P)) × (B - A)|² = r²·|B - A|²,
-            // undefined off the segment, as GeoGebra.
+            // Intersect(Segment(P, Q), solid, n), of a cylinder, a cone, a
+            // sphere or a surface: its n-th point on [PQ], as GeoGebra.
             case "Intersect": {
-                const cylinder = revolutions.get(args[1]);
+                const solid =
+                    revolutions.get(args[1])?.label ??
+                    (spheres.has(args[1]) || surfaces.has(args[1])
+                        ? args[1]
+                        : undefined);
                 const path = commandCall(normalizeBrackets(args[0]));
                 const ends =
                     path?.[0] === "Segment" && path[1].length === 2
                         ? path[1]
                         : segments.get(args[0]);
-                const sign = { 1: "-", 2: "+" }[args[2]];
-                if (!cylinder || cylinder.cone || !ends || !sign) return null;
-                const [p, q, a, b] = [...ends, ...cylinder.axis].map((point) =>
-                    formula(point, VALUE_KINDS, locals),
+                const [p, q] = (ends ?? []).map((end) =>
+                    formula(end, VALUE_KINDS, locals),
                 );
-                if (!p || !q || !a || !b) return null;
-                const r = cylinder.axis[2];
-                const u = `((${b})-(${a}))`;
-                const v = `((${q})-(${p}))`;
-                const [cw, cv] = [`(${p})-(${a})`, v].map(
-                    (w) => `cross(${w},${u})`,
-                );
-                const s = `dot(${cw},${cv})`;
-                const d = `(${s}*${s}-dot(${cv},${cv})*(dot(${cw},${cw})-(${r})*(${r})*dot(${u},${u})))`;
-                const t = `((-${s}${sign}sqrt(${d}))/dot(${cv},${cv}))`;
-                return `((${d}>=0&&abs(2*${t}-1)<=1)?((${p})+${v}*${t}):(0/0))`;
+                return solid && p && q && (args[2] === "1" || args[2] === "2")
+                    ? `meet(${p},${q},${objects.get(solid)!.variable},${args[2]})`
+                    : null;
             }
             // A point's image by the plane z = 0.
             case "Mirror": {
                 const p =
                     args[1] === "xOyPlane" &&
                     formula(args[0], VALUE_KINDS, locals);
-                return p ? `[x(${p}),y(${p}),-z(${p})]` : null;
+                return p ? `(${p}-[0,0,2*z(${p})])` : null;
             }
             // Of a point or a vector, around a point.
             case "Rotate":
@@ -2875,6 +2880,7 @@ export function translateGgb(
         objects.set(label, { variable, kind });
         labels.set(variable, label);
         const name = label.startsWith("aux ") ? freshName(kind) : label;
+        if (name !== label) nested.add(variable);
         const sources = args.map((arg) =>
             arg.type === "reference" ? labels.get(arg.name) : undefined,
         );
@@ -2953,6 +2959,28 @@ export function translateGgb(
             new RegExp(`${seed!.replace(/\$/g, "\\$")}(?![\\w$])`, "g"),
             "0",
         );
+
+    // GeoGebra's clipping box, small, medium or large, which bounds its
+    // surfaces even unused.
+    const clippingSize = Number(
+        document
+            .querySelector("euclidianView3D > clipping")
+            ?.getAttribute("size") ?? 1,
+    );
+    const defineSurface = (
+        label: string,
+        body: string,
+        element: Element,
+    ): true => {
+        surfaces.add(label);
+        return define(
+            label,
+            "sphere",
+            "Surface",
+            [literal(body), literal(clippingSize)],
+            `${objectStyle(element, "sphere")};s:0`,
+        );
+    };
 
     const defineFunction = (
         label: string,
@@ -3707,6 +3735,7 @@ export function translateGgb(
 
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
+    const nested = new Set<string>();
     // An auxiliary object's name, as the editor gives one (see nextName in
     // src/editor/figure.ts): a capital letter for a point, a small one
     // otherwise, then numbered, none of GeoGebra's labels.
@@ -3835,7 +3864,7 @@ export function translateGgb(
             );
             [solid, side].forEach((name) => {
                 if (!name) return;
-                revolutions.set(name, { label, cone, axis: [a, b, r] });
+                revolutions.set(name, { label, cone });
                 objects.set(name, objects.get(label)!);
             });
             define(bottom || auxiliary(), "circle", "Disk", [
@@ -3924,7 +3953,9 @@ export function translateGgb(
                 : [second, first];
             const solid =
                 revolutions.get(surface)?.label ??
-                (spheres.has(surface) ? surface : undefined);
+                (spheres.has(surface) || surfaces.has(surface)
+                    ? surface
+                    : undefined);
             if (solid) {
                 // Intersect(path, solid, n), the n-th of the two points.
                 const nth = third === undefined ? 0 : Number(third) - 1;
@@ -4471,22 +4502,9 @@ export function translateGgb(
             polygons.set(label, inputs);
             definePolygon(label, inputs);
             // In space, undefined in GeoGebra unless its vertices are
-            // coplanar: drawn only then.
-            if (is3D && inputs.length > 3) {
-                const [o, p, q, ...rest] = inputs.map(
-                    (vertex) => objects.get(vertex)!.variable,
-                );
-                const test = hiddenExpression(
-                    rest
-                        .map(
-                            (r) =>
-                                `abs(dot(cross(${p}-${o},${q}-${o}),${r}-${o}))<=0.000000001*d(${p},${o})*d(${q},${o})*d(${r},${o})`,
-                        )
-                        .join("&&"),
-                );
-                branchTests.set(label, test);
-                push(null, "STL", [ref(label), literal(`sc:${test}`)]);
-            }
+            // coplanar.
+            if (is3D && inputs.length > 3)
+                push(null, "STL", [ref(label), literal("pn:true")]);
             sides.forEach(
                 (side, index) =>
                     side &&
@@ -4836,6 +4854,18 @@ export function translateGgb(
         // in the plane orthogonal to their centers' line where the powers
         // of its points with respect to both spheres are equal.
         IntersectConic: ([first, second, extra], outputs) => {
+            // Of two quadrics, neither a sphere nor a plane, which meet
+            // along no conic: undefined, as GeoGebra saved it.
+            const matrix = child(elements.get(outputs[0])!, "matrix");
+            if (
+                extra === undefined &&
+                ![first, second].some(
+                    (input) => spheres.has(input) || isPlane(input),
+                ) &&
+                matrix &&
+                [...matrix.attributes].every(({ value }) => value === "NaN")
+            )
+                return true;
             if (extra !== undefined || !spheres.has(second)) return false;
             if (!spheres.has(first))
                 return HANDLERS.IntersectPath([first, second], outputs);
@@ -5433,10 +5463,13 @@ export function translateGgb(
                 ])
             );
         },
+        // Of a point on a path, or of a slider.
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
-            is(q, ["pointOn"]) &&
+            (is(q, ["pointOn"]) ||
+                (is(q, ["expression"]) &&
+                    !!elements.get(q)?.querySelector(":scope > slider"))) &&
             define(label, "locus", "Locus", [ref(p), ref(q)]),
         // On its swept part only, as for a locus, where GeoGebra draws the
         // whole algebraic curve.
@@ -6361,6 +6394,17 @@ export function translateGgb(
                 (sides as string[]).map(literal),
             );
         }
+        // In space, a quadric z = f(x, y), a surface; hidden, another
+        // draws nothing.
+        if (type === "quadric" && is3D && source !== undefined) {
+            const graph = /^\s*z\s*=(.*)$/.exec(source);
+            const body =
+                graph &&
+                !/\bz\b/.test(graph[1]) &&
+                formula(graph[1].trim(), VALUE_KINDS, PLANAR_VARIABLES);
+            if (body) return defineSurface(label, body, element);
+            return hidden(element);
+        }
         // A line, a circle or a conic of the plane, of its equation or of
         // the one GeoGebra saves: xX + yY + z = 0 for a line, A0x² + A1y² +
         // A2 + 2A3xy + 2A4x + 2A5y = 0 for a conic, a circle when A0 = A1
@@ -6579,7 +6623,8 @@ export function translateGgb(
                 ));
         if (single || /^functionnvar$/i.test(type ?? "")) {
             const text = writtenOut(label, new Set());
-            if (!single && hidden(element)) {
+            // In space, a surface, which formulas call.
+            if (!single && hidden(element) && !is3D) {
                 if (
                     text !== null &&
                     !/[<>≤≥]/.test(text) &&
@@ -6588,8 +6633,17 @@ export function translateGgb(
                     twoVariables.set(label, text);
                 return true;
             }
-            if (is3D) return false;
-            if (text === null || !/[<>≤≥]/.test(text)) return false;
+            if (text === null) return false;
+            if (is3D) {
+                const body =
+                    !single &&
+                    !/[<>≤≥]/.test(text) &&
+                    formula(text, VALUE_KINDS, PLANAR_VARIABLES);
+                return body
+                    ? defineSurface(label, body, element)
+                    : !single && hidden(element);
+            }
+            if (!/[<>≤≥]/.test(text)) return false;
             const body = formula(text, VALUE_KINDS, PLANAR_VARIABLES);
             return (
                 body !== null &&
@@ -7539,7 +7593,14 @@ export function translateGgb(
             if (content === null) {
                 unsupported.push(`condition ${source}`);
                 conditions.set(source, null);
-            } else conditions.set(source, hiddenExpression(content));
+            } else
+                conditions.set(
+                    source,
+                    // A checkbox or a number, itself.
+                    is(source, ["expression"])
+                        ? objects.get(source)!.variable
+                        : hiddenExpression(content),
+                );
         }
         const condition = conditions.get(source);
         if (condition)
@@ -7627,6 +7688,7 @@ export function translateGgb(
                 .querySelector("kernel > startAnimation")
                 ?.getAttribute("val") === "true",
         unsupported,
+        nested,
         is3D,
         view3D: camera,
     };

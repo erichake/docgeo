@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
+    geometryTolerance,
     vAdd,
     vCross,
     vDot,
@@ -120,6 +121,18 @@ export class sphere_object extends construction_object {
     quadratic(origin: Vec3, ray: Vec3): [number, number, number] {
         const m = vSub(origin, this.CENTER);
         return [vDot(ray, ray), 2 * vDot(m, ray), vDot(m, m) - this.R ** 2];
+    }
+
+    // The parameters, sorted, where the line origin + t·ray meets it.
+    meet(origin: Vec3, ray: Vec3): number[] {
+        const u = vSub(origin, this.CENTER);
+        const [vv, uv] = [vDot(ray, ray), vDot(u, ray)];
+        const disc = uv * uv - vv * (vDot(u, u) - this.R ** 2);
+        return disc < -geometryTolerance(uv * uv, this.R ** 2)
+            ? []
+            : [-1, 1].map(
+                  (sign) => (-uv + sign * Math.sqrt(Math.max(0, disc))) / vv,
+              );
     }
 
     // Half the gradient of F at `point`.

@@ -104,6 +104,8 @@ export class polygon_object extends construction_object {
     // GeoGebra's fixed polygons, and those it doesn't let select, aren't
     // dragged by their vertices.
     fixed = false;
+    // GeoGebra's in space, undefined unless its vertices are coplanar.
+    planar = false;
     screenPoints: Vec2[];
     projectionDefined: boolean;
     path!: DOMElement;
@@ -197,6 +199,11 @@ export class polygon_object extends construction_object {
             1 / this.points.length,
         );
         this.HALF = Math.sqrt(25 + this.area);
+        if (this.planar)
+            this.defined = this.points.every((p) => {
+                const offset = vDot(vSub(p.coords, this.CENTER), this.NORMAL);
+                return Math.abs(offset) <= geometryTolerance(this.HALF);
+            });
     }
 
     // Whether it gives a plane.

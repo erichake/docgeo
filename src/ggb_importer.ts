@@ -10,9 +10,17 @@ import { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
 import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
 import { intersection_object } from "./objects/intersection_object";
+import { image_object } from "./objects/image_object";
+import { locus_object } from "./objects/locus_object";
 import { point_object } from "./objects/point_object";
 import { point_on_object } from "./objects/point_on_object";
-import type { construction_object } from "./objects/construction_object";
+import {
+    embed,
+    UNEMBEDDED,
+    type construction_object,
+    type DgoContext,
+    type DgoRef,
+} from "./objects/construction_object";
 import { projectPoint } from "./projection";
 import { vAdd, vNorm, vScale, vSub, type Vec3 } from "./vec";
 import { bandBackground } from "./background";
@@ -35,6 +43,7 @@ export function importGgb(
         rates,
         startAnimation,
         unsupported,
+        nested,
         is3D,
         view3D,
     } = translateGgb(xml, images, macros);
@@ -81,6 +90,13 @@ export function importGgb(
                 coords,
             ]),
         ),
+    );
+    embedNested(
+        c,
+        [...nested].flatMap((variable) => {
+            const object = variables.get(variable);
+            return object && !animations.has(variable) ? [object] : [];
+        }),
     );
     c.flush();
     // A point's name in pixels from it, another object's where GeoGebra
@@ -240,4 +256,66 @@ function settleTargets(
             }
         }
     });
+}
+
+// The objects built from nested commands, each written in the line of the
+// only object given it, as the editor writes a nested command (see
+// embedded): not one that a formula reads, written by its name, nor one
+// that the editor writes otherwise than "name = …".
+const TRANSFORMATIONS = ["Sym", "Refl", "Rot", "Dil", "Tra", "Inv"];
+
+function embedNested(c: construction, objects: construction_object[]): void {
+    const MARK = "\0";
+    const context = (index: DgoContext["index"]): DgoContext => ({
+        index,
+        image: (url) => url,
+        screen: (position) => position,
+    });
+    const order = new Map(c.OBJS.V.map((object, index) => [object, index]));
+    [...objects]
+        .sort((a, b) => order.get(a)! - order.get(b)!)
+        .forEach((object) => {
+            const [child, other] = object.children;
+            const [tag] = object.dgo(context(() => 0));
+            if (
+                !child ||
+                other ||
+                child.condition === object ||
+                // What a locus traces, as the editor, nor an image's corner,
+                // which a .dgo file would read as its place in the window.
+                child instanceof locus_object ||
+                child instanceof image_object ||
+                UNEMBEDDED.includes(tag) ||
+                ["Cur", "Reg", "Surf"].includes(tag)
+            )
+                return;
+            let direct = false;
+            let read = false;
+            const visit = (value: unknown, listed: boolean): void => {
+                if (value === MARK) {
+                    if (listed) direct = true;
+                    else read = true;
+                } else if (Array.isArray(value))
+                    value.forEach((item) => visit(item, true));
+                else if (value && typeof value === "object")
+                    Object.values(value).forEach((item) => visit(item, false));
+            };
+            const [image, parameters] = child.dgo(
+                context((parent) => (parent === object ? MARK : 0) as DgoRef),
+            );
+            visit(parameters, true);
+            // A point given by a formula, only where the editor writes one:
+            // not as what a transformation maps.
+            if (
+                !direct ||
+                read ||
+                (tag === "Fp" && TRANSFORMATIONS.includes(image))
+            )
+                return;
+            c.OBJS.remove(new Set([object]));
+            object.removeSVG();
+            child.parents = child.parents.filter((parent) => parent !== object);
+            embed(object).children = [];
+            child.addParents(object);
+        });
 }

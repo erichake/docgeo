@@ -45,6 +45,7 @@ import {
 import { partOf } from "../objects/polygon_part";
 import type { curve_object } from "../objects/curve_object";
 import type { region_object } from "../objects/region_object";
+import { surface_object } from "../objects/surface_object";
 import {
     equationCoeffs,
     equationValue,
@@ -536,6 +537,10 @@ export function lineOf(
         const { source, refs } = (object as region_object).formula;
         return `${name}(x, y) = ${inequalitySigns(oneLine(renamed(source, refs)))}`;
     }
+    if (tag === "Surf") {
+        const { source, refs } = (object as surface_object).formula;
+        return `${name}(x, y) = ${oneLine(renamed(source, refs))}`;
+    }
     const text = (formula: FormulaNode) => {
         const source = oneLine(
             renamed(formulaSource(formula), (object as list_object).refs),
@@ -643,6 +648,11 @@ export function resolve(
         ({ overload, args } = curve(c, definition!.source));
     else if (definition!.kind === "region")
         ({ overload, args } = region(c, definition!.source));
+    // In the plane, a function of x and y that formulas call.
+    else if (definition!.kind === "surface")
+        ({ overload, args } = c.space
+            ? surface(c, definition!.source, target)
+            : expression(c, definition!.source, target));
     else if (definition!.kind === "list")
         ({ overload, args } = pointList(c, definition!.items));
     else if (findCommand(definition!.command)?.name === "Sequence")
@@ -1008,6 +1018,7 @@ function products(
         case "pointFormula":
         case "curve":
         case "region":
+        case "surface":
             return { ...definition, source: split(definition.source) };
         case "equation":
             return {
@@ -1850,6 +1861,25 @@ function region(
             params: [],
             tag: "Reg",
             encode: (_, index) => formulaParameter(source, refs, index),
+        },
+        args: [...new Set(refs.values())],
+    };
+}
+
+// `g(x, y) = …`, in space, the surface z = g(x, y), which keeps the
+// clipping box size it has, GeoGebra's medium one otherwise.
+function surface(
+    c: construction,
+    text: string,
+    target?: construction_object,
+): { overload: Overload; args: Arg[] } {
+    const { source, refs } = formulaArg(c, text, ["x", "y"]);
+    const size = target instanceof surface_object ? target.size : 1;
+    return {
+        overload: {
+            params: [],
+            tag: "Surf",
+            encode: (_, index) => [formulaParameter(source, refs, index), size],
         },
         args: [...new Set(refs.values())],
     };

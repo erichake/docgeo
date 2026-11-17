@@ -1371,6 +1371,16 @@ class FormulaParser {
             };
         if (name === "parseInt" && args.length === 1)
             return { kind: "native", fn: name, args };
+        // meet(P, Q, s, n): the n-th point where [PQ] meets the solid or
+        // the surface s, which it calls (see callFunction in
+        // expression_object.ts).
+        const solid = name === "meet" && args.length === 4 && args[2];
+        if (solid && solid.kind === "identifier")
+            return {
+                kind: "userCall",
+                name: solid.name,
+                args: [args[0], args[1], args[3]],
+            };
         if (!(name in FORMULA_ARITY)) {
             this.called.add(name);
             return { kind: "userCall", name, args };

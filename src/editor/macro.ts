@@ -180,7 +180,8 @@ export function analyse(
         const parents = sources(object);
         const result =
             object instanceof locus_object
-                ? determined(object.driver.support, assumed) &&
+                ? (object.driver instanceof expression_object ||
+                      determined(object.driver.support, assumed)) &&
                   determined(object.target, object.driver)
                 : !unbuilt(object) &&
                   parents.length > 0 &&

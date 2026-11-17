@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 323 / 456,
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 325 / 457,
 71 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-325 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+327 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
 (légendes LaTeX écrites telles quelles, item 83) restent fausses.
 
@@ -240,6 +240,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-16 | 324 / 456 (71 %)   | 345,2 Ko | item 79 : graphique à gauche ou à droite de la vue 3D en vue plane (+0) |
 | 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 83 : scripts de clic des formes, `Text` dans une formule, `NaN` (+1, fausse) |
 | 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 84 : textes lus dans une formule, `Sort`, `Reverse`, nouveau tirage par `UpdateConstruction` (+0) |
+| 2026-11-17 | 325 / 457 (71 %)   | 357,5 Ko | item 86 : surfaces z = f(x, y), lieu d'un curseur, segments coupés par un cylindre (+2) |
 
 ## À faire, par rapport gain / coût
 
@@ -1643,23 +1644,49 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       GeoGebra, de son intersection avec l'axe des ordonnées, au lieu de
       n'être pas dessiné sans signalement. Moteur inchangé (seul l'import,
       chargé à la demande, change).
-- [ ] **86. pringles (signalée hors corpus, ajoutée au corpus)** : une
-      selle z = x²/a² − y²/a² dans un cylindre. Fait, dans l'import seul
-      (moteur inchangé) : une fonction de x et y cachée (`functionnvar`,
-      aussi dans l'espace) n'est plus refusée, ses appels `pr(u, v)` sont
-      écrits en entier dans les formules ; `CurveCartesian((x(t), y(t),
-      z(t)), t, a, b)` d'un point ; `Intersect(chemin, cylindre, n)`, aussi
-      dans une formule (d'un segment : racine n le long du segment, indéfinie
-      hors de lui, relevé dans GeoGebra), donc les `Sequence` de segments
-      coupés par un cylindre ; l'image d'une `Sequence` par `Rotate`,
-      `Translate`, `Dilate` ou `Mirror` (plan xOy dans une formule) est la
-      `Sequence` des images ; un polygone de l'espace d'au moins quatre
-      sommets ne se montre que s'ils sont coplanaires (indéfini sinon dans
-      GeoGebra). Corpus : aucune figure perdue, 7 figures perdent des
-      éléments non importés (fonctions de x et y cachées de caz8zu6k et
-      ses copies, `Intersect(yAxis, a, 2)` d'adzmqjyu). Reste : la surface
-      g (quadrique donnée par une équation, montrée par une case), C =
-      `Intersect(i, g)` et ses lieux, qui demandent un objet surface au
-      moteur (chantier lancé). Écart de dessin connu : dans GeoGebra, la
-      grille (segments plus épais) reste visible sur le remplissage, posé
-      sur la même surface ; DocGeo les dessine dans l'ordre de construction.
+- [x] **86. pringles (signalée hors corpus, ajoutée au corpus)** : une
+      selle z = x²/a² − y²/a² dans un cylindre. Dans l'import : une
+      fonction de x et y cachée (`functionnvar`, aussi dans l'espace) n'est
+      plus refusée, ses appels `pr(u, v)` sont écrits en entier dans les
+      formules ; `CurveCartesian((x(t), y(t), z(t)), t, a, b)` d'un point ;
+      `Intersect(chemin, cylindre, n)`, aussi dans une formule (d'un
+      segment : racine n le long du segment, indéfinie hors de lui, relevé
+      dans GeoGebra), donc les `Sequence` de segments coupés par un
+      cylindre ; l'image d'une `Sequence` par `Rotate`, `Translate`,
+      `Dilate` ou `Mirror` (plan xOy dans une formule) est la `Sequence`
+      des images ; un polygone de l'espace d'au moins quatre sommets ne se
+      montre que s'ils sont coplanaires (indéfini sinon dans GeoGebra) ;
+      `IntersectConic` de deux quadriques, ni sphères ni plans, enregistrée
+      indéfinie ne construit rien ; une quadrique cachée qui n'est pas
+      z = f(x, y) ne dessine rien ; le lieu d'un point de l'espace n'est pas
+      dessiné dans la vue plane. Dans le moteur : la surface z = f(x, y)
+      (`Surf` de `DGO.md`, d'une quadrique `z = …` ou d'une fonction de x
+      et y visible dans l'espace, jamais dans la vue plane), maillée dans la
+      boîte de coupe de GeoGebra (qui la borne même inutilisée, de taille
+      lue dans la figure), qui cache ce qui est derrière elle ;
+      `Intersect(droite, surface)` (`CyI`) ; le lieu d'un point piloté par
+      un curseur (`Locus(C, e)`, `Loc`). **+2 figures** (325 → 327 :
+      pringles, JUGV6Snm), aucune perdue ; caz8zu6k et ses copies,
+      adzmqjyu, aruq33yh, jhquq9sv, kQmvvaUd, rumzymp5 perdent des
+      éléments non importés. Moteur 285 372 → 289 041 et 52 534 → 52 766
+      octets (**+3,9 Ko** ; les cinq morceaux `engine-*` du lecteur : 353,0 → 356,9 Ko), importeur GeoGebra +0,7 Ko. Écart de dessin
+      connu : dans GeoGebra, la grille (segments plus épais) reste visible
+      sur le remplissage posé sur la même surface, et les axes derrière une
+      surface sont pointillés ; DocGeo dessine les segments dans l'ordre de
+      construction et les axes sous les surfaces.
+      Lisibilité dans l'éditeur (même jour) : plus de ligne `nom = …`
+      (surfaces `g(x, y) = …`, `Intersection(d, g, n)`, `Locus(C, e)`,
+      `Bottom(l)`, `Top(l)`) ; `Intersect(Segment(P, Q), s, n)` dans une
+      formule s'écrit `meet(P, Q, s, n)` (l3 : 4 Ko → 0,2 Ko) ; une fonction
+      de x et y cachée, dans l'espace, est une surface cachée que les
+      formules appellent (`J = (x(H), y(H), pr(x(H), y(H)))`) ; un polygone
+      de l'espace porte le drapeau `pn` au lieu d'une condition calculée ;
+      une condition d'affichage qui n'est qu'une case la lit directement ;
+      un objet construit par une commande imbriquée, que GeoGebra ne nomme
+      pas, est intégré à la ligne du seul objet qui le reçoit en argument,
+      comme l'éditeur écrit une commande imbriquée (pas dans un lieu, une
+      image, une formule ni une transformation d'un point-formule, comme
+      l'éditeur). pringles : 94 → 59 lignes. Corpus : 2 488 objets intégrés,
+      lignes `nom = …` 331 → 268 (figures 120 → 95), aller-retour `.dgo`
+      identique sur tout le corpus, aucune figure perdue. Moteur
+      356,9 → 357,5 Ko.

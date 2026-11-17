@@ -51,6 +51,7 @@ import { createCurve, type CurveBound } from "../objects/curve_object";
 import { createButton, type button_object } from "../objects/button_object";
 import { createEvent, runInits } from "../objects/event_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
+import { createSurface, type surface_object } from "../objects/surface_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
 import {
@@ -389,6 +390,8 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
     "curve",
     "quadric",
     "list",
+    // A solid or a surface, which meet calls (see dgp_formula.ts).
+    "sphere",
 ]);
 
 // A List's own names (see list_object).
@@ -926,6 +929,7 @@ function validateObjectStyle(
             case "pl":
             case "su":
             case "fx":
+            case "pn":
             case "nmi":
             case "cV":
             case "cD":
@@ -1175,6 +1179,10 @@ function applyObjectStyle(
             case "fx":
                 if (target instanceof polygon_object)
                     target.fixed = propertyValue === "true";
+                break;
+            case "pn":
+                if (target instanceof polygon_object)
+                    target.planar = propertyValue === "true";
                 break;
             case "nmi":
                 target.inert = propertyValue === "true";
@@ -1840,15 +1848,23 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Locus",
         {
-            parameters: [string, point, pointOn],
+            // Of a point on a path, or of a slider.
+            parameters: [string, point, object],
             result: "locus",
-            execute: (context, args) =>
-                createLocus(
+            execute: (context, args) => {
+                const driver = args[2];
+                if (
+                    !(driver instanceof point_on_object) &&
+                    !(driver instanceof expression_object)
+                )
+                    throw new Error("Invalid DGP locus driver");
+                return createLocus(
                     context.construction,
                     args[0] as string,
                     args[1] as point_object,
-                    args[2] as point_on_object,
-                ),
+                    driver,
+                );
+            },
         },
     ],
     [
@@ -2694,7 +2710,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     // Not DGPad commands: GeoGebra's Intersect(line, solid) for a cylinder,
-    // a cone or a sphere.
+    // a cone, a sphere or a surface.
     [
         "CylinderIntersection",
         {
@@ -2712,7 +2728,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     context.construction,
                     args[0] as string,
                     args[1] as primitive_line_object,
-                    args[2] as revolution_object | sphere_object,
+                    args[2] as
+                        revolution_object | sphere_object | surface_object,
                     args[3] as 0 | 1,
                 ),
         },
@@ -3253,6 +3270,46 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 expression.alpha = [dx, dy];
                 expression.addParents(expression.anchor);
                 return expression;
+            },
+        },
+    ],
+    [
+        // DocGeo's: GeoGebra's surface z = f(x, y).
+        "Surface",
+        {
+            parameters: [string, string, number],
+            result: "sphere",
+            validate: (args, lineNumber, variables) => {
+                const node = tryParseFormula(literalString(args[1]));
+                const size = (args[2] as { value: number }).value;
+                if (!node || ![0, 1, 2].includes(size))
+                    throw new Error(
+                        `Invalid DGP surface at line ${lineNumber}`,
+                    );
+                validateReferences(
+                    functionReferences(node, ["x", "y"]),
+                    variables,
+                    lineNumber,
+                );
+            },
+            execute: (context, args) => {
+                const source = args[1] as string;
+                const node = parseFormula(source);
+                return createSurface(
+                    context.construction,
+                    args[0] as string,
+                    {
+                        node,
+                        source,
+                        variables: ["x", "y"],
+                        refs: formulaRefs(
+                            functionReferences(node, ["x", "y"]),
+                            context.variables,
+                        ),
+                        vec3: context.is3D,
+                    },
+                    args[2] as number,
+                );
             },
         },
     ],

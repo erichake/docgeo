@@ -50,6 +50,12 @@ function embeddedRef(
     return [tag, tag === "Fp" || tag === "Fl" ? parameters[0] : parameters];
 }
 
+export const UNBUILT = ["Pt", "VecF", "Btn", "Evt", "Html", "Img"];
+
+// Never written in another's definition: what is moved, edited, shown or
+// applied by itself.
+export const UNEMBEDDED = [...UNBUILT, "On", "Ex", "Txt", "Mac", "Out"];
+
 // Written in the definition of the object it is given to (see embedded).
 export function embed<T extends construction_object>(object: T): T {
     object.parents.forEach((parent) => {

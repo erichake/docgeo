@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { bandBackground } from "../../src/background";
-import { describeDgo, readDgo } from "../../src/dgo";
+import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import { builtView, figureState, figureValues } from "../../src/figure_state";
 import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
@@ -53,6 +53,7 @@ import { regular_polygon_object } from "../../src/objects/regular_polygon_object
 import { vertex_object } from "../../src/objects/vertex_object";
 import { dilation_object } from "../../src/objects/dilation_object";
 import { sphere_object } from "../../src/objects/sphere_object";
+import { surface_object } from "../../src/objects/surface_object";
 import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { vector_object } from "../../src/objects/vector_object";
@@ -5398,7 +5399,7 @@ if ((!az ? 1 : 0) == 0) {
         expect(c.getObj("t")).toBeInstanceOf(expression_object);
     });
 
-    it("reads hidden functions of x and y, segments cut by a cylinder and their images in space", () => {
+    it("reads hidden functions of x and y, segments cut by a cylinder and their images in space", async () => {
         const c = createConstruction();
         const point = (label: string, x: number, y: number, z: number) =>
             `<element type="point3d" label="${label}"><coords x="${x}" y="${y}" z="${z}" w="1"/></element>`;
@@ -5419,10 +5420,29 @@ ${point("K", 3, 0, 0)}${point("L", 0, 3, 0)}${point("M", 0, 0, 1)}
 <element type="list" label="s"/>
 <command name="Rotate"><input a0="Mirror[s, xOyPlane]" a1="90°"/><output a0="s'"/></command>
 <element type="list" label="s'"/>
+<command name="Segment"><input a0="Intersect[Segment[P, R], l, 1]" a1="Intersect[Segment[P, R], l, 2]"/><output a0="i"/></command>
+<element type="segment3d" label="i"/>
 </construction></geogebra>`;
         expect(importGgb(c, xml)).toEqual([]);
         expectSavedPoints(c, xml);
         expect(c.getObj("m")).toBeInstanceOf(locus_object);
+        // Called: the hidden function of x and y as a surface, the
+        // cylinder by meet.
+        expect(c.getObj("pr")).toBeInstanceOf(surface_object);
+        expect(
+            formulaSource((c.getObj("s") as sequence_object).formulas[0]),
+        ).toMatch(/^meet\(/);
+        // Its nested commands written in its line, not named apart.
+        const i = c.getObj("i")!;
+        expect(i.parents.every((parent) => !parent.embedded)).toBe(true);
+        // Of [PR], nested twice, the two points where it meets l.
+        expect(i.embeds!.map(({ embedded }) => embedded)).toEqual([
+            true,
+            true,
+            true,
+            true,
+        ]);
+        expect(figureObjects(c).some((object) => object.embedded)).toBe(false);
         const ends = (label: string) =>
             (c.getObj(label) as list_object).items.map((item) =>
                 item.map((end) =>
@@ -5446,7 +5466,61 @@ ${point("K", 3, 0, 0)}${point("L", 0, 3, 0)}${point("M", 0, 0, 1)}
             [-1, r, 0],
         ]);
         // Its vertices aren't coplanar.
-        expect(c.getObj("poly")!.isVisible).toBe(false);
+        expect(c.getObj("poly")!.defined).toBe(false);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(restored.getObj("poly")!.defined).toBe(false);
+        expect(restored.getObj("i")!.embeds!.length).toBe(4);
+    });
+
+    it("draws a surface z = f(x, y), meets it with a line and traces a point's locus by a slider", async () => {
+        const c = createConstruction();
+        const xml = `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/><slider min="1" max="3"/></element>
+<element type="numeric" label="e"><value val="0.25"/><slider min="0" max="1"/></element>
+<expression label="g" exp="z = x^(2) / a^(2) - y^(2) / a^(2)" type="quadric"/>
+<element type="quadric" label="g"><objColor r="255" g="215" b="0" alpha="0.7"/></element>
+<expression label="eq1" exp="x^(2) + y^(2) = 4" type="quadric"/>
+<element type="quadric" label="eq1"><show object="false" label="false"/></element>
+<command name="IntersectConic"><input a0="g" a1="eq1"/><output a0="c"/></command>
+<element type="conic3d" label="c"><matrix A0="NaN" A1="NaN" A2="NaN" A3="NaN" A4="NaN" A5="NaN"/></element>
+<expression label="f" exp="f(x, y) = x + y" type="functionnvar"/>
+<element type="functionnvar" label="f"/>
+<element type="point3d" label="B"><coords x="2" y="0" z="5" w="1"/></element>
+<command name="Rotate"><input a0="B" a1="(e * 360°)"/><output a0="B'"/></command>
+<element type="point3d" label="B'"><coords x="0" y="2" z="5" w="1"/></element>
+<command name="OrthogonalLine"><input a0="B'" a1="xOyPlane"/><output a0="i"/></command>
+<element type="line3d" label="i"/>
+<command name="Intersect"><input a0="i" a1="g"/><output a0="C" a1=""/></command>
+<element type="point3d" label="C"><coords x="0" y="2" z="-1" w="1"/></element>
+<command name="Locus"><input a0="C" a1="e"/><output a0="lieu"/></command>
+<element type="locus" label="lieu"/>
+</construction></geogebra>`;
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        const g = c.getObj("g") as surface_object;
+        expect(g).toBeInstanceOf(surface_object);
+        expect(g.valueAt(2, 1)).toBeCloseTo(0.75, 12);
+        expect(c.getObj("f")).toBeInstanceOf(surface_object);
+        // Undefined in GeoGebra: the saddle and the cylinder meet along no
+        // conic.
+        expect(c.getObj("c")).toBeUndefined();
+        // Of the slider's whole range, on the curve z = cos 2t over the
+        // circle of radius 2, the slider kept where it was.
+        const lieu = c.getObj("lieu") as locus_object;
+        const points = lieu.points.filter((p) => p !== null);
+        expect(points.length).toBeGreaterThan(100);
+        points.forEach(([x, y, z]) => {
+            expect(Math.hypot(x, y)).toBeCloseTo(2, 9);
+            expect(z).toBeCloseTo((x * x - y * y) / 4, 9);
+        });
+        expect((c.getObj("e") as expression_object).value).toBe(0.25);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(restored.getObj("g")).toBeInstanceOf(surface_object);
+        expect((restored.getObj("lieu") as locus_object).driver).toBeInstanceOf(
+            expression_object,
+        );
     });
 
     it("paints the graphics view above the 3D view in its own background", async () => {

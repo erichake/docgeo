@@ -125,7 +125,7 @@ describe("Editor text", () => {
         });
         expect(read("g(x, y) = x y")).toEqual({
             name: "g",
-            definition: { kind: "formula", source: "x y" },
+            definition: { kind: "surface", source: "x y" },
         });
         expect(read("f(x) =")).toEqual({ name: "f", definition: null });
         expect(read("x(A) = 2").name).toBeNull();

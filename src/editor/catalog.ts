@@ -3,6 +3,7 @@ import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
 import { expression_object } from "../objects/expression_object";
+import { surface_object } from "../objects/surface_object";
 import { list_object } from "../objects/list_object";
 import { point_list_object } from "../objects/point_list_object";
 import { locus_object } from "../objects/locus_object";
@@ -89,6 +90,11 @@ export type Param =
     | "outline"
     // A sphere, a cylinder or a cone.
     | "surface"
+    // One of those, or a surface z = f(x, y): what a line meets.
+    | "meetable"
+    | "cylinder"
+    // A number of the figure that a slider changes.
+    | "slider"
     // What a formula reads.
     | "readable"
     // A list of points.
@@ -280,6 +286,12 @@ export function accepts(arg: Arg, param: Param): boolean {
             );
         case "surface":
             return kind === "sphere" || arg instanceof revolution_object;
+        case "cylinder":
+            return arg instanceof revolution_object && !arg.cone;
+        case "meetable":
+            return accepts(arg, "surface") || arg instanceof surface_object;
+        case "slider":
+            return arg instanceof expression_object && arg.isCursor;
         case "transformable":
             return (
                 accepts(arg, "invertible") ||
@@ -313,19 +325,21 @@ export function accepts(arg: Arg, param: Param): boolean {
 // meets.
 export const crossable = (object: construction_object): boolean =>
     accepts(object, "intersectable") ||
-    accepts(object, "surface") ||
+    accepts(object, "meetable") ||
     accepts(object, "plane");
 
 // Whether the editor makes the points where they meet: two curves, or a
 // line and a sphere, a cylinder, a cone or a plane.
 export const meet = (a: construction_object, b: construction_object) =>
     (accepts(a, "intersectable") && accepts(b, "intersectable")) ||
-    (accepts(a, "line") && (accepts(b, "surface") || accepts(b, "plane"))) ||
-    ((accepts(a, "surface") || accepts(a, "plane")) && accepts(b, "line"));
+    (accepts(a, "line") && (accepts(b, "meetable") || accepts(b, "plane"))) ||
+    ((accepts(a, "meetable") || accepts(a, "plane")) && accepts(b, "line"));
 
 // What a formula reads by name (see READABLE in dgp_commands.ts).
 export const readable = (object: construction_object): boolean =>
     object instanceof curve_object ||
+    // Called: a surface as a function of x and y, a solid by meet.
+    accepts(object, "meetable") ||
     (object instanceof list_object && object.nature === "point") ||
     ["point", "line", "circle", "conic", "polygon", "number", "angle"].includes(
         kindOf(object),
@@ -394,6 +408,19 @@ function objects(tag: string, params: Param[], order?: number[]): Overload {
                 (position, k) => (args[position] = at(parameters[k])),
             );
             return args;
+        },
+    };
+}
+
+// A solid's disk, at A (0) or at B (1).
+function disk(param: Param, top: number): Overload {
+    return {
+        params: [param],
+        tag: "Disk",
+        encode: ([solid], index) => [index(solid as construction_object), top],
+        decode: (parameters, at) => {
+            const [solid, end] = parameters as [number, number];
+            return end === top ? [at(solid)] : null;
         },
     };
 }
@@ -922,9 +949,10 @@ export const COMMANDS: Command[] = [
             },
             numbered(["curved", "intersectable", "number"]),
             numbered(["line", "curved", "number"]),
-            // Of a line and a sphere, a cylinder or a cone, of rank n from 1.
+            // Of a line and a sphere, a cylinder, a cone or a surface
+            // z = f(x, y), of rank n from 1.
             {
-                params: ["line", "surface", "number"],
+                params: ["line", "meetable", "number"],
                 tag: "CyI",
                 encode: ([line, surface, n], index) => [
                     index(line as construction_object),
@@ -937,7 +965,7 @@ export const COMMANDS: Command[] = [
                 },
             },
             {
-                params: ["surface", "line", "number"],
+                params: ["meetable", "line", "number"],
                 tag: "CyI",
                 encode: ([surface, line, n], index) => [
                     index(line as construction_object),
@@ -1135,6 +1163,9 @@ export const COMMANDS: Command[] = [
     // polygon.
     { name: "Cylinder", overloads: [withReal("Cyl", ["point", "point"])] },
     { name: "Cone", overloads: [withReal("Cone", ["point", "point"])] },
+    // The disk of a cylinder or a cone at A, and that of a cylinder at B.
+    { name: "Bottom", overloads: [disk("revolution", 0)] },
+    { name: "Top", overloads: [disk("cylinder", 1)] },
     {
         name: "Cube",
         overloads: [
@@ -1191,7 +1222,11 @@ export const COMMANDS: Command[] = [
     { name: "Net", overloads: [withReal("Net", ["polyhedron"])] },
     {
         name: "Locus",
-        overloads: [objects("Loc", ["traced", "pointOn"])],
+        // Of a point on a path, or of a slider from its min to its max.
+        overloads: [
+            objects("Loc", ["traced", "pointOn"]),
+            objects("Loc", ["traced", "slider"]),
+        ],
     },
     // The points of an expression's value (see expression_list_object.ts).
     { name: "List", overloads: [objects("ELst", ["expression"])] },

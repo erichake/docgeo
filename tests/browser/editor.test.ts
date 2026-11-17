@@ -94,6 +94,7 @@ import {
 } from "../../src/import/dgp_formula";
 import type { locus_object } from "../../src/objects/locus_object";
 import type { point_object } from "../../src/objects/point_object";
+import { surface_object } from "../../src/objects/surface_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
 import type { polyhedron_object } from "../../src/objects/polyhedron_object";
@@ -648,6 +649,44 @@ describe("Editor", () => {
         expect(cube.hides([1, 1, 5])).toBe(false);
         expect(cube.hides([1, 1, -5])).toBe(true);
         expect(cube.hides([1, 1, 1])).toBe(true);
+    });
+
+    it("writes and reads surfaces, their points on a line, slider loci and disks", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "a = Slider(1, 3, 2)",
+            "g(x, y) = x^2 / a^2 - y^2 / a^2",
+            "e = Slider(0, 1, 0.25)",
+            "P = (0, 8e, 5)",
+            "Q = (x(P), y(P), 0)",
+            "d = Line(P, Q)",
+            "C = Intersection(d, g, 1)",
+            "k = Locus(C, e)",
+            "A = (0, 0, 0)",
+            "D = (0, 0, 3)",
+            "b = Cylinder(A, D, 1.5)",
+            "f = Bottom(b)",
+            "h = Top(b)",
+            "R = (-3, 0, 1)",
+            "S = (3, 0, 1)",
+            "G = meet(R, S, b, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expect(c.getObj("g")).toBeInstanceOf(surface_object);
+        expectClose((c.getObj("C") as point_object).coords, [0, 2, -1]);
+        expect((c.getObj("k") as locus_object).defined).toBe(true);
+        // Where [RS] enters the cylinder.
+        expectClose(c.getObj("G")!.scriptValue(true), [-1.5, 0, 1]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        // In the plane, a function of x and y that formulas call.
+        const { scene: plane } = studio();
+        expect(
+            entryOf(type(plane, "g(x, y) = x + y"), figureIndex(plane))[0],
+        ).toBe("Ex");
     });
 
     // A spherical triangle's medians: arcs of great circles, in the plane

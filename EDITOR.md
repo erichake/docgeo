@@ -333,6 +333,18 @@ de `src/import/dgp_commands.ts`.
   nombres (`F = r < 3`) reste une expression. À l'import GeoGebra, les
   inégalités d'une variable (`x ≤ k`, `x² < 2`) sont aussi des régions,
   plus des polygones dépassant la fenêtre.
+- **Surfaces** (2026-11-17, comme dans GeoGebra) : dans l'espace,
+  `g(x, y) = …` sans comparaison est la surface z = g(x, y) (`Surf`),
+  relue ainsi ; une redéfinition garde la taille de sa boîte de coupe,
+  moyenne pour une nouvelle. Dans le plan, la ligne reste l'expression
+  `g = …`. `Intersection(d, g, n)` coupe une droite et une surface,
+  `Locus(P, e)` prend aussi un curseur, et `Bottom(c)`, `Top(c)` (`EnBas`,
+  `EnHaut` de GeoGebra) écrivent les disques d'un cylindre ou d'un cône :
+  ces objets ne s'écrivent plus `nom = …`.
+  Dans une formule, `meet(P, Q, s, n)` est le n-ième point où [PQ]
+  rencontre le cylindre, le cône, la sphère ou la surface s, et une surface
+  s'appelle comme une fonction : `g(1, 2)`. À l'import GeoGebra, les objets
+  des commandes imbriquées sont intégrés à la ligne de leur parent.
 - **Coordonnées polaires** (2026-10-17, comme dans GeoGebra) :
   `P = (3; 60°)`, rayon et angle séparés par un point-virgule, est un point
   défini par une formule (`Fp`, `[(3)*cos(60°), (3)*sin(60°)]`), que la
@@ -1484,7 +1496,8 @@ n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
   comme dans GeoGebra, la courbe de la fonction (`Cur`, sans bornes),
   qu'une formule appelle comme une expression (`f(2)`, `f'(2)`) et que la
   ligne relit `f(x) = …` ; `f(x, y) = …` (variables parmi x, y, z, t) est
-  l'expression `f = …`. Sur un intervalle (2026-11-01), elle s'écrit
+  l'expression `f = …` (dans l'espace, `f(x, y) = …` est une surface, voir
+  « Surfaces »). Sur un intervalle (2026-11-01), elle s'écrit
   comme dans GeoGebra `f(x) = …, (a ≤ x ≤ b)` (`<=` accepté, une borne
   pouvant manquer, bornes nombres ou formules).
 - **Produits à la GeoGebra** (2026-10-17) : dans une ligne tapée, un nom

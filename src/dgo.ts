@@ -43,12 +43,15 @@ import {
     isDash,
     objectEntry,
     objectIndex,
+    UNBUILT,
+    UNEMBEDDED,
     type DgoContext,
 } from "./objects/construction_object";
 import { partOf } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
 import { createRegion } from "./objects/region_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
+import { createSurface, surface_object } from "./objects/surface_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
 import { createDirectionPoint } from "./objects/direction_point_object";
 import {
@@ -297,6 +300,7 @@ export const LOOKS: Record<string, Look> = {
     Sph: POLYGON,
     Sph1: POLYGON,
     Cyl: SOLID,
+    Surf: SOLID,
     Cone: SOLID,
     Cube: SOLID,
     CubP: SOLID,
@@ -593,6 +597,7 @@ const STYLE: Record<string, Property> = {
     pl: flag(polygon_object, "plane", (tag) => +PLANES.includes(tag)),
     su: flag(polygon_object, "section", (tag) => +(tag === "PlS")),
     fx: flag(polygon_object, "fixed"),
+    pn: flag(polygon_object, "planar"),
     ar: field<angle_object | fixed_angle_object>(
         [angle_object, fixed_angle_object],
         "arcRadius",
@@ -1552,11 +1557,7 @@ export function privateConstruction(
 // Not in a body: free objects, which would be missing initials, what a
 // manipulation changes, what acts on the figure, and images, whose keys
 // are the figure's.
-const UNBUILT = ["Pt", "VecF", "Btn", "Evt", "Html", "Img"];
-
-// Never written in another's definition: what is moved, edited, shown or
-// applied by itself.
-export const UNEMBEDDED = [...UNBUILT, "On", "Ex", "Txt", "Mac", "Out"];
+export { UNEMBEDDED };
 
 // The figure's macros: what can be checked before reading their bodies,
 // read with each application.
@@ -2188,7 +2189,7 @@ const BUILDERS: Record<string, Builder> = {
             c,
             name,
             at(line, primitive_line_object),
-            at(solid, revolution_object, sphere_object),
+            at(solid, revolution_object, sphere_object, surface_object),
             order,
         );
     },
@@ -2589,7 +2590,7 @@ const BUILDERS: Record<string, Builder> = {
             c,
             name,
             at(target, point_object, primitive_line_object),
-            at(driver, point_on_object),
+            at(driver, point_on_object, expression_object),
         );
     },
     Ang: threePoints(createAngle),
@@ -2679,6 +2680,25 @@ const BUILDERS: Record<string, Builder> = {
         const bound = (value: Json) =>
             value === null || isNumber(value) ? value : read(value, []);
         return createCurve(c, name, read(value, ["x"]), bound(min), bound(max));
+    },
+    Surf: (parameters, { c, name, formula, vec3 }) => {
+        const [value, size] = list(parameters, 2);
+        check(size === 0 || size === 1 || size === 2);
+        const { source, refs } = formula(value, construction_object);
+        const node = parseFormula(source);
+        checkNames(formulaIdentifiers(node), refs, ["x", "y"]);
+        return createSurface(
+            c,
+            name,
+            {
+                node,
+                source,
+                variables: ["x", "y"],
+                refs,
+                vec3,
+            },
+            size,
+        );
     },
     Reg: (parameters, { c, name, formula, vec3 }) => {
         const { source, refs } = formula(parameters, construction_object);

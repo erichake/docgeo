@@ -442,6 +442,11 @@ vaut 0,5 en degrés comme en radians). `rotate(P, O, a)` est l'image du
 point P par la rotation de centre O et d'angle a (dans l'unité d'angle de
 la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 `dilate(P, O, k)` son image par l'homothétie de centre O et de rapport k.
+Une surface (`Surf`) s'appelle par son nom comme une fonction de x et y :
+`g(1, 2)`. `meet(P, Q, s, n)` est le n-ième point (1 ou 2) où le segment
+[PQ] rencontre le cylindre, le cône, la sphère ou la surface s, les points
+triés de P vers Q, indéfini hors du segment, comme `Intersect(Segment(P,
+Q), s, n)` de GeoGebra (2026-11-17).
 
 | Type    | Objet                                                                       | Paramètres                                               |
 | ------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -532,10 +537,11 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Poly`  | polygone                                                                    | `[A, B, C, …]`                                           |
 | `PolyL` | polygone sur les points d'une liste, autant qu'elle en a                    | `[liste]` (29)                                           |
 | `RegP`  | polygone régulier de n côtés sur [AB]                                       | `[A, B, n]`, `[A, B, n, plan]` (18)                      |
-| `Loc`   | lieu de P quand M parcourt son support ; si P est une droite, son enveloppe | `[P, M]`                                                 |
+| `Loc`   | lieu de P quand M (sur objet ou curseur, 34) varie ; P droite : l'enveloppe | `[P, M]`                                                 |
 | `Ex`    | expression                                                                  | objet (6)                                                |
 | `Cur`   | courbe y = f(x)                                                             | `[formule, min, max]` (23)                               |
 | `Reg`   | région du plan où une formule de x et y est vraie (33)                      | `formule`                                                |
+| `Surf`  | surface z = f(x, y), f une formule de x et y (34)                           | `[formule, taille]`                                      |
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)                |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)                 |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                                      |
@@ -584,7 +590,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    P. Une courbe (`Cur`) ou un lieu (`Loc`) coupe une droite, un cercle, une
    courbe ou un lieu ; le lieu par sa ligne brisée. Le rang n'est alors pas
    limité à 3.
-4. Solide : cylindre, cône ou sphère ; l'intersection avec une droite
+4. Solide : cylindre, cône, sphère ou surface (`Surf`) ; l'intersection avec une droite
    prolonge la paroi du cylindre ou du cône au-delà de ses disques, comme
    GeoGebra, ses solutions triées le long de la droite. Un cylindre ou un
    cône se dessine par sa silhouette, ombrée le long de ses génératrices,
@@ -900,6 +906,19 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     (`fc`, `o`) et bordés (`c`, `s`). Calculée sur une grille de la vue de
     8 pixels de côté, chaque bord affiné par dichotomie : un détail plus
     petit que la grille peut manquer.
+34. Ajoutés le 2026-11-17, comme la surface z = f(x, y) de GeoGebra (une
+    fonction de x et y, ou une quadrique donnée par une équation résolue
+    en z) et son `Locus(P, curseur)`. La surface se dessine dans la boîte
+    de coupe de GeoGebra, qui la borne même quand elle n'est pas utilisée :
+    celle de la fenêtre, aussi profonde que large, réduite selon sa taille
+    (0 petite, 1 moyenne, 2 grande : côté 1/√3, √(2/3) ou 1 fois celui de
+    la fenêtre), tournée avec la vue, puis la boîte en x, y et z qui la
+    contient. Maillée, ses faces éclairées comme celles des polygones
+    (`fc`, `o`), elle cache ce qui est derrière
+    elle, pas ce qui est posé sur elle. Son intersection avec une droite
+    (`CyI`) est exacte quand f est au plus du second degré le long de la
+    droite, cherchée sinon par échantillonnage. Le lieu d'un curseur prend
+    1000 valeurs régulières de son min à son max, quel que soit son pas.
 
 ### Macro-constructions
 
@@ -1193,6 +1212,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `pl` | `Poly`                   | plan                                                                                       | 0                                 |
 | `su` | `Poly`                   | section (garde ses sommets définis)                                                        | 0, 1 pour `PlS`                   |
 | `fx` | `Poly`                   | fixé : ne se déplace pas par translation                                                   | 0                                 |
+| `pn` | `Poly`                   | indéfini si ses sommets ne sont pas coplanaires (GeoGebra, 2026-11-17)                     | 0                                 |
 | `ar` | `Ang`, `FA`              | rayon de l'arc                                                                             | 30                                |
 | `ra` | `Ang`                    | marque d'angle droit                                                                       | `dgpad`                           |
 | `ao` | `Ang`                    | orientation dans le plan : 0 ≤ 180° (DGPad), 1 sens direct de OA à OB, 2 ≥ 180° (GeoGebra) | `0`                               |
@@ -1298,6 +1318,7 @@ non définie).
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `PrsH`, `PyrH`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Surf` (opacité 0,4)                                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                                                      | `#656148`, `#656148`, 2                   |

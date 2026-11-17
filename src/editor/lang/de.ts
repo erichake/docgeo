@@ -433,6 +433,10 @@ const de: Texts = {
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",
         designate_surface:
             "Wählen Sie eine Kugel, einen Zylinder oder einen Kegel",
+        designate_meetable:
+            "Wählen Sie eine Kugel, einen Zylinder, einen Kegel oder eine Fläche",
+        designate_slider: "Wählen Sie einen Schieberegler",
+        designate_cylinder: "Wählen Sie einen Zylinder",
         designate_solid: "Wählen Sie einen Körper",
         designate_readable: "Wählen Sie ein Objekt",
         designate_points: "Wählen Sie eine Liste von Punkten",
@@ -578,6 +582,8 @@ const de: Texts = {
         Sphere: "Kugel",
         Cylinder: "Zylinder",
         Cone: "Kegel",
+        Bottom: "Unten",
+        Top: "Oben",
         Cube: "Würfel",
         Prism: "Prisma",
         Pyramid: "Pyramide",

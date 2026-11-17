@@ -26,6 +26,9 @@ export type Definition =
     | { kind: "equation"; sides: [string, string] }
     // `x < 2`, `a(x, y) = x^2 + y^2 ≤ r^2`: where it holds.
     | { kind: "region"; source: string }
+    // `g(x, y) = x^2 - y^2`: in space, the surface z = g(x, y); in the
+    // plane, a function of x and y that formulas call.
+    | { kind: "surface"; source: string }
     // `{A, (1, 2)}`, GeoGebra's list of points.
     | { kind: "list"; items: string[] };
 
@@ -155,6 +158,8 @@ export function parseLine(
     // named with its variables, the curve of a function of x.
     const declared = declaration();
     const curve = declared === 5 && tokens[2].value === "x";
+    const surface =
+        declared === 7 && tokens[2].value === "x" && tokens[4].value === "y";
     if (
         peek()?.type === "identifier" &&
         !["x", "y"].includes(peek()!.value as string) &&
@@ -170,6 +175,7 @@ export function parseLine(
     }
     if (inequality()) return { name, definition: { kind: "region", source } };
     if (curve) return { name, definition: { kind: "curve", source } };
+    if (surface) return { name, definition: { kind: "surface", source } };
     const braces = peek()?.type === "{" ? whole(position) : null;
     if (braces && !braces.semicolons.length) {
         const bounds = [position, ...braces.commas, braces.end];
