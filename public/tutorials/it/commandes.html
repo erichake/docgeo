@@ -147,7 +147,7 @@
                             <td>centro della circonferenza c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Intersezione</strong><br /><small
                                     >Intersection</small
@@ -186,6 +186,16 @@
                                 <span class="badge d3">3D</span> n-esimo punto
                                 (n = 1 o 2) in cui la retta d attraversa la
                                 sfera, il cilindro o il cono s
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersezione(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-esimo punto
+                                (n = 1 o 2) in cui la retta d incontra la
+                                superficie g
                             </td>
                         </tr>
                         <tr>
@@ -734,7 +744,7 @@
                             <td>angolo di vertice O, da [OA) a [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i> <strong>Luogo</strong
                                 ><br /><small>Locus</small>
                             </td>
@@ -750,6 +760,13 @@
                                 inviluppo della retta d (la curva tangente alle
                                 sue posizioni) quando il punto su oggetto P
                                 percorre il suo oggetto
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Luogo(M, a)</code></td>
+                            <td>
+                                luogo del punto M quando il cursore a va dal suo
+                                minimo al suo massimo
                             </td>
                         </tr>
                     </tbody>
@@ -1001,6 +1018,28 @@
                             <td>
                                 cono di base di centro A e raggio r, con vertice
                                 B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>BaseInf</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>BaseInf(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco del
+                                cilindro o del cono c in A, la sua base
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>BaseSup</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>BaseSup(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco del
+                                cilindro c in B
                             </td>
                         </tr>
                         <tr>

@@ -146,7 +146,7 @@
                             <td>centro de la circunferencia c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Intersección</strong><br /><small
                                     >Intersection</small
@@ -186,6 +186,16 @@
                                 <span class="badge d3">3D</span> n-ésimo punto
                                 (n = 1 o 2) en que la recta d atraviesa la
                                 esfera, el cilindro o el cono s
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersección(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-ésimo punto
+                                (n = 1 o 2) donde la recta d corta la superficie
+                                g
                             </td>
                         </tr>
                         <tr>
@@ -719,7 +729,7 @@
                             <td>ángulo de vértice O, de [OA) a [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i>
                                 <strong>LugarGeométrico</strong><br /><small
                                     >Locus</small
@@ -741,6 +751,15 @@
                                 envolvente de la recta d (la curva tangente a
                                 sus posiciones) cuando el punto sobre objeto P
                                 recorre su objeto
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>LugarGeométrico(M, a)</code>
+                            </td>
+                            <td>
+                                lugar del punto M cuando el deslizador a va de
+                                su mínimo a su máximo
                             </td>
                         </tr>
                     </tbody>
@@ -982,6 +1001,28 @@
                             <td>
                                 cono de base de centro A y radio r, con vértice
                                 B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Fondo</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Fondo(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco del
+                                cilindro o del cono c en A, su base
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Tapa</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>Tapa(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco del
+                                cilindro c en B
                             </td>
                         </tr>
                         <tr>

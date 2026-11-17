@@ -145,7 +145,7 @@
                             <td>middelpunt van de cirkel c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Snijpunt</strong><br /><small
                                     >Intersection</small
@@ -184,6 +184,15 @@
                                 <span class="badge d3">3D</span> n-de punt (n =
                                 1 of 2) waar de rechte d de bol, de cilinder of
                                 de kegel s doorboort
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Snijpunt(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-de punt (n =
+                                1 of 2) waar de rechte d het oppervlak g snijdt
                             </td>
                         </tr>
                         <tr>
@@ -722,7 +731,7 @@
                             <td>hoek met hoekpunt O, van [OA) naar [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i>
                                 <strong>MeetkundigePlaats</strong><br /><small
                                     >Locus</small
@@ -744,6 +753,16 @@
                                 omhullende van de rechte d (de kromme die aan
                                 haar standen raakt) wanneer het punt op object P
                                 zijn object doorloopt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>MeetkundigePlaats(M, a)</code>
+                            </td>
+                            <td>
+                                meetkundige plaats van het punt M wanneer de
+                                schuifknop a van zijn minimum naar zijn maximum
+                                gaat
                             </td>
                         </tr>
                     </tbody>
@@ -996,6 +1015,26 @@
                             <td>
                                 kegel met grondvlak met middelpunt A en straal
                                 r, en top B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Grondvlak</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Grondvlak(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> schijf van de
+                                cilinder of de kegel c in A, zijn grondvlak
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Top</strong></td>
+                            <td class="syntax"><code>Top(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> schijf van de
+                                cilinder c in B
                             </td>
                         </tr>
                         <tr>

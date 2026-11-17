@@ -146,7 +146,7 @@
                             <td>centro do círculo c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Interseção</strong><br /><small
                                     >Intersection</small
@@ -185,6 +185,16 @@
                                 <span class="badge d3">3D</span> n-ésimo ponto
                                 (n = 1 ou 2) em que a reta d atravessa a esfera,
                                 o cilindro ou o cone s
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Interseção(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-ésimo ponto
+                                (n = 1 ou 2) onde a reta d encontra a superfície
+                                g
                             </td>
                         </tr>
                         <tr>
@@ -712,7 +722,7 @@
                             <td>ângulo de vértice O, de [OA) a [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i>
                                 <strong>LugarGeométrico</strong><br /><small
                                     >Locus</small
@@ -734,6 +744,15 @@
                                 envoltória da reta d (a curva tangente às suas
                                 posições) quando o ponto sobre objeto P percorre
                                 seu objeto
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>LugarGeométrico(M, a)</code>
+                            </td>
+                            <td>
+                                lugar do ponto M quando o controle deslizante a
+                                vai do seu mínimo ao seu máximo
                             </td>
                         </tr>
                     </tbody>
@@ -967,6 +986,28 @@
                             <td class="syntax"><code>Cone(A, B, r)</code></td>
                             <td>
                                 cone de base de centro A e raio r, com vértice B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Embaixo</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Embaixo(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco do
+                                cilindro ou do cone c em A, a sua base
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Acima</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>Acima(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disco do
+                                cilindro c em B
                             </td>
                         </tr>
                         <tr>

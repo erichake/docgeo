@@ -147,7 +147,7 @@
                             <td>κέντρο του κύκλου c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Τομή</strong><br /><small
                                     >Intersection</small
@@ -180,6 +180,14 @@
                                 <span class="badge d3">3D</span> n-οστό σημείο
                                 (n = 1 ή 2) όπου η ευθεία d διαπερνά τη σφαίρα,
                                 τον κύλινδρο ή τον κώνο s
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Τομή(d, g, n)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> n-οστό σημείο
+                                (n = 1 ή 2) όπου η ευθεία d συναντά την
+                                επιφάνεια g
                             </td>
                         </tr>
                         <tr>
@@ -719,7 +727,7 @@
                             <td>γωνία με κορυφή O, από την [OA) στην [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i>
                                 <strong>ΓεωμετρικόςΤόπος</strong><br /><small
                                     >Locus</small
@@ -742,6 +750,15 @@
                                 περιβάλλουσα της ευθείας d (η καμπύλη που
                                 εφάπτεται στις θέσεις της) όταν το σημείο πάνω
                                 σε αντικείμενο P διατρέχει το αντικείμενό του
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>ΓεωμετρικόςΤόπος(M, a)</code>
+                            </td>
+                            <td>
+                                γεωμετρικός τόπος του σημείου M καθώς ο δρομέας
+                                a πηγαίνει από το ελάχιστο στο μέγιστό του
                             </td>
                         </tr>
                     </tbody>
@@ -985,6 +1002,28 @@
                             <td>
                                 κώνος με βάση κέντρου A και ακτίνας r και κορυφή
                                 B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Κατώτατο</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Κατώτατο(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> δίσκος του
+                                κυλίνδρου ή του κώνου c στο A, η βάση του
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Ανώτατο</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>Ανώτατο(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> δίσκος του
+                                κυλίνδρου c στο B
                             </td>
                         </tr>
                         <tr>

@@ -152,7 +152,7 @@
                             <td>Mittelpunkt des Kreises c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Schnittpunkt</strong><br /><small
                                     >Intersection</small
@@ -192,6 +192,16 @@
                                 <span class="badge d3">3D</span> n-ter Punkt (n
                                 = 1 oder 2), in dem die Gerade d die Kugel, den
                                 Zylinder oder den Kegel s durchstößt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Schnittpunkt(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-ter Punkt (n
+                                = 1 oder 2), in dem die Gerade d die Fläche g
+                                trifft
                             </td>
                         </tr>
                         <tr>
@@ -731,7 +741,7 @@
                             <td>Winkel mit Scheitel O, von [OA) nach [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i> <strong>Ortslinie</strong
                                 ><br /><small>Locus</small>
                             </td>
@@ -747,6 +757,13 @@
                                 Einhüllende der Geraden d (die Kurve, die ihre
                                 Lagen berührt), wenn der Punkt auf Objekt P sein
                                 Objekt durchläuft
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Ortslinie(M, a)</code></td>
+                            <td>
+                                Ortslinie des Punktes M, wenn der Schieberegler
+                                a von seinem Minimum bis zu seinem Maximum läuft
                             </td>
                         </tr>
                     </tbody>
@@ -990,6 +1007,28 @@
                             <td>
                                 Kegel mit Grundkreis um A mit Radius r und
                                 Spitze B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Unten</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Unten(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> Kreisfläche des
+                                Zylinders oder Kegels c in A, seine Grundfläche
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Oben</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>Oben(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> Kreisfläche des
+                                Zylinders c in B
                             </td>
                         </tr>
                         <tr>

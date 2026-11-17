@@ -140,7 +140,7 @@
                             <td>centre du cercle c</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>Intersection</strong>
                             </td>
@@ -177,6 +177,15 @@
                                 <span class="badge d3">3D</span> n-ième point (n
                                 = 1 ou 2) où la droite d perce la sphère, le
                                 cylindre ou le cône s
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersection(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-ième point (n
+                                = 1 ou 2) où la droite d rencontre la surface g
                             </td>
                         </tr>
                         <tr>
@@ -712,7 +721,7 @@
                             <td>angle de sommet O, de [OA) à [OB)</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i> <strong>Lieu</strong
                                 ><br /><small>Locus</small>
                             </td>
@@ -728,6 +737,13 @@
                                 enveloppe de la droite d (la courbe tangente à
                                 ses positions) quand le point sur objet P
                                 parcourt son objet
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Lieu(M, a)</code></td>
+                            <td>
+                                lieu du point M quand le curseur a va de son
+                                minimum à son maximum
                             </td>
                         </tr>
                     </tbody>
@@ -959,6 +975,28 @@
                             <td>
                                 cône de base de centre A et de rayon r, de
                                 sommet B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>EnBas</strong><br /><small
+                                    >Bottom</small
+                                >
+                            </td>
+                            <td class="syntax"><code>EnBas(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disque du
+                                cylindre ou du cône c en A, sa base
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>EnHaut</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>EnHaut(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> disque du
+                                cylindre c en B
                             </td>
                         </tr>
                         <tr>

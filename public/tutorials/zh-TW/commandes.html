@@ -124,7 +124,7 @@
                             <td>圓 c 的圓心</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>交點</strong><br /><small
                                     >Intersection</small
@@ -153,6 +153,13 @@
                             <td>
                                 <span class="badge d3">3D</span>直線 d
                                 穿過球、圓柱或圓錐 s 的第 n 個點（n = 1 或 2）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>交點(d, g, n)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 直線 d 與曲面 g
+                                的第 n 個交點（n = 1 或 2）
                             </td>
                         </tr>
                         <tr>
@@ -609,7 +616,7 @@
                             <td>以 O 為頂點、從 [OA) 到 [OB) 的角</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i> <strong>軌跡</strong
                                 ><br /><small>Locus</small>
                             </td>
@@ -622,6 +629,10 @@
                                 當物件上的點 P 在其物件上移動時直線 d
                                 的包絡線（與其各位置相切的曲線）
                             </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>軌跡(M, a)</code></td>
+                            <td>滑桿 a 從最小值變到最大值時點 M 的軌跡</td>
                         </tr>
                     </tbody>
                 </table>
@@ -820,6 +831,26 @@
                             </td>
                             <td class="syntax"><code>圓錐(A, B, r)</code></td>
                             <td>底面圓心為 A、半徑為 r，頂點為 B 的圓錐</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>下底</strong><br /><small>Bottom</small>
+                            </td>
+                            <td class="syntax"><code>下底(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 圓柱或圓錐 c 在
+                                A 處的圓面，即其底面
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>上底</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>上底(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 圓柱 c 在 B
+                                處的圓面
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="3">

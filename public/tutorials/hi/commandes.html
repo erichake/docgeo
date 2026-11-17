@@ -147,7 +147,7 @@
                             <td>वृत्त c का केन्द्र</td>
                         </tr>
                         <tr>
-                            <td rowspan="6">
+                            <td rowspan="7">
                                 <i data-t="Intersection"></i>
                                 <strong>प्रतिच्छेद</strong><br /><small
                                     >Intersection</small
@@ -186,6 +186,15 @@
                                 <span class="badge d3">3D</span> n-वाँ बिन्दु (n
                                 = 1 या 2) जहाँ रेखा d गोले, बेलन या शंकु s को
                                 भेदती है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(d, g, n)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> n-वाँ बिंदु (n
+                                = 1 या 2) जहाँ रेखा d पृष्ठ g से मिलती है
                             </td>
                         </tr>
                         <tr>
@@ -723,7 +732,7 @@
                             <td>शीर्ष O वाला कोण, [OA) से [OB) तक</td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Locus"></i> <strong>बिन्दुपथ</strong
                                 ><br /><small>Locus</small>
                             </td>
@@ -739,6 +748,13 @@
                                 रेखा d का अन्वालोप (उसकी स्थितियों को स्पर्श
                                 करने वाला वक्र), जब ऑब्जेक्ट पर बिन्दु P अपने
                                 ऑब्जेक्ट पर चलता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>बिन्दुपथ(M, a)</code></td>
+                            <td>
+                                बिंदु M का बिन्दुपथ, जब स्लाइडर a अपने न्यूनतम
+                                से अधिकतम तक जाता है
                             </td>
                         </tr>
                     </tbody>
@@ -965,6 +981,26 @@
                             <td>
                                 शंकु जिसके आधार का केन्द्र A और त्रिज्या r है,
                                 और शीर्ष B है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>तल</strong><br /><small>Bottom</small>
+                            </td>
+                            <td class="syntax"><code>तल(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> A पर बेलन या
+                                शंकु c की चकती, उसका आधार
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>टॉप</strong><br /><small>Top</small>
+                            </td>
+                            <td class="syntax"><code>टॉप(c)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> B पर बेलन c की
+                                चकती
                             </td>
                         </tr>
                         <tr>
