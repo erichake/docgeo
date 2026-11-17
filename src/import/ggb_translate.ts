@@ -5206,7 +5206,8 @@ export function translateGgb(
             );
             return true;
         },
-        // Drawn as GeoGebra's slope triangle, from the line's start point.
+        // Drawn as GeoGebra's slope triangle, from the line's start point,
+        // else where it crosses the y-axis.
         Slope: ([line, extra], [label]) => {
             if (extra !== undefined || !is(line, ["line"])) return false;
             const m = hiddenExpression(slopeFormula(line), label);
@@ -5214,11 +5215,19 @@ export function translateGgb(
             const [f, p] = (tangent ?? []).map(
                 (input) => objects.get(input)!.variable,
             );
-            const start =
-                linePoint(line) ??
-                (tangent && formulaPoint(planar(`x(${p})`, `${f}(x(${p}))`)));
             const element = elements.get(label);
-            if (start && element) {
+            if (element) {
+                const start =
+                    linePoint(line) ??
+                    (tangent
+                        ? formulaPoint(planar(`x(${p})`, `${f}(x(${p}))`))
+                        : auxiliary());
+                if (!objects.has(start))
+                    define(start, "point", "OrderedIntersection", [
+                        ref(line),
+                        ref(resolve("yAxis")),
+                        literal(0),
+                    ]);
                 const s = objects.get(start)!.variable;
                 definePolygon(
                     auxiliary(),

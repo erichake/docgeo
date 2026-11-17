@@ -1637,3 +1637,9 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       ebahgfd4, gvsa5c8q, mjbsjcbp, um9gyg9e, zpbaqvsr, dv9yqmqu,
       sy7cy5zh, tmanuss4. **+0 figure** (325), aucune perdue. Moteur
       inchangé, import GeoGebra +2,8 Ko (96,6 Ko).
+- [x] **85. Triangle de pente d'une droite donnée par son équation**
+      (equation_de_droite, signalée hors corpus). `Slope(d)` d'une droite
+      sans point de départ (`y = a x + b`) : le triangle part, comme dans
+      GeoGebra, de son intersection avec l'axe des ordonnées, au lieu de
+      n'être pas dessiné sans signalement. Moteur inchangé (seul l'import,
+      chargé à la demande, change).

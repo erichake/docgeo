@@ -1613,6 +1613,30 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect((c.getObj("mx") as expression_object).value).toBeCloseTo(6, 6);
     });
 
+    it("draws the slope triangle of a line of an equation from the y-axis", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<expression label="g" exp="y = a x + 3" type="line"/>
+<element type="line" label="g"><coords x="-2" y="1" z="-3"/></element>
+<command name="Slope"><input a0="g"/><output a0="m"/></command>
+<element type="numeric" label="m"><show object="true"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const triangle = c.OBJS.V.find(
+            (o) => o instanceof polygon_object && o.points.length === 3,
+        ) as polygon_object;
+        expect(triangle.points.map((p) => p.coords)).toEqual([
+            [0, 3, 0],
+            [1, 3, 0],
+            [1, 5, 0],
+        ]);
+    });
+
     it("builds inversions, triangle centers and regular polygons", async () => {
         const c = createConstruction();
         expect(
