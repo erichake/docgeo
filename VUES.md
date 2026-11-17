@@ -162,7 +162,7 @@ redimensionnables, vue active et fond propre à chaque vue (moteur, `.dgo`,
 DGP, import du graphique 2 de GeoGebra, éditeur), régions d'inéquations de x et
 y (`region_object.ts`, `Reg`, `Region`, import des `functionnvar`), mode
 page web (`fit.ts`). Corpus `roots.py` 321 → 324 / 456 ; moteur +4,9 Ko.
-Figure de référence du chantier : `tests/ggb/synthese_couleurs.ggb` (deux
+Figure de référence du chantier : `tests/ggb/02_solved/synthese_couleurs.ggb` (deux
 graphiques, régions coloriées).
 
 ### Où est le code
@@ -264,5 +264,8 @@ par vue dans `proprietes.html` (`#l-onglet-figure`) ; sans capture.
 
 1. Choisir la vue d'un objet dans ses propriétés (éditeur), ou le faire
    glisser d'une vue à l'autre.
-2. Performances des régions : ~27 ms par image en déplaçant A dans
-   `synthese_couleurs.ggb` (12 régions, grille de 8 px).
+2. ~~Performances des régions~~ : fait le 2026-11-17. Une grille par
+   inéquation, gardée tant que la vue et les valeurs qu'elle lit ne
+   changent pas ; le remplissage d'une région composée combine ces
+   grilles ; écran → plan affine hors perspective. ~10 ms de calcul par
+   déplacement de B dans `synthese_couleurs.ggb` (≈ 33 ms avant).
