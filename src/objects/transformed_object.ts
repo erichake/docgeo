@@ -349,7 +349,7 @@ export function createTransformed(
         return image;
     });
     const [p, q, r] = images;
-    const space = !c.GRID.is2D;
+    const space = c.space;
     let object: construction_object;
     if (source instanceof plane_object)
         object = new plane_object(c, name, { tag: "Pl", points: [p, q, r] });

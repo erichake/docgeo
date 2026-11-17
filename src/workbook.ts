@@ -144,7 +144,7 @@ const expressionValues = (c: construction) =>
             object instanceof expression_object &&
             object.formula?.variables.length
                 ? []
-                : [[object.name, object.scriptValue(!c.GRID.is2D)] as const],
+                : [[object.name, object.scriptValue(c.space)] as const],
         ),
     );
 

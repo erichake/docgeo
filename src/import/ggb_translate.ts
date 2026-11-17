@@ -121,9 +121,13 @@ export interface GgbView3D {
     offset: Vec3;
     // In pixels, the view's center from the window's.
     shift: Vec2;
-    // The graphics view beside it, `inset` pixels wide or high, in its own
+    // The graphics view above or below it, `inset` pixels high, in its own
     // background color.
     band?: { color: string; inset: Vec2 };
+    // Its plane view on its left (see VUES.md), and that view's width in
+    // GeoGebra, in pixels (0: none).
+    planeFirst: boolean;
+    planeWidth: number;
 }
 
 const IDENTIFIER = new RegExp(
@@ -1210,17 +1214,48 @@ export function translateGgb(
                 (digit, index) => digit !== firstAt[index],
             ) ?? "",
         );
-    // Bit 0 of "ev": not in the first graphics view, bit 1: in the second
-    // (see GeoElement.getXMLvisualTags).
+    // A 3D figure's graphics view on the left or right of its 3D view:
+    // DocGeo's plane view, a column of its own (see VUES.md), its first
+    // if it's on the left (3 west).
+    const planeId = is3D ? ["1", "16"].find(shownView) : undefined;
+    const spaceAt = location("512") ?? [];
+    const planeSide =
+        planeId &&
+        location(planeId)!.find((digit, index) => digit !== spaceAt[index]);
+    const plane = planeSide === "1" || planeSide === "3" ? planeId : null;
+    // Bit 0 of "ev": not in the first graphics view, bit 1: in the second,
+    // bit 2: in the 3D view, bit 3: not in it (see
+    // GeoElement.getXMLvisualTags).
     const views = (element: Element): number =>
         Number(attribute(element, "show", "ev")) || 0;
+    // Controls are never drawn in the 3D view, texts only if said so.
+    const inSpace = (element: Element): boolean => {
+        const type = element.getAttribute("type")!;
+        return (
+            !/^(numeric|boolean|button|textfield|image)$/.test(type) &&
+            !child(element, "slider") &&
+            ((views(element) & 4) !== 0 ||
+                ((views(element) & 8) === 0 && type !== "text"))
+        );
+    };
+    // Drawn in the plane view: shown in its graphics view and not in the
+    // 3D view, where what both show is drawn.
+    const inPlane = (element: Element): boolean =>
+        plane !== null &&
+        (plane === "1"
+            ? (views(element) & 1) === 0
+            : (views(element) & 2) !== 0) &&
+        !inSpace(element);
     // Drawn in DocGeo's second view: shown only in the graphics view of
-    // the right column.
+    // the right column, or in the plane view of a figure in space.
     const inSecond = (element: Element): boolean =>
-        second === "beside" && (views(element) & 3) === (secondFirst ? 0 : 3);
+        (second === "beside" &&
+            (views(element) & 3) === (secondFirst ? 0 : 3)) ||
+        inPlane(element);
     // Hidden, or else out of the graphics views DocGeo draws.
     const outOfView = (element: Element): boolean => {
-        if (is3D) return false;
+        if (is3D)
+            return plane !== null && !inSpace(element) && !inPlane(element);
         const shown = views(element) & 3;
         return second === "alone"
             ? (shown & 2) === 0
@@ -1244,7 +1279,7 @@ export function translateGgb(
         document.querySelector("kernel > decimals")?.getAttribute("val") ?? 2,
     );
     const view =
-        second === "alone" || secondFirst
+        second === "alone" || secondFirst || plane === "16"
             ? graphicsView(2)!
             : document.querySelector("euclidianView");
     const rightAngleMark = ["none", "square", "dot", "L"][
@@ -3070,7 +3105,8 @@ export function translateGgb(
         labels.every((label) => is(label, POINT_KINDS));
 
     // In a 3D figure, a slider stays where it is in the graphics view, the
-    // camera's unit being already applied (see importGgb).
+    // camera's unit being already applied (see importGgb): in pixels from
+    // its top left corner, also the plane view's (see inPlane).
     const screenPosition = (
         x: number,
         y: number,
@@ -5519,7 +5555,8 @@ export function translateGgb(
     };
 
     // Beside a 3D view, a text of the graphics view's only (bit 3 of "ev",
-    // see outOfView) at a constant point: where it is in that view.
+    // see outOfView) at a constant point: where it is in that view, in
+    // pixels as the plane view's (see screenPosition).
     const flatStart = (element: Element): [number, number] | null => {
         const start = child(element, "startPoint");
         if (
@@ -6239,18 +6276,16 @@ export function translateGgb(
     // GeoGebra rotates the scene by zAngle around Oz, then tilts it by
     // xAngle: in DGP's projection (see projection.ts), that's phi = -zAngle
     // and theta = xAngle.
-    // Beside the 3D view, a graphics view whose widgets stay where they are
-    // in it, from the window's top left corner: the 3D view is centered in
-    // the rest of the window.
+    // Above or below the 3D view, a graphics view whose widgets stay where
+    // they are in it, from the window's top left corner: the 3D view is
+    // centered in the rest of the window.
     const graphicsAt = location("1");
-    const spaceAt = location("512");
     const side =
         graphicsAt &&
-        spaceAt &&
         graphicsAt.find((digit, index) => digit !== spaceAt[index]);
     const across = side === "1" || side === "3";
     const strip =
-        side && view
+        side && view && !plane
             ? Number(attribute(view, "size", across ? "width" : "height") ?? 0)
             : 0;
     const inset: Vec2 = across ? [strip, 0] : [0, strip];
@@ -6259,6 +6294,10 @@ export function translateGgb(
         ? {
               shift: across ? [strip / 2, 0] : [0, strip / 2],
               ...(band && { band: { color: hexColor(band), inset } }),
+              planeFirst: planeSide === "3" && plane !== null,
+              planeWidth: plane
+                  ? Number(attribute(view!, "size", "width")) || 0
+                  : 0,
               phi: -degrees("zAngle"),
               theta: degrees("xAngle"),
               unit: Number(coordSystem3D.getAttribute("scale")),
@@ -6300,7 +6339,7 @@ export function translateGgb(
             literal(Number(attribute(view!, "size", "height") ?? 0)),
             ...(yUnit === unit ? [] : [literal(yUnit)]),
         ]);
-    const coordsStyle = (styledView: Element): string => {
+    const coordsStyle = (styledView: Element, spaceView = is3D): string => {
         const axesColor = child(styledView, "axesColor");
         const axes = attribute(styledView, "evSettings", "axes") === "true";
         const grid = attribute(styledView, "evSettings", "grid") === "true";
@@ -6309,7 +6348,7 @@ export function translateGgb(
                 (item) =>
                     item.tagName === "axis" && item.getAttribute("id") === id,
             );
-        const shown = (is3D ? ["0", "1", "2"] : ["0", "1"]).filter(
+        const shown = (spaceView ? ["0", "1", "2"] : ["0", "1"]).filter(
             (id) => axes && axis(id)?.getAttribute("show") !== "false",
         );
         // In 2D, as GeoGebra draws them: a line 1 pixel wide, 2 if bold,
@@ -6327,7 +6366,7 @@ export function translateGgb(
         // automatic, whether it has minor and major graduations (0), only
         // major ones (1) or none (2), its name (a LaTeX one as its text),
         // whether it shows its numbers and their unit.
-        const graduations = (is3D ? ["X", "Y", "Z"] : ["X", "Y"])
+        const graduations = (spaceView ? ["X", "Y", "Z"] : ["X", "Y"])
             .map((name, id) => {
                 const settings = axis(String(id));
                 const distance = Number(settings?.getAttribute("tickDistance"));
@@ -6368,13 +6407,13 @@ export function translateGgb(
         }`;
         // In 3D, its plate, colored axes across its clipping box, and the
         // graphics view beside it.
-        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}`;
-        const plane = is3D
-            ? space
+        const spaceStyle = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}`;
+        const planeStyle = spaceView
+            ? spaceStyle
             : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
-        return `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
-            axesColor && !is3D ? `;color:${hexColor(axesColor)}` : ""
-        }${plane}`;
+        return `isAxis:${axes || (grid && !spaceView)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
+            axesColor && !spaceView ? `;color:${hexColor(axesColor)}` : ""
+        }${planeStyle}`;
     };
     if (styledView) {
         push(null, "SetCoordsStyle", [literal(coordsStyle(styledView))]);
@@ -6409,17 +6448,20 @@ export function translateGgb(
     }
     // The second graphics view beside the first: two columns, as wide as
     // they are in GeoGebra, the right one with its own coordinate system,
-    // style and background.
-    const right =
-        second === "beside"
-            ? secondFirst
-                ? (graphicsView(1) ?? document.querySelector("euclidianView")!)
-                : graphicsView(2)!
-            : null;
+    // style and background. Beside the 3D view, the plane view is the
+    // second, then given its width in pixels and moved to the left if it's
+    // there (see importGgb).
+    const right = plane
+        ? view
+        : second === "beside"
+          ? secondFirst
+              ? (graphicsView(1) ?? document.querySelector("euclidianView")!)
+              : graphicsView(2)!
+          : null;
     if (view && right) {
         const width = (element: Element) =>
             Number(attribute(element, "size", "width")) || 1;
-        const share = width(view) / (width(view) + width(right));
+        const share = plane ? 0.5 : width(view) / (width(view) + width(right));
         const coords = child(right, "coordSystem");
         const number = (name: string, fallback: number) =>
             Number(coords?.getAttribute(name) ?? fallback);
@@ -6435,7 +6477,7 @@ export function translateGgb(
                 number("yscale", number("scale", 50)),
             ].map(literal),
             literal(
-                `${coordsStyle(right)}${color ? `;background:${hexColor(color)}` : ""}`,
+                `${plane ? `${coordsStyle(right, false)};isPlane:true` : coordsStyle(right)}${color ? `;background:${hexColor(color)}` : ""}`,
             ),
         ]);
     }

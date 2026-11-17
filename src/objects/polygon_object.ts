@@ -348,7 +348,12 @@ export class polygon_object extends construction_object {
             near = clipHalfSpace(near, (p) => -behind(p));
         }
         (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-            if (polygon === this || !polygon.plane || !polygon.isVisible)
+            if (
+                polygon === this ||
+                !polygon.plane ||
+                !polygon.isVisible ||
+                polygon.view !== this.view
+            )
                 return;
             const behind = polygon.behind();
             const far = clipHalfSpace(near, behind);

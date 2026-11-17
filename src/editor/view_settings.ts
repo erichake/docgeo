@@ -970,6 +970,13 @@ export function viewSettings(
     const figure = section("figure_section");
     row(
         figure,
+        "lock_view",
+        checkbox(message("lock_view"), grid.locked, (value) => {
+            grid.locked = value;
+        }),
+    );
+    row(
+        figure,
         "background",
         byDefault(
             message("background"),
@@ -988,8 +995,13 @@ export function viewSettings(
         ),
     );
     // An image over the background color, chosen from a file, laid out as
-    // CSS does.
-    const { image, fit } = c.prefs.background;
+    // CSS does: the view's own beside others.
+    const image = own ? grid.backgroundImage : c.prefs.background.image;
+    const fit = own ? grid.backgroundFit : c.prefs.background.fit;
+    const setImage = (url: string | null) => {
+        if (own) grid.backgroundImage = url;
+        else c.prefs.background.image = url;
+    };
     const paint = (change: () => void) => {
         change();
         c.paintBackground();
@@ -998,7 +1010,7 @@ export function viewSettings(
     };
     const file = imageFileInput((picture) =>
         picture
-            ? paint(() => (c.prefs.background.image = picture.url))
+            ? paint(() => setImage(picture.url))
             : options.error(message("image_unreadable")),
     );
     const choose = $.create("button")
@@ -1016,7 +1028,7 @@ export function viewSettings(
         .att("aria-label", message("background_image_remove"))
         .stl("visibility", image ? "visible" : "hidden")
         .append(RESET_ICON);
-    remove.on("click", () => paint(() => (c.prefs.background.image = null)));
+    remove.on("click", () => paint(() => setImage(null)));
     fields.push(choose, remove);
     row(
         figure,
@@ -1036,7 +1048,8 @@ export function viewSettings(
                     message(`fit_${name.replace("-", "_")}` as MessageKey),
                 ]),
                 (index) => {
-                    c.prefs.background.fit = fits[index];
+                    if (own) grid.backgroundFit = fits[index];
+                    else c.prefs.background.fit = fits[index];
                     c.paintBackground();
                 },
             ),

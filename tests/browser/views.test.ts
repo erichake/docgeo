@@ -89,6 +89,94 @@ describe("views", () => {
     });
 });
 
+// The same point A in space, then seen from above in the plane view.
+const SPACE_FIGURE = {
+    dgo: 1,
+    v: { o: [200, 300], u: 40, w: 800, h: 600, cw: 0.5, "3d": 1, th: 0.3 },
+    vs: [{ o: [100, 200], u: 20, cw: 0.5 }],
+    st: [{ vw: 1 }],
+    o: [
+        ["Pt", "A", [1, 2, 3]],
+        ["Pt", "B", [1, 2, 3], 0],
+    ],
+};
+
+describe("A view's background image", () => {
+    it("is painted over its color, saved with its layout", async () => {
+        const dot =
+            "data:image/svg+xml;base64," +
+            btoa(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"/>',
+            );
+        const c = open({
+            ...FIGURE,
+            img: { dot },
+            vs: [{ ...FIGURE.vs[0], bgi: "dot", bgf: "cover" }],
+        });
+        const [left, right] = c.views;
+        expect(right.grid.backgroundImage).toBe(dot);
+        const painted = (right.svg.dom() as SVGElement).style.background;
+        expect(painted).toContain("url(");
+        expect(painted).toContain("cover");
+        expect((left.svg.dom() as SVGElement).style.background).not.toContain(
+            "url(",
+        );
+        const saved = await describeDgo(c);
+        expect(saved.vs![0].bgf).toBe("cover");
+        expect(saved.img![saved.vs![0].bgi as string]).toBe(dot);
+    });
+});
+
+describe("A locked view", () => {
+    it("is neither panned, zoomed nor turned by a gesture", async () => {
+        const c = open({
+            ...SPACE_FIGURE,
+            vs: [{ ...SPACE_FIGURE.vs[0], lk: 1 }],
+        });
+        const [space, plane] = c.views.map(({ grid }) => grid);
+        expect(plane.locked).toBe(true);
+        const wheel = new WheelEvent("wheel", { deltaY: 100 });
+        const drag = new PointerEvent("pointermove");
+        const before = [plane.ORG, plane.UNIT];
+        c.inView(1, () => {
+            c.mousewheel(wheel, [10, 10]);
+            c.mousedrag(drag, [20, 30]);
+        });
+        expect([plane.ORG, plane.UNIT]).toEqual(before);
+        const theta = space.THETA;
+        c.inView(0, () => c.mousedrag(drag, [20, 30]));
+        expect(space.THETA).not.toBe(theta);
+        expect((await describeDgo(c)).vs![0].lk).toBe(1);
+    });
+});
+
+describe("A plane view beside a 3D view", () => {
+    it("keeps the figure in space, the plane view seeing it from above", () => {
+        const c = open(SPACE_FIGURE);
+        expect(c.views.map(({ grid }) => grid.is2D)).toEqual([false, true]);
+        expect(c.space).toBe(true);
+        expect(c.spaceGrid).toBe(c.views[0].grid);
+        const B = c.getObj("B") as point_object;
+        expect(B.coords).toEqual([1, 2, 3]);
+        expectClose(B.SCREEN, [120, 160]);
+        // The 3D view keeps its origin where it was saved.
+        expect(c.views[0].grid.ORG).toEqual([200, 300]);
+    });
+
+    it("moves a column with its objects", async () => {
+        const c = open(SPACE_FIGURE);
+        c.moveView(1, 0);
+        c.flush();
+        expect(c.views.map(({ grid }) => grid.is2D)).toEqual([true, false]);
+        expect(["A", "B"].map((name) => c.getObj(name)!.view)).toEqual([1, 0]);
+        expect(c.views[0].svg.dom().getBoundingClientRect().left).toBe(0);
+        expectClose((c.getObj("B") as point_object).SCREEN, [120, 160]);
+        const saved = await describeDgo(c);
+        expect(saved.v["3d"]).toBeUndefined();
+        expect(saved.vs![0]["3d"]).toBe(1);
+    });
+});
+
 describe("GeoGebra's second graphics view", () => {
     it("is a view beside the first, with its objects", async () => {
         const c = createConstruction([1000, 700]);

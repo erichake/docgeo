@@ -66,7 +66,8 @@ export function drawing(element: Element): string {
         .split(";")
         .map((declaration) => declaration.trim())
         .filter(Boolean);
-    if (style.includes("display: none")) return `<${element.tagName}/>`;
+    // Not drawn, as if absent: a hidden object may not have its element yet.
+    if (style.includes("display: none")) return "";
     const attributes = [...element.attributes]
         .map(({ name, value }) =>
             name === "style"

@@ -61,7 +61,7 @@ export class translation_object extends point_object {
                 : null;
         if (vector instanceof point_object)
             return vector.defined ? vector.coords : null;
-        const vec3 = !this.C.GRID.is2D;
+        const vec3 = this.C.space;
         const value = formulaValue(
             evaluateFormula(vector.formula, {
                 resolveIdentifier: (name) =>

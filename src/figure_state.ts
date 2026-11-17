@@ -145,7 +145,7 @@ export function figureValues(
     c: construction,
     view: BuiltView,
 ): Map<string, string> {
-    const vec3 = !c.GRID.is2D;
+    const vec3 = c.space;
     return new Map(
         stated(c).map((object) => [
             object.name,
@@ -316,7 +316,7 @@ export function objectValue(c: construction, name: string): Value {
     const object = target(c, name);
     if (!object.defined) return null;
     if (object instanceof point_object)
-        return (c.GRID.is2D ? [object.x, object.y] : object.coords).map(json);
+        return (c.space ? object.coords : [object.x, object.y]).map(json);
     const { value } = object;
     if (typeof value === "number") return json(value);
     return Array.isArray(value) &&

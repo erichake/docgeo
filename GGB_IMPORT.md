@@ -236,6 +236,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 317 / 456 (70 %)   | 338,3 Ko | item 76 : `Distance` de droites, arcs comme nombres, textes sur plusieurs lignes, scripts (+5) |
 | 2026-11-15 | 320 / 456 (70 %)   | 339,5 Ko | item 77 : ordre de lecture, demi-plans, point dans une sphère, cercle de l'espace, traces et fond par script (+3) |
 | 2026-11-16 | 323 / 456 (71 %)   | 344,4 Ko | item 78 : graphique 2 (seconde vue), inéquations de x et y (+3) |
+| 2026-11-16 | 324 / 456 (71 %)   | 345,2 Ko | item 79 : graphique à gauche ou à droite de la vue 3D en vue plane (+0) |
 
 ## À faire, par rapport gain / coût
 
@@ -1541,3 +1542,18 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       (p2phkeyw, s6thhndj, yxfyhpuz, mVcNuwvp…), qui demandent une vue
       plane à côté de la vue 3D (`VUES.md`). Moteur +4,9 Ko (vues en
       colonnes redimensionnables et régions), import +1,5 Ko (90,4 Ko).
+- [x] **79. Graphique à côté de la vue 3D, en vue plane** (`VUES.md`).
+      Le graphique 1 (sinon le 2) à gauche ou à droite de la vue 3D
+      (25 des 36 figures 3D à graphique) devient une colonne plane de la
+      figure, à sa place, aussi large en pixels que dans GeoGebra (au plus
+      la moitié de la fenêtre), avec
+      son repère, son style plan et son fond, au lieu de la bande de la vue
+      3D. Y vont les commandes (jamais dans la vue 3D, curseurs d'angle
+      compris) et ce que seul le graphique montre ; ce que montrent les deux
+      vues reste dans la vue 3D (un objet, une vue) ; ce que ni l'un ni
+      l'autre ne montre est caché. Le graphique au-dessus ou en dessous
+      (11 figures, bande mince) reste une bande, en attendant la décision de
+      l'auteur. **+0 figure** (324), aucune perdue, aucun élément signalé
+      en plus ; à l'œil : J5D79kra, s6thhndj, yxfyhpuz, u8qxbhjt,
+      dcbqctsf, d2tvhp8c. Moteur +0,8 Ko (`space`, parties cachées par
+      vue, `moveView`), import +0,6 Ko (93,1 Ko).

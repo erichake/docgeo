@@ -100,10 +100,15 @@ async function roundTrip(
                 object.name,
             );
     });
-    const difference = drawingDifference(
-        drawing(reopened.svg.dom()),
-        drawing(original.svg.dom()),
-    );
+    expect(reopened.views.length).toBe(original.views.length);
+    const difference = original.views
+        .map((view, index) =>
+            drawingDifference(
+                drawing(reopened.views[index].svg.dom()),
+                drawing(view.svg.dom()),
+            ),
+        )
+        .join("");
     if (difference) console.log("DIFF<<" + difference + ">>");
     expect(difference).toBe("");
 }

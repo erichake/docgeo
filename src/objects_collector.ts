@@ -205,8 +205,11 @@ export class objects_collector {
                 object.renderDirty = false;
             }
         });
-        c.view = 0;
-        if (polygonsProjected) paintByDepth(c);
+        if (polygonsProjected)
+            c.views.forEach((_, index) => {
+                c.view = index;
+                paintByDepth(c);
+            });
         c.view = current;
         this.updating = false;
     }

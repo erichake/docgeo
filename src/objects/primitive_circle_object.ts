@@ -260,7 +260,7 @@ export class primitive_circle_object extends construction_object {
     // In space, its stroke split where faces and solids hide it (see
     // hidden_line.ts), drawn by its edges instead of its path.
     protected drawStroke(points: () => Vec3[]): void {
-        const space = !this.C.GRID.is2D;
+        const space = this.C.space;
         this.path.stl("stroke", space ? "none" : this.stroke_color);
         const [visible, hidden] = space
             ? polylineSplit(this.C, points())

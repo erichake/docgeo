@@ -5217,27 +5217,28 @@ if ((!az ? 1 : 0) == 0) {
         expect(c.getObj("t")).toBeInstanceOf(expression_object);
     });
 
-    it("paints the graphics view beside the 3D view in its own background", async () => {
+    it("paints the graphics view above the 3D view in its own background", async () => {
         const c = createConstruction();
         importGgb(
             c,
             `<geogebra><gui><perspectives><perspective id="tmp"><views>
-<view id="1" visible="true" location="3,2"/><view id="512" visible="true" location="1"/>
+<view id="1" visible="true" location="0"/><view id="512" visible="true" location="2"/>
 </views></perspective></perspectives></gui>
-<euclidianView><size width="300" height="600"/><coordSystem xZero="100" yZero="300" scale="50" yscale="50"/><bgColor r="160" g="160" b="160"/></euclidianView>
+<euclidianView><size width="600" height="100"/><coordSystem xZero="100" yZero="50" scale="50" yscale="50"/><bgColor r="160" g="160" b="160"/></euclidianView>
 <euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-30"/><bgColor r="5" g="5" b="5"/></euclidianView3D>
 <construction><element type="point3d" label="A"><coords x="1" y="0" z="0" w="1"/></element></construction></geogebra>`,
         );
-        expect(c.GRID.viewInset).toEqual([300, 0]);
-        // A band, as a background image tiled down the left side.
-        const band = bandBackground("#a0a0a0", [300, 0]);
+        expect(c.views.length).toBe(1);
+        expect(c.GRID.viewInset).toEqual([0, 100]);
+        // A band, as a background image tiled along the top.
+        const band = bandBackground("#a0a0a0", [0, 100]);
         expect(c.prefs.background).toEqual({ color: "#050505", ...band });
-        expect(atob(band.image.split(",")[1])).toContain('width="300"');
+        expect(atob(band.image.split(",")[1])).toContain('height="100"');
         const restored = createConstruction();
         readDgo(restored, await describeDgo(c));
         expect(restored.prefs.background).toEqual(c.prefs.background);
         expect((restored.svg.dom() as SVGElement).style.background).toContain(
-            "repeat-y",
+            "repeat-x",
         );
         // As written before background images: the band's color in the view.
         const {
@@ -5249,6 +5250,51 @@ if ((!az ? 1 : 0) == 0) {
         const older = createConstruction();
         readDgo(older, { ...figure, v: { ...figure.v, gv: "#a0a0a0" } });
         expect(older.prefs.background).toEqual(c.prefs.background);
+    });
+
+    it("imports the graphics view on the left of the 3D view as a plane view", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><gui><window width="1000" height="600"/><perspectives><perspective id="tmp"><views>
+<view id="1" visible="true" location="3,2"/><view id="512" visible="true" location="1"/>
+</views></perspective></perspectives></gui>
+<euclidianView><size width="300" height="600"/><coordSystem xZero="100" yZero="300" scale="40" yscale="40"/><bgColor r="160" g="160" b="160"/></euclidianView>
+<euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-30"/><bgColor r="5" g="5" b="5"/></euclidianView3D>
+<construction>
+<element type="point3d" label="A"><show object="true" label="true" ev="4"/><coords x="1" y="0" z="1" w="1"/></element>
+<element type="point" label="B"><show object="true" label="true" ev="40"/><coords x="1" y="2" z="1"/></element>
+<element type="point" label="C"><show object="true" label="true" ev="0"/><coords x="2" y="2" z="1"/></element>
+<element type="boolean" label="b"><value val="true"/><show object="true" label="true"/><checkbox fixed="true"/></element>
+</construction></geogebra>`,
+        );
+        expect(c.views.map(({ grid }) => grid.is2D)).toEqual([true, false]);
+        expect(c.space).toBe(true);
+        // As wide as in GeoGebra, at most half the window.
+        const [width] = c.windowSize;
+        expect(c.views[0].rect[2] * width).toBeCloseTo(
+            Math.min(300, width / 2),
+        );
+        expect(c.views[0].grid.ORG).toEqual([100, 300]);
+        expect(c.views[0].grid.background).toBe("#a0a0a0");
+        expect(c.prefs.background.image).toBeNull();
+        // Only in the graphics view, in the plane view; in both, in the 3D
+        // view; a control, never in the 3D view.
+        expect(
+            ["A", "B", "C", "b"].map((name) => c.getObj(name)!.view),
+        ).toEqual([1, 0, 1, 0]);
+        // Seen from above in the plane view, in space in the other.
+        const B = c.getObj("B") as point_object;
+        expect(B.coords).toEqual([1, 2, 0]);
+        const [x, y] = c.inView(0, () => B.screen);
+        expect([x, y].map(Math.round)).toEqual([140, 220]);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(restored.views.map(({ grid }) => grid.is2D)).toEqual([
+            true,
+            false,
+        ]);
+        expect(restored.getObj("B")!.view).toBe(0);
     });
 
     it("reports what it can't import instead of failing", () => {

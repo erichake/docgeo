@@ -569,7 +569,7 @@ export function lineOf(
         // In space, its three coordinates.
         const { pinned, coords } = object as point_object;
         const shown =
-            object.C.GRID.is2D || pinned ? (parameters as number[]) : coords;
+            !object.C.space || pinned ? (parameters as number[]) : coords;
         return `${name} = (${shown.map(formatNumber).join(", ")})`;
     }
     if (tag === "Fp")
@@ -647,7 +647,7 @@ export function resolve(
         if (command.reference)
             throw new TextError("arguments", commandName(command));
         args = call.args.map((arg) => resolveArgument(c, arg, command.name));
-        overload = overloadFor(command, args, !c.GRID.is2D);
+        overload = overloadFor(command, args, c.space);
         if (!overload) {
             // An expression whose value is a point, as that point:
             // `Circle(b, 4)`, b = L[7].
@@ -659,11 +659,11 @@ export function resolve(
                     ? embeddedPoint(
                           c,
                           ...pointProgram(c, formatName(text.name)),
-                          !c.GRID.is2D,
+                          c.space,
                       )
                     : arg;
             });
-            overload = overloadFor(command, points, !c.GRID.is2D);
+            overload = overloadFor(command, points, c.space);
             if (overload) args = points;
         }
         if (!overload) {
@@ -675,7 +675,7 @@ export function resolve(
                     commandName(other)
                         .toLowerCase()
                         .includes(commandName(command).toLowerCase()) &&
-                    overloadFor(other, args, !c.GRID.is2D),
+                    overloadFor(other, args, c.space),
             );
             if (other)
                 throw new TextError(
@@ -817,14 +817,10 @@ export function resolveArgument(
                             parseFormula(source),
                         ),
                         new Map(refs),
-                        !c.GRID.is2D,
+                        c.space,
                     );
                 }
-                return embeddedPoint(
-                    c,
-                    ...pointProgram(c, source),
-                    !c.GRID.is2D,
-                );
+                return embeddedPoint(c, ...pointProgram(c, source), c.space);
             }
         }
         if (
@@ -901,7 +897,7 @@ export function resolveArgument(
             return embeddedPoint(
                 c,
                 ...pointProgram(c, point ?? arg.source),
-                !c.GRID.is2D,
+                c.space,
             );
         return formulaArg(c, arg.source);
     }

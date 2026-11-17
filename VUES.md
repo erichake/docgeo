@@ -48,8 +48,24 @@ même figure en même temps, et tout s'y met à jour en direct.
   s'appuyer sur des points de la vue 1. Dans le corpus GeoGebra, un objet
   n'est presque jamais montré dans deux graphiques à la fois (3 sur 263) :
   il l'est alors dans le premier seulement.
-- Une seule figure plane ou de l'espace pour l'instant : toutes les vues
-  ont le type de la première.
+- **Plane ou 3D par vue** (depuis le 2026-11-16) : ce que _calcule_ la
+  figure (points à 2 ou 3 coordonnées, transformations et cercles du plan
+  ou de l'espace, valeurs lues par les formules et l'état élève) dépend de
+  `construction.space`, vrai dès qu'une vue est 3D (`spaceGrid` : la
+  grille de la première). Ce que _montre_ une vue dépend de sa grille
+  (`GRID.is2D` de la vue courante) : axes, sol, gestes (rotation ou
+  déplacement), traces, éclairage des polygones, droites partielles. Une
+  vue plane d'une figure de l'espace la montre de dessus (plan z = 0, sans
+  rotation ni sol) ; un point libre s'y déplace dans son plan horizontal.
+  Les parties cachées (`hidden_line.ts`, `paintByDepth`, occulteur du sol,
+  plans qui coupent les faces) ne traitent que les objets d'une même vue.
+  Les scripts de GeoGebra qui tournent la vue 3D ou y montrent un axe
+  (`turnView`, `showAxis`) visent la première vue 3D, pas celle du
+  bouton.
+- `moveView(de, vers)` change l'ordre des colonnes, les objets suivant
+  leur vue. `measureViews` mesure les vues aussitôt disposées (une vue 3D
+  garde son centre, voir `resize`), avant que l'origine soit lue ou posée :
+  sans cela, l'observateur de taille la décalait une seconde fois.
 
 ## Format
 
@@ -57,7 +73,10 @@ Voir `DGO.md` : `vs` (vues après la première), `cw` (largeur de la
 colonne), `bg` (fond propre), style `vw` (vue d'un objet). Une figure à
 plusieurs vues est toujours enregistrée et montrée en entier (ni cadrage,
 ni centrage en mode intégré). En DGP : commande `View(n, largeur, x0, y0,
-unité, unitéY, style)` et style `vw:n`.
+unité, unitéY, style)` et style `vw:n` ; `isPlane:true` dans le style
+d'une vue en fait une vue plane d'une figure de l'espace. Le format n'a
+pas de clé nouvelle : `3d` de chaque vue dit son type, et la figure est
+dans l'espace dès qu'une vue l'est.
 
 ## Import GeoGebra
 
@@ -69,7 +88,29 @@ colonne de gauche s'il est à gauche du graphique 1 ou au-dessus
 15 fois, en dessous 5, à gauche 3. La colonne de droite reçoit son repère,
 son style et son fond ; les objets montrés seulement dans son graphique y
 sont dessinés (`inSecond`). Le graphique 2 seul (graphique 1 caché)
-devient l'unique vue. Une figure 3D n'est pas concernée (ci-dessous).
+devient l'unique vue.
+
+Une figure 3D dont un graphique (le 1, sinon le 2) est **à gauche ou à
+droite** de la vue 3D (25 des 36 figures 3D à graphique du corpus) a deux
+colonnes : la vue 3D, puis la vue plane (`plane`, `isPlane:true`), avec le
+repère, le style plan et le fond de son graphique ; `importGgb` lui donne
+la largeur en pixels de ce graphique (`planeWidth`, ses commandes y étant
+placées en pixels), au plus la moitié de la fenêtre, puis la place à
+gauche si elle y est (`planeFirst`, `moveView`). Y sont dessinés
+(`inPlane`) : les commandes (curseurs, y compris d'angle, cases,
+boutons, champs, images), jamais dans la vue 3D, et ce que GeoGebra ne
+montre que dans le graphique (bit 3 de `ev`, texte sans bit 2) ; ce que
+montrent les deux vues est dans la vue 3D (décision de l'auteur : un
+objet, une vue ; 59 objets 2D du corpus, surtout des segments et des
+points). Ce que ne montre ni la vue 3D ni le graphique est caché. Les
+positions en pixels de `screenPosition` (branche caméra) et de
+`flatStart` sont celles du graphique, donc de la colonne plane.
+
+Un graphique **au-dessus ou en dessous** de la vue 3D (11 figures, bande
+de 68 à 134 px sur toute la largeur, presque toujours des commandes)
+reste la bande de la vue 3D (`gi`, `bgi`) : en colonne, son contenu
+serait coupé, et des vues en lignes iraient contre « uniquement des
+colonnes ». Décision de l'auteur (2026-11-16) : on garde la bande.
 
 ## Éditeur
 
@@ -83,9 +124,37 @@ L'origine et l'unité de chaque vue ne font pas d'étape d'annulation (comme
 celles de la première) ; à la reconstruction d'une étape, chaque vue garde
 ce qu'elle montre au même endroit de l'écran (`reframe`, `lefts`).
 
-## Point de reprise (état au 2026-11-16, commité)
+Fichier > Déplacer la vue à gauche, à droite : la colonne de la vue active
+échange sa place avec sa voisine (`shiftView`, `moveView` du moteur), une
+étape d'annulation. Chaque étape de l'historique garde l'identifiant de ses
+vues (`ids`, propre à l'éditeur ; `nextIds` pour l'étape qui ajoute,
+supprime ou déplace une vue) : à la reconstruction d'une étape, une vue
+retrouve son origine, son unité et sa caméra (`match` de `reframe`), même
+déplacée, et `travel` ne prend pas une colonne déplacée pour une vue passée
+dans le plan ou l'espace.
 
-Fait et testé : vues multiples de figures planes en colonnes
+Réglages de la vue active (onglet « Figure ») : « Vue verrouillée »
+(`grid.locked`, `lk` du `.dgo`) : ni déplacement, ni zoom, ni rotation par
+un geste (les scripts la changent encore) ; avec plusieurs vues, « Image de
+fond » est l'image propre de la vue (`backgroundImage`, `backgroundFit`,
+`bgi` et `bgf` de la vue), peinte sur sa couleur.
+
+## Point de reprise (état au 2026-11-16)
+
+Vue plane à côté d'une vue 3D (non commité à l'écriture) : `space` et
+classement des lectures de `is2D`, parties cachées par vue, `moveView`,
+`measureViews`, import des graphiques à gauche ou à droite de la vue 3D,
+bouton « Vue 3D » et « Axes » de l'éditeur sur la vue active (une
+« Nouvelle vue » reprend le type de la vue active ; le bouton la passe
+ensuite dans le plan ou dans l'espace ; revenir au plan n'est refusé,
+pour un objet hors du plan, que si plus aucune vue n'est 3D ;
+l'annulation retourne la vue dont le type a changé). Corpus 324 sans
+perte, inchangé ; moteur +0,8 Ko, import +0,6 Ko, éditeur +0,3 Ko.
+Puis, même jour : vue verrouillée, ordre des colonnes (identifiants des
+vues dans l'historique), image de fond par vue. Moteur +0,5 Ko (350,5 Ko au
+total, +1,3 Ko pour le chantier du jour), éditeur +0,9 Ko.
+
+Avant (commité) : vues multiples de figures planes en colonnes
 redimensionnables, vue active et fond propre à chaque vue (moteur, `.dgo`,
 DGP, import du graphique 2 de GeoGebra, éditeur), régions d'inéquations de x et
 y (`region_object.ts`, `Reg`, `Region`, import des `functionnvar`), mode
@@ -129,6 +198,15 @@ graphiques, régions coloriées).
   graphiques) ; émission des deux `View` après `SetCoordsStyle` ; passe
   finale `STL … vw:1` ; `writtenOut` et la traduction des `functionnvar`
   (avec `VALUE_KINDS`, sinon `x(A)` échoue).
+- Vue plane d'une figure de l'espace : `construction.space`,
+  `spaceGrid`, `moveView`, `measureViews` ; `isPlane` de
+  `applyCoordsStyle` ; `plane`, `planeId`, `inSpace`, `inPlane`,
+  `coordsStyle(vue, spaceView)` de `ggb_translate.ts` ; `planeFirst` de
+  `GgbView3D` ; filtres `view` de `hidden_line.ts`, `floor_occlusion.ts`,
+  `grid_object.renderUnderlay`, `polygon_object.splitByPlanes` ;
+  `grid_object.viewSize` (taille de sa vue, pour un script lancé d'une
+  autre) ; éditeur : `activeGrid`, `withView`, `reframe` (garde la vue
+  active), `travel`.
 - `src/fit.ts` : chaque vue placée et mise à l'échelle dans la région
   (pas de poignées : `fixedSize`).
 - `src/editor/main.ts` : `addView`, `deleteView`, `showActiveView`
@@ -177,41 +255,11 @@ graphiques, régions coloriées).
 
 ## Reste à faire
 
-1. **Vue plane à côté d'une vue 3D** (demandée par l'auteur). Séparer :
-    - ce que _calcule_ la figure (points à 2 ou 3 coordonnées) : propriété
-      de la figure, par exemple `construction.space` (vraie si une vue est
-      3D, ou fixée par la figure) ;
-    - ce que _montre_ une vue : `grid.is2D` par vue (plan z = 0 vu de
-      dessus, axes du plan, sans rotation, sans sol).
-
-    Les lectures de `GRID.is2D` (une soixantaine, dans `construction.ts`,
-    `dgo.ts`, `figure_state.ts`, `workbook.ts`, une dizaine d'objets,
-    `dgp_commands.ts` et l'éditeur : `main.ts`, `figure.ts`, `catalog.ts`,
-    `pin.ts`, `turtle.ts`, `view_settings.ts`, `web_page.ts`) sont à
-    classer une à une : celles qui décident d'une valeur (`scriptValue
-(!c.GRID.is2D)`, `vec3`, `space` des transformations et des cercles,
-    `perAxis` du `.dgo`…) passent à la propriété de la figure ; celles qui
-    décident du dessin ou des gestes (`keydown`, `mousedrag`, `pan`,
-    traces, `resize`, axes, `polygon_object` l. ~331, `primitive_line`
-    l. ~239) restent à la vue. Les parties cachées (`hidden_line.ts`,
-    `paintByDepth`, `floorOccluder` et `OBJS.polygons`/`solids`) ne
-    doivent traiter que les objets d'une même vue (aujourd'hui
-    `paintByDepth` est appelé en vue 0). Dans le `.dgo`, `3d` de chaque
-    vue dit son type ; la propriété de la figure reste à décider (déduite
-    des vues, ou clé de la racine : format additif, voir `DGO.md`).
-    Ensuite : import des figures GeoGebra « graphique + 3D » en deux vraies
-    vues (au lieu de la bande `gi`/`gv` lue par `grid_object.viewInset`,
-    `bandBackground`, `flatStart` de `ggb_translate.ts`), et du graphique 2
-    à côté d'une vue 3D (p2phkeyw, s6thhndj, yxfyhpuz, mVcNuwvp). Dans
-    l'éditeur, « Nouvelle vue » doit pouvoir créer une vue plane ou 3D.
-
-2. Autres réglages par vue à proposer à l'auteur : vue plane ou 3D par vue
-   (point 1), verrouiller une vue (ni déplacement ni zoom), changer l'ordre
-   des colonnes, image de fond par vue (aujourd'hui `bgi` est celle de la
-   figure, montrée dans les vues sans fond propre).
-3. Choisir la vue d'un objet dans ses propriétés (éditeur), ou le faire
+1. Choisir la vue d'un objet dans ses propriétés (éditeur), ou le faire
    glisser d'une vue à l'autre.
-4. Manuel (12 langues, après accord de l'auteur) : Fichier > Nouvelle vue,
-   Supprimer la vue.
-5. Performances des régions : ~27 ms par image en déplaçant A dans
+2. Manuel (12 langues, après accord de l'auteur) : Fichier > Nouvelle vue,
+   Supprimer la vue, Déplacer la vue à gauche / à droite ; boutons
+   « Repère » et « Vue 3D » sur la vue active ; « Vue verrouillée » et
+   « Image de fond » d'une vue.
+3. Performances des régions : ~27 ms par image en déplaçant A dans
    `synthese_couleurs.ggb` (12 régions, grille de 8 px).

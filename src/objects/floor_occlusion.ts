@@ -192,12 +192,18 @@ export function floorClipPath(
     const floorCCW = ensureCCW(floorScreenQuad);
     const holes: Vec2[][] = [];
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        if (polygon === exclude || polygon.plane) return;
+        if (polygon === exclude || polygon.plane || polygon.view !== c.view)
+            return;
         const piece = occluderHiddenPiece(frame, dir, floorCCW, polygon);
         if (piece) holes.push(piece);
     });
     (c.OBJS.spheres as sphere_object[]).forEach((sphere) => {
-        if (!sphere.isVisible || !sphere.projectionDefined) return;
+        if (
+            !sphere.isVisible ||
+            !sphere.projectionDefined ||
+            sphere.view !== c.view
+        )
+            return;
         const piece = convexClip(floorCCW, sphere.nearPart);
         if (piece.length >= 3) holes.push(piece);
     });

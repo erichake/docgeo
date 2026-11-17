@@ -108,7 +108,7 @@ export class fixed_angle_object extends primitive_line_object {
             const value = realPart(
                 evaluateFormula(formula, {
                     resolveIdentifier: (n) =>
-                        refs.get(n)!.scriptValue(!this.C.GRID.is2D),
+                        refs.get(n)!.scriptValue(this.C.space),
                     view: () => this.C.formulaView(),
                 }),
             );

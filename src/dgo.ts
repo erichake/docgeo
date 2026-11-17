@@ -668,6 +668,12 @@ const VIEW: Record<string, Property> = {
         null,
         (value) => value === null || isColor(value),
     ),
+    bgf: field(
+        grid_object,
+        "backgroundFit",
+        "repeat",
+        (value) => typeof value === "string" && own(BACKGROUND_FITS, value),
+    ),
     ph: field(grid_object, "PHI", (5 * Math.PI) / 2, isNumber),
     rt: range("RESTRICT_THETA", [-Math.PI / 2, Math.PI / 2]),
     rp: range("RESTRICT_PHI", [null, null]),
@@ -694,6 +700,7 @@ const VIEW: Record<string, Property> = {
     lx: flag(grid_object, "lockOx"),
     ly: flag(grid_object, "lockOy"),
     cz: flag(grid_object, "centerZoom"),
+    lk: flag(grid_object, "locked"),
     op: flag(grid_object, "onlyPositive"),
     c: field(grid_object, "stroke_color", "rgb(80,80,80)", isColor),
     f: field(grid_object, "fontSize", 18, isNumber),
@@ -898,6 +905,9 @@ export async function describeDgo(
     const { image: backgroundImage, fit } = c.prefs.background;
     for (const url of [
         ...(backgroundImage ? [backgroundImage] : []),
+        ...c.views.flatMap(({ grid }) =>
+            grid.backgroundImage ? [grid.backgroundImage] : [],
+        ),
         ...objects.flatMap((object) =>
             object instanceof image_object ? [object.url] : [],
         ),
@@ -935,6 +945,7 @@ export async function describeDgo(
         ...size,
         ...(several && { cw: rect[2] }),
         ...describe(VIEW, grid),
+        ...(grid.backgroundImage && { bgi: keys.get(grid.backgroundImage)! }),
     });
     const [first, ...others] = c.views;
     const figure: DgoFigure = {
@@ -1164,9 +1175,14 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     check(isRecord(images) && Array.isArray(entries));
     c.degrees = deg === 1;
     c.segmentsOverPolygons = sop === 1;
-    const image =
-        typeof bgi === "string" && own(images, bgi) ? images[bgi] : null;
-    check(bgi === null || (typeof image === "string" && IMAGE_URL.test(image)));
+    // A background image, by its key.
+    const imageOf = (key: unknown): string | null => {
+        const url =
+            typeof key === "string" && own(images, key) ? images[key] : null;
+        check(key === null || (typeof url === "string" && IMAGE_URL.test(url)));
+        return url as string | null;
+    };
+    const image = imageOf(bgi);
     check(typeof bgf === "string" && own(BACKGROUND_FITS, bgf));
     c.prefs.background = {
         color: bg as string,
@@ -1189,6 +1205,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         else c.views[0].share = share;
         const grid = c.views[index].grid;
         apply(VIEW, grid, settings);
+        grid.backgroundImage = imageOf(settings.bgi ?? null);
         const { o: origin, u: unit, uy = unit } = settings;
         check(isPair(origin) && isNumber(unit) && unit > 0);
         check(isNumber(uy) && uy > 0);
@@ -1196,6 +1213,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         return grid;
     });
     c.arrangeViews();
+    c.measureViews();
     const [grid] = grids;
     // Before the background image, GeoGebra's graphics view's color.
     const { gv = null } = view;
@@ -1354,7 +1372,7 @@ function entryReader(
     objects: construction_object[],
 ): (name: string) => Reader {
     const { c } = scope;
-    const vec3 = !c.GRID.is2D;
+    const vec3 = c.space;
     const indexed = objectAt(objects);
     // An object written in the definition, out of the figure: its entry
     // without name, a formula for a point or a list given by one.

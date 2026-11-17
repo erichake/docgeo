@@ -32,6 +32,7 @@ import {
     writeWorkbook,
 } from "../workbook";
 import type { construction_object } from "../objects/construction_object";
+import type { grid_object } from "../objects/grid_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import type { text_object } from "../objects/text_object";
 import { button_object } from "../objects/button_object";
@@ -722,7 +723,7 @@ const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
 const eraserButton = button("eraser", () => setEraser(!ghosts));
 const axesButton = button("axes", () => {
-    setAxes(scene().GRID.hidden !== 0);
+    setAxes(activeGrid().hidden !== 0);
     properties.refresh(true);
     void record();
 });
@@ -1176,6 +1177,16 @@ const menus: Menu[] = [
                 label: message("delete_view"),
                 run: () => void deleteView(),
                 enabled: () => scene().views.length > 1,
+            },
+            {
+                label: message("move_view_left"),
+                run: () => void shiftView(-1),
+                enabled: () => scene().active > 0,
+            },
+            {
+                label: message("move_view_right"),
+                run: () => void shiftView(1),
+                enabled: () => scene().active < scene().views.length - 1,
             },
             {
                 label: `${message("open")}…`,
@@ -1665,7 +1676,7 @@ const editing = (): LineField | null => {
 const typedBefore = (field: LineField): string =>
     (field === definitionLine?.area ? definitionLine.head : "") +
     field.value.slice(0, field.selectionStart!);
-const vec3 = () => !scene().GRID.is2D;
+const vec3 = () => scene().space;
 const pick = (
     c: construction,
     screen: Vec2,
@@ -5647,10 +5658,10 @@ function setEraser(on: boolean): void {
 // The axes with the grid as set, or in 3D the trihedron with the floor, as
 // DGPad's isAxis.
 function setAxes(on: boolean): void {
-    const c = scene();
-    c.GRID.hidden = on ? 0 : 1;
-    if (!c.GRID.is2D) c.GRID.SHOWFLOOR = on;
-    c.invalidateProjection();
+    const grid = activeGrid();
+    grid.hidden = on ? 0 : 1;
+    if (!grid.is2D) grid.SHOWFLOOR = on;
+    scene().invalidateProjection();
     showAxes();
 }
 
@@ -5665,8 +5676,13 @@ function onAxis([x, y]: Vec2): boolean {
     );
 }
 
+// The view last pressed, which the bar's buttons change.
+function activeGrid(): grid_object {
+    return scene().views[scene().active].grid;
+}
+
 function showAxes(): void {
-    const on = scene().GRID.hidden === 0;
+    const on = activeGrid().hidden === 0;
     axesButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
 }
 
@@ -5768,44 +5784,55 @@ let planeAxes: boolean | null = null;
 let planeFlaw = false;
 
 function showSpace(): void {
-    const { is2D, FRAME2D } = scene().GRID;
+    const { is2D, FRAME2D } = activeGrid();
     spaceButton.toggleClass("dge-on", !is2D).att("aria-pressed", String(!is2D));
     // DGPad's 3D figures keep theirs.
     if (FRAME2D) spaceButton.hide();
     else spaceButton.show("grid");
 }
 
-// Back to the plane only without objects off it.
+// Back to the plane only without objects off it, unless another view
+// stays in space.
 function toggleSpace(): void {
     cancel(true);
     recording = recording
         .then(async () => {
             const c = scene();
-            const off = !c.GRID.is2D && offPlane(c);
+            const { is2D } = activeGrid();
+            const off =
+                !is2D &&
+                c.views.every(
+                    ({ grid }) => grid.is2D || grid === activeGrid(),
+                ) &&
+                offPlane(c);
             if (off)
                 return showHint(
                     message("in_space", formatName(off.name)),
                     true,
                 );
-            await (c.GRID.is2D ? toSpace() : toPlane());
+            await (is2D ? toSpace() : toPlane());
         })
         .catch(failed);
     void record().then(refreshRows);
 }
 
 // Read in space seen from above, as the plane was, the camera then turns.
-async function toSpace(step?: Step): Promise<void> {
-    planeAxes = scene().GRID.hidden === 0;
+async function toSpace(step?: Step, ids?: number[]): Promise<void> {
+    planeAxes = activeGrid().hidden === 0;
     await reframe(
         { "3d": 1, th: PLANE.theta, ph: PLANE.phi, ax: 1, fl: 1 },
         step,
+        {},
+        ids,
     );
     const c = scene();
+    c.view = c.active;
     await turnView(c, SPACE, [c.width / 2, c.height / 2]);
 }
 
-async function toPlane(step?: Step): Promise<void> {
+async function toPlane(step?: Step, ids?: number[]): Promise<void> {
     const c = scene();
+    c.view = c.active;
     const turns = Math.round((c.GRID.PHI - PLANE.phi) / (2 * Math.PI));
     const above = { ...PLANE, phi: PLANE.phi + turns * 2 * Math.PI };
     await turnView(c, above, c.GRID.ORG);
@@ -5819,6 +5846,8 @@ async function toPlane(step?: Step): Promise<void> {
             ...(planeAxes !== null && { ax: +planeAxes }),
         },
         step,
+        {},
+        ids,
     );
 }
 
@@ -5830,9 +5859,21 @@ async function reframe(
     view: DgoFigure["v"],
     step?: Step,
     patch: Partial<DgoFigure> = {},
+    ids = step?.ids,
 ): Promise<void> {
     const figure = await asSaved(() => describeDgo(scene()));
     const { v } = figure;
+    // A step's view n is the current view `match(n)`, if any: `ids` are
+    // those of the current views.
+    const current = [v, ...(figure.vs ?? [])];
+    const match = (n: number): number => ids!.indexOf(step!.ids[n]);
+    const first = step && current[match(0)];
+    const look = first && {
+        th: first.th ?? Math.PI / 2,
+        ph: first.ph ?? (5 * Math.PI) / 2,
+    };
+    // `view` changes the view last pressed, which stays so.
+    const { active } = scene();
     // Where each view starts in the window, in pixels.
     const lefts = scene().views.map(
         ({ rect }) => rect[0] * scene().windowSize[0],
@@ -5846,28 +5887,38 @@ async function reframe(
                   ...saved,
                   v: {
                       ...saved.v,
-                      ...camera({ ...v, ...view }, true),
+                      ...camera(
+                          { ...v, ...look, ...(active ? {} : view) },
+                          true,
+                      ),
                       o: step!.o,
                       u: step!.u,
                   },
                   ...(saved.vs && {
-                      vs: saved.vs.map((view, n) => ({
-                          ...view,
+                      vs: saved.vs.map((settings, n) => ({
+                          ...settings,
                           ...step!.views![n],
+                          ...(n + 1 === active && camera(view, true)),
                       })),
                   }),
               }
-            : { ...figure, ...patch, v: { ...(patch.v ?? v), ...view } },
+            : withView({ ...figure, ...patch, v: patch.v ?? v }, active, view),
     );
     const c = scene();
-    // The views it shares with the figure keep what they show where it
-    // was in the window, their border moved or not.
+    c.active = Math.min(active, c.views.length - 1);
+    // The views it shares with the figure keep their origin and unit, and
+    // what they show where it was in the window if their border moved; a
+    // view moved to another column, where it was in its column.
     if (step) {
-        [v, ...(figure.vs ?? [])].forEach(({ o, u }, n) => {
-            const grid = c.views[n]?.grid;
-            if (!grid) return;
+        c.views.forEach(({ grid, rect }, n) => {
+            const m = match(n);
+            if (m < 0) return;
+            const { o, u } = current[m];
             const [x, y] = o as Vec2;
-            grid.ORG = [x + lefts[n] - c.views[n].rect[0] * c.windowSize[0], y];
+            grid.ORG = [
+                m === n ? x + lefts[n] - rect[0] * c.windowSize[0] : x,
+                y,
+            ];
             grid.UNIT = [u, u, u] as Vec3;
         });
         c.invalidateProjection();
@@ -5885,12 +5936,25 @@ async function reframe(
     refreshRows();
 }
 
+// The figure, its view n changed by `view`.
+function withView(
+    figure: DgoFigure,
+    n: number,
+    view: DgoFigure["v"],
+): DgoFigure {
+    const [v, ...vs] = [figure.v, ...(figure.vs ?? [])].map(
+        (settings, index) =>
+            index === n ? { ...settings, ...view } : settings,
+    );
+    return { ...figure, v, ...(figure.vs && { vs }) };
+}
+
 // In a plane figure, an object put off the plane is refused, the figure
 // going back to its last step.
 async function refusedOffPlane(): Promise<boolean> {
     const c = scene();
     c.flush();
-    if (!c.GRID.is2D || planeFlaw || !offPlane(c)) return false;
+    if (c.space || planeFlaw || !offPlane(c)) return false;
     await reframe({}, history[position]);
     return true;
 }
@@ -6893,7 +6957,11 @@ let history: {
     o: unknown;
     u: unknown;
     views?: { o: unknown; u: unknown }[];
+    // Which view each column is, for steps that add, delete or move one.
+    ids: number[];
 }[] = [];
+// The ids of the next step's views, if a view was added, deleted or moved.
+let nextIds: number[] | null = null;
 let position = -1;
 let recording = Promise.resolve();
 // A change of the figure that fails is told, and doesn't stop the next
@@ -6942,9 +7010,16 @@ function record(): Promise<void> {
                 }),
             });
             if (step === history[position]?.figure) return;
+            const count = 1 + (figure.vs?.length ?? 0);
+            const previous = nextIds ?? history[position]?.ids;
+            nextIds = null;
+            const ids =
+                previous?.length === count
+                    ? previous
+                    : [...Array(count).keys()];
             history = [
                 ...history.slice(0, position + 1),
-                { figure: step, o, u, ...(views && { views }) },
+                { figure: step, o, u, ...(views && { views }), ids },
             ];
             position = history.length - 1;
             showChanged(unsaved());
@@ -6958,13 +7033,23 @@ function travel(step: number): void {
         .then(async () => {
             if (!history[position + step]) return;
             cancel(true);
+            const { ids } = history[position];
             position += step;
             const target = history[position];
             showChanged(unsaved());
-            const space = JSON.parse(target.figure).v["3d"] === 1;
-            if (space === scene().GRID.is2D)
-                await (space ? toSpace(target) : toPlane(target));
-            else await reframe({}, target);
+            // The first view turned to the plane or to space, turned back.
+            const { v, vs = [] } = JSON.parse(target.figure) as DgoFigure;
+            const c = scene();
+            const turned = [v, ...vs].findIndex(
+                (view, n) =>
+                    (view["3d"] === 1) ===
+                    c.views[ids.indexOf(target.ids[n])]?.grid.is2D,
+            );
+            if (turned < 0) return reframe({}, target, {}, ids);
+            c.active = ids.indexOf(target.ids[turned]);
+            await (c.views[c.active].grid.is2D
+                ? toSpace(target, ids)
+                : toPlane(target, ids));
         })
         .catch(failed);
 }
@@ -7077,7 +7162,7 @@ async function open(
     showAxes();
     showSpace();
     planeAxes = null;
-    planeFlaw = studio.scene.GRID.is2D && offPlane(studio.scene) !== undefined;
+    planeFlaw = !studio.scene.space && offPlane(studio.scene) !== undefined;
     if (steps) ({ history, position, saved } = steps);
     else {
         history = [];
@@ -7474,6 +7559,8 @@ async function addView(): Promise<void> {
         cw: share,
     });
     const [v, ...vs] = columns;
+    const { ids } = history[position];
+    nextIds = [...ids, Math.max(...ids) + 1];
     await reframe({}, undefined, { v, vs });
     changed();
 }
@@ -7509,12 +7596,26 @@ async function deleteView(): Promise<void> {
     });
     const [first, ...vs] = views;
     const { cw, ...v } = first;
+    nextIds = history[position].ids.filter((_, n) => n !== deleted);
     await reframe({}, undefined, {
         v: { ...v, w: figure.v.w, h: figure.v.h, ...(vs.length ? { cw } : {}) },
         vs,
         st: styles,
         o,
     });
+    changed();
+}
+
+// The view last pressed, its column swapped with the one on its left
+// (`by` -1) or on its right (1).
+async function shiftView(by: -1 | 1): Promise<void> {
+    await recording;
+    const c = scene();
+    const from = c.active;
+    nextIds = [...history[position].ids];
+    nextIds.splice(from + by, 0, ...nextIds.splice(from, 1));
+    c.moveView(from, from + by);
+    showActiveView();
     changed();
 }
 
@@ -7529,6 +7630,8 @@ function showActiveView(): void {
     const c = scene();
     if (shownActive?.[0] === c && shownActive[1] === c.active) return;
     shownActive = [c, c.active];
+    showAxes();
+    showSpace();
     c.views.forEach(({ svg }, n) =>
         svg.toggleClass(
             "dge-active-view",

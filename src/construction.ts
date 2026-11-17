@@ -164,6 +164,16 @@ export class construction {
         return this.views[this.view].grid;
     }
 
+    // The grid of the first 3D view, which GeoGebra's scripts turn.
+    get spaceGrid(): grid_object | undefined {
+        return this.views.find(({ grid }) => !grid.is2D)?.grid;
+    }
+
+    // Points in space rather than in the plane: a view is 3D (see VUES.md).
+    get space(): boolean {
+        return this.spaceGrid !== undefined;
+    }
+
     get svg(): DOMElement {
         return this.views[this.view].svg;
     }
@@ -247,6 +257,14 @@ export class construction {
         });
     }
 
+    // Measured at once rather than by their observers, a 3D view keeping
+    // its center (see resize), before what follows reads or sets it.
+    measureViews(): void {
+        this.views.forEach(({ svg }, index) =>
+            this.resize(index, svg.width(), svg.height()),
+        );
+    }
+
     private get sharesTotal(): number {
         return this.views.reduce((sum, { share }) => sum + share, 0);
     }
@@ -300,6 +318,7 @@ export class construction {
     }
 
     mousedrag(ev: PointerEvent, delta: PointerDelta): void {
+        if (this.GRID.locked) return;
         if (this.GRID.is2D) return this.pan(ev, delta);
         const [dx, dy] = delta;
         const rt = this.GRID.RESTRICT_THETA;
@@ -327,6 +346,7 @@ export class construction {
     }
 
     mousewheel(event: WheelEvent, from = this.svg.svgPoint(event)): void {
+        if (this.GRID.locked) return;
         const delta =
             event.deltaY *
             (event.deltaMode === WheelEvent.DOM_DELTA_LINE
@@ -387,6 +407,20 @@ export class construction {
     }
 
     // Drawn in that view from now on.
+    // A view's column moved to another place among them, its objects
+    // with it.
+    moveView(from: number, to: number): void {
+        const order = this.views.map((_, index) => index);
+        order.splice(to, 0, ...order.splice(from, 1));
+        const place = order.map((_, index) => order.indexOf(index));
+        this.views = order.map((index) => this.views[index]);
+        this.OBJS.V.forEach((object) => (object.view = place[object.view]));
+        this.view = place[this.view];
+        this.active = place[this.active];
+        this.arrangeViews();
+        this.invalidateProjection();
+    }
+
     moveToView(object: construction_object, view: number): void {
         if (object.view === view) return;
         object.view = view;
@@ -701,7 +735,8 @@ export class construction {
                 .att("xmlns", "http://www.w3.org/2000/svg"),
         );
         svg.observeResize((width, height) => {
-            if (!this.fixedSize && this.views[index]?.svg === svg)
+            const index = this.views.findIndex((view) => view.svg === svg);
+            if (!this.fixedSize && index >= 0)
                 this.resize(index, width, height);
         });
         return svg;
@@ -715,7 +750,12 @@ export class construction {
             ? `url("${image}") ${BACKGROUND_FITS[fit]},${color}`
             : color;
         this.views.forEach(({ svg, grid }) =>
-            svg.stl("background", grid.background ?? figure),
+            svg.stl(
+                "background",
+                grid.backgroundImage
+                    ? `url("${grid.backgroundImage}") ${BACKGROUND_FITS[grid.backgroundFit]},${grid.background ?? color}`
+                    : (grid.background ?? figure),
+            ),
         );
     }
 
@@ -730,13 +770,16 @@ export class construction {
 
     private bindSceneEvents(element: DOMElement): void {
         element
-            .pinch((scale, from, to) =>
-                this.zoom(scale, from, this.panLocked ? from : to),
+            .pinch(
+                (scale, from, to) =>
+                    this.GRID.locked ||
+                    this.zoom(scale, from, this.panLocked ? from : to),
             )
             .drag(
                 (event, delta) => this.pan(event, delta),
                 (event) =>
                     !this.panLocked &&
+                    !this.GRID.locked &&
                     event.pointerType === "mouse" &&
                     event.target === element.dom(),
             )

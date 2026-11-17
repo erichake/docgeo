@@ -1382,6 +1382,11 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     flag("isOy", (value) => (grid.showOy = value));
     flag("isOz", (value) => (grid.showOz = value));
     flag("isFloor", (value) => (grid.SHOWFLOOR = value));
+    // DocGeo's: a plane view of a figure in space (see VUES.md).
+    flag("isPlane", (value) => {
+        grid.is2D = value;
+        grid.SHOWFLOOR = !value;
+    });
     flag("isLockOx", (value) => (grid.lockOx = value));
     flag("isLockOy", (value) => (grid.lockOy = value));
     flag("centerZoom", (value) => (grid.centerZoom = value));
@@ -3688,6 +3693,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 if (index === c.views.length) c.addView(share);
                 else c.views[index!].share = share!;
                 c.arrangeViews();
+                c.measureViews();
                 c.inView(index!, () => {
                     const grid = c.GRID;
                     if (x !== undefined && y !== undefined) grid.ORG = [x, y];

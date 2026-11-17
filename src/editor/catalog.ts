@@ -238,7 +238,7 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof polygon_object;
         // In space, a polygon's plane too.
         case "plane":
-            return kind === "plane" || (kind === "polygon" && !arg.C.GRID.is2D);
+            return kind === "plane" || (kind === "polygon" && arg.C.space);
         case "linear":
             return kind === "line" || accepts(arg, "plane");
         case "polyhedron":

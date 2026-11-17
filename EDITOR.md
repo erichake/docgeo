@@ -2984,6 +2984,14 @@ gzip) ; éditeur +0,58 Ko (+0,13 Ko en gzip).
 
 Conception dans `VUES.md`. Les vues sont des colonnes côte à côte,
 redimensionnables en tirant leur séparation, chacune avec ses réglages.
+Les boutons « Repère » et « Vue 3D » agissent sur la vue active (depuis le
+2026-11-16) : une vue plane peut côtoyer une vue 3D, la figure restant dans
+l'espace tant qu'une vue l'est (le retour au plan n'est refusé, pour un
+objet hors du plan, que pour la dernière vue 3D). Fichier > Déplacer la
+vue à gauche / à droite change l'ordre des colonnes ; l'onglet « Figure »
+verrouille la vue active (« Vue verrouillée » : ni déplacement, ni zoom, ni
+rotation) et, avec plusieurs vues, lui donne sa propre image de fond
+(`VUES.md`, section « Éditeur »).
 La vue active (la dernière appuyée) est entourée de bleu quand il y en a
 plusieurs ; l'onglet « Figure » règle la sienne (axes, grille, et « Fond »,
 propre à la vue). Menu Fichier : « Nouvelle vue » ajoute une colonne à

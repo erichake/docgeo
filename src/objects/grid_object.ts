@@ -1,3 +1,4 @@
+import type { BackgroundFit } from "../background";
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { GridPref } from "../preferences";
@@ -108,8 +109,11 @@ export class grid_object extends construction_object {
     // opens, giving the depth of its clipping box's center. Null: the
     // origin's.
     pivot: Vec3 | null = null;
-    // Its view's own background color, null: the figure's.
+    // Its view's own background color, null: the figure's, and its own
+    // image over it, laid out as CSS does.
     background: string | null = null;
+    backgroundImage: string | null = null;
+    backgroundFit: BackgroundFit = "repeat";
     // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
     // filled one (3).
     arrows = 0;
@@ -118,6 +122,8 @@ export class grid_object extends construction_object {
     lockOx = false;
     lockOy = false;
     centerZoom = false;
+    // Neither panned, zoomed nor turned by a gesture.
+    locked = false;
     gridWidth = 0.1;
     // In a plane figure, per axis, GeoGebra's fixed distance between two
     // major grid lines, 0 for that between two numbers; the number of
@@ -241,7 +247,7 @@ export class grid_object extends construction_object {
     // and Oy, as high along Oz, shrunk by its size.
     get geogebraBox(): [Vec3, Vec3] {
         const [left, top] = this.viewInset;
-        const { width, height } = this.C;
+        const [width, height] = this.viewSize;
         const center = this.boxCenter;
         const factor = [Math.sqrt(1 / 3), Math.SQRT1_2, 1][this.boxSize];
         const across = ((width - left) / 2 / this.UNIT[0]) * factor;
@@ -255,7 +261,13 @@ export class grid_object extends construction_object {
 
     private get viewCenter(): Vec2 {
         const [left, top] = this.viewInset;
-        return [(this.C.width + left) / 2, (this.C.height + top) / 2];
+        const [width, height] = this.viewSize;
+        return [(width + left) / 2, (height + top) / 2];
+    }
+
+    // Its view's, turned by a script from another view.
+    private get viewSize(): Vec2 {
+        return this.C.inView(this.view, () => [this.C.width, this.C.height]);
     }
 
     // At the pivot's depth: a pan or a zoom moves it in the screen's plane.
@@ -423,7 +435,9 @@ export class grid_object extends construction_object {
             ...(this.C.OBJS.polygons as polygon_object[])
                 .filter(
                     (polygon) =>
-                        polygon.isVisible && polygon.behindFloor.length >= 3,
+                        polygon.isVisible &&
+                        polygon.view === this.view &&
+                        polygon.behindFloor.length >= 3,
                 )
                 .map((plane) => ({
                     d: pathData(plane.behindFloor),
@@ -434,6 +448,7 @@ export class grid_object extends construction_object {
                 .filter(
                     (sphere) =>
                         sphere.isVisible &&
+                        sphere.view === this.view &&
                         sphere.projectionDefined &&
                         sphere.farPath,
                 )

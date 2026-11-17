@@ -223,7 +223,10 @@ son unité, ses réglages, et sa couleur de fond `bg` (`null` : le fond de la
 figure, `bg` et `bgi` de la racine). Une figure à plusieurs vues est toujours enregistrée et montrée en
 entier : ni cadrage (région), ni centrage en mode intégré. Une seule
 construction pour toutes les vues ; chaque objet est dessiné dans la sienne
-(style `vw`).
+(style `vw`). Depuis le 2026-11-16, `3d` est propre à chaque vue : la figure
+est dans l'espace (points à trois coordonnées) dès qu'une de ses vues est 3D,
+sans clé de la racine ; une vue plane d'une figure de l'espace la montre de
+dessus (plan z = 0, ni rotation ni sol).
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par
@@ -235,50 +238,53 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 3D : origine et positions en pixels (`xy` des expressions) sont décalées de
 `round((largeur − w) / 2)` et `round((hauteur − h) / 2)`.
 
-| Clé  | Contenu                               | Défaut          |
-| ---- | ------------------------------------- | --------------- |
-| `3d` | figure 3D                             | 0               |
-| `th` | angle θ de la caméra                  | π/2             |
-| `ph` | angle φ de la caméra                  | 5π/2            |
-| `rt` | bornes de θ                           | [-π/2, π/2]     |
-| `rp` | bornes de φ (`null` : non bornée)     | [null, null]    |
-| `pe` | perspective                           | 0               |
-| `f2` | repère 2D d'une figure 3D (ci-après)  | `null`          |
-| `fl` | sol                                   | valeur de `3d`  |
-| `ax` | axes affichés                         | 1               |
-| `gr` | grille                                | 1               |
-| `ox` | axe Ox (`oy` : Oy, `oz` : Oz)         | 1               |
-| `lx` | Ox verrouillé (`ly` : Oy)             | 0               |
-| `cz` | zoom centré sur l'origine             | 0               |
-| `op` | abscisses et ordonnées positives      | 0               |
-| `c`  | couleur des axes                      | `rgb(80,80,80)` |
-| `f`  | taille des graduations                | 18              |
-| `s`  | épaisseur des axes                    | 2               |
-| `gw` | épaisseur de la grille                | 0.1             |
-| `gd` | distances de la grille (Ox, Oy)       | [0, 0]          |
-| `gs` | intervalles entre deux lignes         | 0               |
-| `gc` | couleur de la grille                  | `null`          |
-| `gl` | pointillés de la grille               | []              |
-| `td` | distances des graduations (Ox, Oy)    | [0, 0]          |
-| `ts` | styles des graduations (Ox, Oy)       | [0, 0]          |
-| `nb` | nombres des graduations en gras       | 0               |
-| `gg` | graduations à la manière de GeoGebra  | 0               |
-| `al` | noms des axes (Ox, Oy)                | ["", ""]        |
-| `nu` | nombres des axes affichés (Ox, Oy)    | [1, 1]          |
-| `au` | unités des nombres (Ox, Oy)           | ["", ""]        |
-| `ah` | flèches des axes                      | 0               |
-| `fc` | couleur du sol                        | `null`          |
-| `fo` | opacité du sol                        | 0.3             |
-| `fd` | écart des lignes du sol               | 1               |
-| `fg` | couleur des lignes du sol             | `null`          |
-| `fw` | épaisseur des lignes du sol           | 0.5             |
-| `fe` | demi-côté du sol                      | 8               |
-| `gb` | taille de la boîte de GeoGebra        | 1               |
-| `gi` | coin de la vue 3D de GeoGebra         | [0, 0]          |
-| `gp` | centre initial de la vue 3D           | `null`          |
-| `gv` | (lu seulement) bande de la vue à côté | `null`          |
-| `cw` | largeur de la colonne (ci-dessus)     | 1               |
-| `bg` | fond propre à la vue                  | `null`          |
+| Clé   | Contenu                               | Défaut          |
+| ----- | ------------------------------------- | --------------- |
+| `3d`  | figure 3D                             | 0               |
+| `th`  | angle θ de la caméra                  | π/2             |
+| `ph`  | angle φ de la caméra                  | 5π/2            |
+| `rt`  | bornes de θ                           | [-π/2, π/2]     |
+| `rp`  | bornes de φ (`null` : non bornée)     | [null, null]    |
+| `pe`  | perspective                           | 0               |
+| `f2`  | repère 2D d'une figure 3D (ci-après)  | `null`          |
+| `fl`  | sol                                   | valeur de `3d`  |
+| `ax`  | axes affichés                         | 1               |
+| `gr`  | grille                                | 1               |
+| `ox`  | axe Ox (`oy` : Oy, `oz` : Oz)         | 1               |
+| `lx`  | Ox verrouillé (`ly` : Oy)             | 0               |
+| `cz`  | zoom centré sur l'origine             | 0               |
+| `lk`  | vue verrouillée (ci-après)            | 0               |
+| `op`  | abscisses et ordonnées positives      | 0               |
+| `c`   | couleur des axes                      | `rgb(80,80,80)` |
+| `f`   | taille des graduations                | 18              |
+| `s`   | épaisseur des axes                    | 2               |
+| `gw`  | épaisseur de la grille                | 0.1             |
+| `gd`  | distances de la grille (Ox, Oy)       | [0, 0]          |
+| `gs`  | intervalles entre deux lignes         | 0               |
+| `gc`  | couleur de la grille                  | `null`          |
+| `gl`  | pointillés de la grille               | []              |
+| `td`  | distances des graduations (Ox, Oy)    | [0, 0]          |
+| `ts`  | styles des graduations (Ox, Oy)       | [0, 0]          |
+| `nb`  | nombres des graduations en gras       | 0               |
+| `gg`  | graduations à la manière de GeoGebra  | 0               |
+| `al`  | noms des axes (Ox, Oy)                | ["", ""]        |
+| `nu`  | nombres des axes affichés (Ox, Oy)    | [1, 1]          |
+| `au`  | unités des nombres (Ox, Oy)           | ["", ""]        |
+| `ah`  | flèches des axes                      | 0               |
+| `fc`  | couleur du sol                        | `null`          |
+| `fo`  | opacité du sol                        | 0.3             |
+| `fd`  | écart des lignes du sol               | 1               |
+| `fg`  | couleur des lignes du sol             | `null`          |
+| `fw`  | épaisseur des lignes du sol           | 0.5             |
+| `fe`  | demi-côté du sol                      | 8               |
+| `gb`  | taille de la boîte de GeoGebra        | 1               |
+| `gi`  | coin de la vue 3D de GeoGebra         | [0, 0]          |
+| `gp`  | centre initial de la vue 3D           | `null`          |
+| `gv`  | (lu seulement) bande de la vue à côté | `null`          |
+| `cw`  | largeur de la colonne (ci-dessus)     | 1               |
+| `bg`  | fond propre à la vue                  | `null`          |
+| `bgi` | image de fond propre à la vue         | `null`          |
+| `bgf` | disposition de cette image            | `repeat`        |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -321,7 +327,10 @@ tourne autour du centre de la boîte, qui reste au centre de la vue (depuis le
 aussi large que cette vue le long de Ox et de Oy, aussi haute le long de Oz,
 le tout réduit par sa taille `gb` (0 petite, 1 moyenne, 2 grande : facteur
 1/√3, 1/√2, 1). La vue 3D est la fenêtre privée de `gi` pixels à gauche et en
-haut (vue graphique de GeoGebra à côté), depuis le 2026-11-15. Cette vue est
+haut (vue graphique de GeoGebra à côté), depuis le 2026-11-15 ; depuis le
+2026-11-16, l'import ne l'écrit plus que pour un graphique au-dessus de la
+vue 3D ou en dessous, celui de gauche ou de droite devenant une vue plane
+(`VUES.md`). Cette vue est
 peinte par le motif de fond (`bgi`) : une image SVG d'un rectangle de sa
 couleur, de `gi` pixels de large (ou de haut) et 8 de haut (ou de large),
 en mosaïque verticale (ou horizontale). Écrite un temps sous la forme de sa
@@ -336,6 +345,16 @@ parallèles aux axes et passant par l'origine (0 : aucune), `fg` leur couleur
 (`null` : celle du sol, à demi transparente ; une couleur choisie est opaque),
 `fw` leur épaisseur en pixels, `fe` son demi-côté. `ax` et `fl` sont
 indépendants : le trièdre et le sol se montrent séparément.
+
+`bgi`, `bgf` d'une vue (depuis le 2026-11-16) : son image de fond, clé
+dans `img` de la racine, peinte par-dessus sa couleur (`bg`, sinon celle de
+la figure), disposée comme le motif de la figure (`bgf` de la racine). Une
+vue qui n'a ni couleur ni image propre montre le fond de la figure (`bg` et
+`bgi` de la racine) ; une vue de couleur propre sans image n'en montre pas.
+
+`lk` (depuis le 2026-11-16) : la vue ne se déplace, ne se zoome ni ne tourne
+par aucun geste (souris, molette, doigts) ; les scripts la changent encore
+(`CenterView`, `SetViewDirection`…).
 
 `f2` : coordonnées, dans le repère 2D d'une figure 3D de DGPad, de son origine
 3D. Ses objets 2D (points libres, points de formule à deux coordonnées, axes,

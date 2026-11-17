@@ -358,7 +358,7 @@ export class point_object extends construction_object {
         if (this.nameText && this.caption?.includes("%v")) {
             const digits = 10 ** Math.max(this.precision, 0);
             const value = `(${this.coords
-                .slice(0, this.C.GRID.is2D ? 2 : 3)
+                .slice(0, this.C.space ? 3 : 2)
                 .map((c) => String(Math.round(c * digits) / digits || 0))
                 .join(", ")})`;
             const text = this.caption.replace(/%v/g, value);

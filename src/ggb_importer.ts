@@ -42,6 +42,17 @@ export function importGgb(
     if (view3D) applyView3D(c, view3D);
     c.segmentsOverPolygons = true;
     const executed = executeDgpCommands(c, calls, is3D);
+    // The plane view as wide as GeoGebra's graphics view, whose widgets
+    // are placed in pixels, but at most half the window.
+    if (view3D?.planeWidth) {
+        const [width] = c.windowSize;
+        const plane = Math.min(view3D.planeWidth, width / 2);
+        c.views[0].share = width - plane;
+        c.views[1].share = plane;
+        c.arrangeViews();
+        c.measureViews();
+    }
+    if (view3D?.planeFirst) c.moveView(1, 0);
     const variables = executed.variables;
     // Built without its choices: rebuilt with them.
     menus.forEach((choices, variable) => {

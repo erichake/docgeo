@@ -140,7 +140,8 @@ type PolygonGrid = {
         maxCy: number;
     } | null;
 };
-const polygonGridCache = new WeakMap<construction, PolygonGrid>();
+// By view: each hides only its own objects.
+const polygonGridCache = new WeakMap<construction, PolygonGrid[]>();
 
 function forEachCell(
     minX: number,
@@ -158,7 +159,8 @@ function forEachCell(
 }
 
 function polygonGrid(c: construction): PolygonGrid {
-    const cached = polygonGridCache.get(c);
+    const grids = polygonGridCache.get(c) ?? [];
+    const cached = grids[c.view];
     if (cached && cached.frame === c.OBJS.frame) return cached;
 
     const cells = new Map<string, polygon_object[]>();
@@ -170,7 +172,12 @@ function polygonGrid(c: construction): PolygonGrid {
         maxCy: -Infinity,
     };
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        if (!polygon.isVisible || polygon.points.length < 3) return;
+        if (
+            !polygon.isVisible ||
+            polygon.points.length < 3 ||
+            polygon.view !== c.view
+        )
+            return;
         if (!polygon.points.every((p) => p.projectionDefined)) return;
         const xs = polygon.points.map((p) => p.screen[0]);
         const ys = polygon.points.map((p) => p.screen[1]);
@@ -220,7 +227,8 @@ function polygonGrid(c: construction): PolygonGrid {
         large,
         bounds: cells.size > 0 ? bounds : null,
     };
-    polygonGridCache.set(c, grid);
+    grids[c.view] = grid;
+    polygonGridCache.set(c, grids);
     return grid;
 }
 
@@ -422,6 +430,7 @@ export function hiddenIntervalsBetween(
         if (
             !solid.isVisible ||
             !solid.projectionDefined ||
+            solid.view !== c.view ||
             screenPoly.every(([x]) => x < segMinX) ||
             screenPoly.every(([x]) => x > segMaxX) ||
             screenPoly.every(([, y]) => y < segMinY) ||
@@ -606,11 +615,21 @@ export function paintByDepth(c: construction): void {
         else levels.set(object.level, [object]);
     };
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        if (polygon.hasView && polygon.isVisible && !polygon.plane)
+        if (
+            polygon.hasView &&
+            polygon.isVisible &&
+            !polygon.plane &&
+            polygon.view === c.view
+        )
             add(polygon);
     });
     (c.OBJS.solids as solid_object[]).forEach((solid) => {
-        if (solid.hasView && solid.isVisible && solid.projectionDefined)
+        if (
+            solid.hasView &&
+            solid.isVisible &&
+            solid.projectionDefined &&
+            solid.view === c.view
+        )
             add(solid);
     });
     levels.forEach((polygons, level) =>

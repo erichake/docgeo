@@ -34,7 +34,7 @@ export function radiusValue(
         : realPart(
               evaluateFormula(radius.formula, {
                   resolveIdentifier: (n) =>
-                      radius.refs.get(n)!.scriptValue(!c.GRID.is2D),
+                      radius.refs.get(n)!.scriptValue(c.space),
                   view: () => c.formulaView(),
               }),
           );

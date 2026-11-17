@@ -336,18 +336,19 @@ export function runProgram(
             turnView: (direction) => {
                 const [x, y, z] = Array.isArray(direction) ? direction : [];
                 if (
-                    !c.GRID.is2D &&
+                    c.spaceGrid &&
                     [x, y, z].every((c) => typeof c === "number")
                 )
-                    c.GRID.turnTo([x, y, z] as Vec3);
+                    c.spaceGrid.turnTo([x, y, z] as Vec3);
             },
             showAxis: (axis, shown) => {
                 const key = (["showOx", "showOy", "showOz"] as const)[
                     axis as number
                 ];
+                const grid = c.spaceGrid ?? c.GRID;
                 if (!key || typeof shown !== "number") return;
-                c.GRID[key] = shown !== 0;
-                c.invalidateRender(c.GRID);
+                grid[key] = shown !== 0;
+                c.invalidateRender(grid);
             },
             // Shown without the axes GeoGebra didn't show.
             showGrid: (shown) => {
@@ -776,7 +777,7 @@ export class expression_object extends construction_object {
             const { min, max, refs } = this.bounds;
             const env: FormulaEnv = {
                 resolveIdentifier: (name) =>
-                    refs.get(name)!.scriptValue(!this.C.GRID.is2D),
+                    refs.get(name)!.scriptValue(this.C.space),
                 view: () => this.C.formulaView(),
             };
             this.min = realPart(evaluateFormula(min, env));
