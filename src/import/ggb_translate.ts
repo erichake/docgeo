@@ -2562,10 +2562,11 @@ export function translateGgb(
                 if (mode !== "3" || !text) parts.push("sn:true");
             }
             // An angle's value, alone or after its name; a segment's length
-            // alone, written along it as DGPad does.
+            // alone, written along it as DGPad does; a polygon's area alone.
             else if (
                 (kind === "angle" && (mode === "1" || mode === "2")) ||
-                (element.getAttribute("type")?.startsWith("segment") &&
+                ((element.getAttribute("type")?.startsWith("segment") ||
+                    kind === "polygon") &&
                     mode === "2")
             )
                 parts.push(`p:${decimals}`);
@@ -3955,6 +3956,31 @@ export function translateGgb(
                 ref(vertex),
                 ref(q),
             ]);
+        },
+        // Of a polygon, at each vertex, the inside one, whichever way the
+        // polygon turns, even once dragged to turn the other way.
+        InteriorAngles: ([g], outputs) => {
+            const vertices = polygons.get(g);
+            if (!vertices || is3D || outputs.length !== vertices.length)
+                return false;
+            const n = vertices.length;
+            const v = vertices.map((p) => objects.get(p)!.variable);
+            const turn = hiddenExpression(
+                v
+                    .map((p, i) => {
+                        const q = v[(i + 1) % n];
+                        return `x(${p})*y(${q})-x(${q})*y(${p})`;
+                    })
+                    .join("+"),
+            );
+            return outputs.every((label, i) => {
+                const [next, previous] = [v[(i + 1) % n], v[(i + n - 1) % n]];
+                return define(label, "angle", "Angle", [
+                    ref(formulaPoint(`${turn}<0?${previous}:${next}`)),
+                    ref(vertices[i]),
+                    ref(formulaPoint(`${turn}<0?${next}:${previous}`)),
+                ]);
+            });
         },
         Circle: ([center, second, third], [label]) => {
             // Of axis d through P.

@@ -1557,3 +1557,12 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       en plus ; à l'œil : J5D79kra, s6thhndj, yxfyhpuz, u8qxbhjt,
       dcbqctsf, d2tvhp8c. Moteur +0,8 Ko (`space`, parties cachées par
       vue, `moveView`), import +0,6 Ko (93,1 Ko).
+- [x] **80. Angles intérieurs, aire d'un polygone en étiquette**
+      (aire_rectangle, signalée hors corpus). `InteriorAngles(poly)` :
+      l'angle n° i au sommet n° i, intérieur quel que soit le sens du
+      polygone, même retourné en le manipulant (le sens est lu par l'aire
+      orientée, une expression cachée, et les côtés de chaque angle sont
+      deux points calculés qui s'échangent quand il change). Un polygone
+      dont l'étiquette montre sa valeur (`labelMode` 2) écrit son aire.
+      **+0 figure** du corpus (aucune n'emploie `InteriorAngles`). Moteur
+      inchangé (seul l'import, chargé à la demande, change).
