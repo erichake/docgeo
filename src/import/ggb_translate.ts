@@ -114,6 +114,8 @@ interface ListFormula {
     item: (n: string) => string | null;
     // A list of lists: its n-th list, its item being null.
     sub?: (n: string) => ListFormula | null;
+    // Written out as a whole, when its items are.
+    array?: string;
 }
 
 export interface GgbView3D {
@@ -194,6 +196,15 @@ const FORMULA_COMMANDS = new Set([
     "Intersect",
     "Mirror",
 ]);
+// GeoGebra's statistics, as DocGeo's formulas name them.
+const STATISTICS: Record<string, string> = {
+    Mean: "mean",
+    Median: "median",
+    Q1: "q1",
+    Q3: "q3",
+    SD: "sd",
+    SampleSD: "sampleSD",
+};
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set([
     "Take",
@@ -1946,18 +1957,16 @@ export function translateGgb(
                     `var $m=${list.item("1")};for(var $k=2;$k<=${list.count};$k++){$m=${name.toLowerCase()}($m,${item})};$m`,
                 );
             }
+            // Of a list's items (see statistic in dgp_formula.ts).
             case "Mean":
             case "SD":
             case "SampleSD":
             case "Median":
             case "Q1":
-            case "Q3":
-                return args.length === 1 &&
-                    !args[0]
-                        .match(LABEL_WORDS)
-                        ?.some((word) => locals.has(word))
-                    ? statistic(name, args[0])
-                    : null;
+            case "Q3": {
+                const list = args.length === 1 && arrayFormula(args[0], locals);
+                return list ? `${STATISTICS[name]}(${list})` : null;
+            }
             // The first index of a value in a list, undefined if none.
             case "IndexOf": {
                 const list =
@@ -2354,6 +2363,7 @@ export function translateGgb(
                 ? {
                       count: String(items.length),
                       item: (n) => `[${items.join(",")}][(${n})-1]`,
+                      array: `[${items.join(",")}]`,
                   }
                 : null;
         }
@@ -2395,6 +2405,7 @@ export function translateGgb(
             return {
                 count: String(labels.length),
                 item: (n) => `${items}[(${n})-1]`,
+                array: items,
             };
         }
         // Computed by a hidden Expression's script, its size varying.
@@ -3186,100 +3197,32 @@ export function translateGgb(
             return true;
         };
 
-    // A list's items in ascending order, by a hidden Expression's script,
-    // one per list.
-    const sortedArrays = new Map<string, string>();
-    const sortedArray = (source: string): string | null => {
-        const list = listFormula(source);
-        const item = list && list.item("$n");
-        if (!item) return null;
-        let array = sortedArrays.get(source);
-        if (!array) {
-            array = hiddenExpression(
-                `var $t=[],$x,$j,$k;for(var $n=1;$n<=${list.count};$n++){$t.push(${item})};for($j=0;$j<$t.length;$j++){for($k=0;$k<$t.length-1;$k++){if($t[$k]>$t[$k+1]){$x=$t[$k];$t[$k]=$t[$k+1];$t[$k+1]=$x}}};$t`,
-            );
-            sortedArrays.set(source, array);
-        }
-        return array;
-    };
-    // GeoGebra's quartiles are the medians of the items below and above
-    // the median, which neither includes, undefined for a single item
-    // (relevé dans GeoGebra).
-    const statistic = (
-        name: string,
+    // A list as a whole: a formula that reads it, its items written out.
+    const arrayFormula = (
         source: string,
-        label?: string,
-    ): string | null => {
-        if (name === "Mean" || name === "SD" || name === "SampleSD") {
-            const list = listFormula(source);
-            const item = list && list.item("$n");
-            if (!item) return null;
-            const n = `(${list.count})`;
-            const loop = (body: string) =>
-                `for(var $n=1;$n<=${n};$n++){${body}};`;
-            return hiddenExpression(
-                name === "Mean"
-                    ? `var $s=0;${loop(`$s+=${item}`)}$s/${n}`
-                    : `var $s=0,$q=0,$x;${loop(`$s+=${item}`)}$s=$s/${n};${loop(`$x=${item}-$s;$q+=$x*$x`)}sqrt($q/(${n}${name === "SD" ? "" : "-1"}))`,
-                label,
-            );
-        }
-        const array = sortedArray(source);
-        if (!array) return null;
-        const n = `${array}.length`;
-        const half = `floor(${n}/2)`;
-        const [start, length] =
-            name === "Median"
-                ? ["0", n]
-                : name === "Q1"
-                  ? ["0", half]
-                  : [`${n}-${half}`, half];
-        return hiddenExpression(
-            `(${array}[${start}+floor((${length}-1)/2)]+${array}[${start}+floor(${length}/2)])/2`,
-            label,
-        );
-    };
+        locals = new Map<string, string>(),
+    ): string | null =>
+        formula(source, VALUE_KINDS, locals) ??
+        listFormula(source, locals)?.array ??
+        null;
 
-    // The box from the first quartile to the third, 2s high around y, the
-    // median across it, the whiskers out to the extrema, ended by bars;
-    // its value is the median (relevé dans GeoGebra).
+    // Drawn by the engine, its value the median.
     const boxPlot: Handler = ([y, s, data, extra], [label]) => {
         const element = elements.get(label);
-        const values = [y, s].map((value) => formula(value, VALUE_KINDS));
-        const array = data !== undefined && sortedArray(data);
-        if (extra !== undefined || !element || !array || values.includes(null))
+        const values = [y, s, data].map(
+            (value, index) =>
+                value !== undefined &&
+                (index < 2 ? formula(value, VALUE_KINDS) : arrayFormula(value)),
+        );
+        if (extra !== undefined || !element || !values.every(Boolean))
             return false;
-        const [low, middle, high] = [
-            `(${values[0]})-(${values[1]})`,
-            values[0]!,
-            `(${values[0]})+(${values[1]})`,
-        ].map((value) => hiddenExpression(value));
-        const [q1, median, q3] = ["Q1", "Median", "Q3"].map((name) =>
-            statistic(name, data, name === "Median" ? label : undefined)!,
-        );
-        const [min, max] = [`${array}[0]`, `${array}[${array}.length-1]`];
-        region(
+        return define(
             label,
-            "4",
-            `[[${q1},${q3},${q3},${q1}][k],[${low},${low},${high},${high}][k]]`,
+            "expression",
+            "BoxPlot",
+            (values as string[]).map(literal),
+            shapeStyle(element),
         );
-        define(
-            auxiliary(),
-            "list",
-            "List",
-            [
-                literal("segment"),
-                literal("5"),
-                literal(
-                    `[[${median},${min},${q3},${min},${max}][k],[${low},${middle},${middle},${low},${low}][k]]`,
-                ),
-                literal(
-                    `[[${median},${q1},${max},${min},${max}][k],[${high},${middle},${middle},${high},${high}][k]]`,
-                ),
-            ],
-            shapeStyle(element, "list"),
-        );
-        return true;
     };
 
     const target = (label: string): void => {

@@ -345,6 +345,11 @@ de `src/import/dgp_commands.ts`.
   rencontre le cylindre, le cône, la sphère ou la surface s, et une surface
   s'appelle comme une fonction : `g(1, 2)`. À l'import GeoGebra, les objets
   des commandes imbriquées sont intégrés à la ligne de leur parent.
+- **Statistiques** (2026-11-17, comme dans GeoGebra) :
+  `b = BoxPlot(y, s, liste)` (`BoîteMoustaches`) est une boîte à moustaches
+  (`Box`), qu'une formule lit comme sa médiane ; dans une formule,
+  `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont
+  la moyenne, la médiane, les quartiles et les écarts types d'une liste.
 - **Coordonnées polaires** (2026-10-17, comme dans GeoGebra) :
   `P = (3; 60°)`, rayon et angle séparés par un point-virgule, est un point
   défini par une formule (`Fp`, `[(3)*cos(60°), (3)*sin(60°)]`), que la

@@ -3,6 +3,7 @@ import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
 import { expression_object } from "../objects/expression_object";
+import { box_plot_object } from "../objects/box_plot_object";
 import { surface_object } from "../objects/surface_object";
 import { list_object } from "../objects/list_object";
 import { point_list_object } from "../objects/point_list_object";
@@ -186,7 +187,12 @@ export function kindOf(object: construction_object): Kind {
         object instanceof list_object
     )
         return "curve";
-    if (object instanceof expression_object) return "number";
+    // A box plot reads as its median.
+    if (
+        object instanceof expression_object ||
+        object instanceof box_plot_object
+    )
+        return "number";
     if (object instanceof angle_object) return "angle";
     return "other";
 }
@@ -1346,6 +1352,21 @@ export const COMMANDS: Command[] = [
         ],
     },
     {
+        name: "BoxPlot",
+        overloads: [
+            {
+                params: ["real", "real", "real"],
+                tag: "Box",
+                encode: (args, index) =>
+                    args.map((arg) => realParameter(arg, index)),
+                decode: (parameters, at) =>
+                    (parameters as unknown[]).map((parameter) =>
+                        realArgument(parameter, at),
+                    ),
+            },
+        ],
+    },
+    {
         name: "Slider",
         overloads: [
             {
@@ -1487,6 +1508,9 @@ export const FUNCTIONS: Command[] = [
     formulaFunction("dilate", ["point", "point", "real"]),
     formulaFunction("min", ["real"], true),
     formulaFunction("max", ["real"], true),
+    ...["mean", "median", "q1", "q3", "sd", "sampleSD"].map((name) =>
+        formulaFunction(name, ["real"]),
+    ),
 ];
 
 export const commandName = (command: Command): string =>

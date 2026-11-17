@@ -600,6 +600,7 @@ const de: Texts = {
         List: "Liste",
         Sequence: "Folge",
         Element: "Element",
+        BoxPlot: "Boxplot",
         Slider: "Schieberegler",
         Text: "Text",
         Html: "Html",

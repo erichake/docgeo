@@ -567,6 +567,7 @@ const ar: Texts = {
         List: "قائمة",
         Sequence: "متتالية",
         Element: "عنصر",
+        BoxPlot: "مخططالصندوق",
         Slider: "منزلقة",
         Text: "نص",
         Html: "Html",

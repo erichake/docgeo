@@ -95,6 +95,7 @@ import {
 import type { locus_object } from "../../src/objects/locus_object";
 import type { point_object } from "../../src/objects/point_object";
 import { surface_object } from "../../src/objects/surface_object";
+import { box_plot_object } from "../../src/objects/box_plot_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
 import type { polyhedron_object } from "../../src/objects/polyhedron_object";
@@ -687,6 +688,26 @@ describe("Editor", () => {
         expect(
             entryOf(type(plane, "g(x, y) = x + y"), figureIndex(plane))[0],
         ).toBe("Ex");
+    });
+
+    it("writes and reads box plots and the statistics of a list", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "a = Slider(0, 10, 4)",
+            "l = [6, 1, 5, 2, a, 3]",
+            "b = BoxPlot(2, 0.5, l)",
+            "m = mean(l) + q1(l) + q3(l)",
+            "M = (b, 0)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expect(c.getObj("b")).toBeInstanceOf(box_plot_object);
+        expectClose(c.getObj("M")!.scriptValue(false), [3.5, 0]);
+        expect(c.getObj("m")!.scriptValue(false)).toBeCloseTo(3.5 + 2 + 5, 9);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
     });
 
     // A spherical triangle's medians: arcs of great circles, in the plane

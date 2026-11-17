@@ -447,6 +447,12 @@ Une surface (`Surf`) s'appelle par son nom comme une fonction de x et y :
 [PQ] rencontre le cylindre, le cône, la sphère ou la surface s, les points
 triés de P vers Q, indéfini hors du segment, comme `Intersect(Segment(P,
 Q), s, n)` de GeoGebra (2026-11-17).
+`mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont la
+moyenne, la médiane, les quartiles et les écarts types (de la population,
+d'un échantillon) d'une liste de nombres, comme `Mean`, `Median`, `Q1`,
+`Q3`, `SD`, `SampleSD` de GeoGebra : les quartiles sont les médianes des
+valeurs sous et au-dessus de la médiane, qu'aucune n'inclut, indéfinis
+pour une seule valeur (2026-11-17).
 
 | Type    | Objet                                                                       | Paramètres                                               |
 | ------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
@@ -554,6 +560,7 @@ Q), s, n)` de GeoGebra (2026-11-17).
 | `Cur`   | courbe y = f(x)                                                             | `[formule, min, max]` (23)                               |
 | `Reg`   | région du plan où une formule de x et y est vraie (33)                      | `formule`                                                |
 | `Surf`  | surface z = f(x, y), f une formule de x et y (34)                           | `[formule, taille]`                                      |
+| `Box`   | boîte à moustaches d'une liste autour de y, de hauteur 2s (36)              | `[y, s, liste]`, trois formules                          |
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)                |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)                 |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                                      |
@@ -944,6 +951,11 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     dodécaèdre EABCD JAEIO BAJKF CBFLG DCGMH EDHNI OINST JOTPK FKPQL
     GLQRM HMRSN TSRQP ; icosaèdre CAB FAC GAF DAG BAD HBD EBH CBE ICE FCI
     KEH IEK LIK FIL JKH LKJ GLJ FLG DJH GJD (A = 0, B = 1…).
+36. Ajouté le 2026-11-17, comme `BoxPlot(y, s, liste)` de GeoGebra : la
+    boîte va du premier quartile au troisième sur y ± s, traversée par la
+    médiane, ses moustaches vont jusqu'aux valeurs extrêmes, terminées par
+    des barres de même hauteur. Lu par une formule, l'objet vaut la
+    médiane, comme dans GeoGebra.
 
 ### Macro-constructions
 
@@ -1346,6 +1358,7 @@ non définie).
 | `Tetr`, `TetP`, `TetZ`, `Octa`, `OctP`, `OctZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Dode`, `DodP`, `DodZ`, `Icos`, `IcoP`, `IcoZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Surf` (opacité 0,4)                                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Box`                                                                                     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                                                      | `#656148`, `#656148`, 2                   |

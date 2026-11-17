@@ -553,6 +553,7 @@ const zh_TW: Texts = {
         List: "列表",
         Sequence: "序列",
         Element: "元素",
+        BoxPlot: "箱線圖",
         Slider: "滑桿",
         Text: "文字",
         Html: "Html",

@@ -25,6 +25,8 @@ import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { edgeStroke, isOccluded } from "../../src/objects/hidden_line";
 import { iteration_object } from "../../src/objects/iteration_object";
 import { list_object } from "../../src/objects/list_object";
+import { box_plot_object } from "../../src/objects/box_plot_object";
+import { figureIndex, lineOf } from "../../src/editor/figure";
 import { locus_object } from "../../src/objects/locus_object";
 import { parabola_object } from "../../src/objects/parabola_object";
 import { point_on_object } from "../../src/objects/point_on_object";
@@ -4321,46 +4323,26 @@ ${values
 </construction></geogebra>`,
             ),
         ).toEqual([]);
-        const value = (name: string) =>
-            (c.getObj(name) as expression_object).value as number;
+        const value = (name: string) => c.getObj(name)!.scriptValue(false);
         values.forEach(([name, inputs, expected], index) =>
             expected === null
                 ? expect(value(`n${index}`), name).toBeNull()
-                : expect(value(`n${index}`), `${name}(${inputs})`).toBeCloseTo(
-                      expected,
-                      9,
-                  ),
+                : expect(
+                      value(`n${index}`) as number,
+                      `${name}(${inputs})`,
+                  ).toBeCloseTo(expected, 9),
         );
         expect(value("m")).toBeCloseTo(12, 9);
-        // The box from 2 to 5 on 0.5 ± 2, its median, whiskers and bars.
-        const drawn = c.OBJS.V.filter(
-            (object) => object instanceof list_object,
-        ) as list_object[];
-        expect(drawn.map((list) => list.items)).toEqual([
-            [[[2, -1.5]], [[5, -1.5]], [[5, 2.5]], [[2, 2.5]]],
-            [
-                [
-                    [3.5, -1.5],
-                    [3.5, 2.5],
-                ],
-                [
-                    [1, 0.5],
-                    [2, 0.5],
-                ],
-                [
-                    [5, 0.5],
-                    [6, 0.5],
-                ],
-                [
-                    [1, -1.5],
-                    [1, 2.5],
-                ],
-                [
-                    [6, -1.5],
-                    [6, 2.5],
-                ],
-            ],
-        ]);
+        // Each a line of the editor, the box plot an object of its own.
+        const objects = figureObjects(c);
+        const lines = objects.map((object) =>
+            lineOf(object, figureIndex(c), objects),
+        );
+        expect(lines).not.toContain(null);
+        expect(lines).toContain("n9 = mean(l3)");
+        expect(lines).toContain("n12 = mean([A1,A2,A3])");
+        expect(lines).toContain("n13 = BoxPlot(0.5, 2, [6,1,5,2,4,3])");
+        expect(c.getObj("n13")).toBeInstanceOf(box_plot_object);
 
         const a = c.getObj("a") as expression_object;
         a.value = 10;

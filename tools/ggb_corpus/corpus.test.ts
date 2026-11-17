@@ -5,6 +5,9 @@ import { importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { preferences } from "../../src/preferences";
 import { renderTeX } from "../../src/objects/latex";
+import { figureObjects } from "../../src/dgo";
+import { figureIndex, lineOf } from "../../src/editor/figure";
+import { event_object } from "../../src/objects/event_object";
 
 const FILES = import.meta.glob("./corpus/*.ggb", {
     query: "?url",
@@ -24,6 +27,9 @@ it("corpus", async () => {
         const mismatches: string[] = [];
         let error: string | null = null;
         let ms = 0;
+        // The objects the editor can't write, shown as "name = …": a
+        // compatibility only simulated (see GGB_IMPORT.md, « Mesure »).
+        let ellipsis: string[] = [];
         try {
             const xml = await readZipEntry(data, "geogebra.xml");
             const doc = new DOMParser().parseFromString(xml, "application/xml");
@@ -112,6 +118,22 @@ it("corpus", async () => {
                         `latex ${t.name} ${error[1]?.slice(0, 120)} ⟦${tex.slice(0, 200)}⟧`,
                     );
             });
+            const objects = figureObjects(c);
+            const index = figureIndex(c);
+            for (const object of objects) {
+                if (object instanceof event_object) continue;
+                // An editor that fails to write it, too.
+                try {
+                    if (lineOf(object, index, objects) === null)
+                        ellipsis.push(
+                            `${object.name} ${object.constructor.name}`,
+                        );
+                } catch (e) {
+                    ellipsis.push(
+                        `${object.name} ${object.constructor.name} ${String(e).slice(0, 80)}`,
+                    );
+                }
+            }
         } catch (e) {
             error = String(e).slice(0, 200);
         }
@@ -123,6 +145,7 @@ it("corpus", async () => {
                 types,
                 unsupported,
                 mismatches,
+                ellipsis,
                 error,
                 ms,
             }),

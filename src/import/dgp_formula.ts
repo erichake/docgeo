@@ -84,7 +84,12 @@ type ListFn =
     | "SHOW_GRID"
     | "CENTER_VIEW"
     | "CLEAR_TRACES"
-    | "BACKGROUND";
+    | "BACKGROUND"
+    | Statistic;
+
+// Of a list of numbers (see statistic).
+const STATISTICS = ["mean", "median", "q1", "q3", "sd", "sampleSD"] as const;
+type Statistic = (typeof STATISTICS)[number];
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -150,6 +155,12 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     CENTER_VIEW: 1,
     CLEAR_TRACES: 0,
     BACKGROUND: 3,
+    mean: 1,
+    median: 1,
+    q1: 1,
+    q3: 1,
+    sd: 1,
+    sampleSD: 1,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -171,6 +182,12 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     CENTER_VIEW: null,
     CLEAR_TRACES: null,
     BACKGROUND: null,
+    mean: null,
+    median: null,
+    q1: null,
+    q3: null,
+    sd: null,
+    sampleSD: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -1784,6 +1801,38 @@ export interface FormulaEnv {
     ): void;
 }
 
+// Of a list of numbers, as GeoGebra: its quartiles are the medians of the
+// values below and above its median, which neither includes, and its
+// standard deviations those of the population and of a sample (relevé
+// dans GeoGebra).
+export function statistic(fn: string, list: ScriptValue): number | null {
+    if (!Array.isArray(list) || !list.every((v) => typeof v === "number"))
+        return null;
+    const values = [...(list as number[])].sort((a, b) => a - b);
+    const n = values.length;
+    const half = n >> 1;
+    const median = (from: number, count: number) =>
+        count
+            ? (values[from + ((count - 1) >> 1)] +
+                  values[from + (count >> 1)]) /
+              2
+            : null;
+    const mean = values.reduce((sum, v) => sum + v, 0) / n;
+    const squares = values.reduce((sum, v) => sum + (v - mean) ** 2, 0);
+    return (
+        {
+            min: values[0],
+            max: values[n - 1],
+            mean: n ? mean : null,
+            median: median(0, n),
+            q1: median(0, half),
+            q3: median(n - half, half),
+            sd: n ? Math.sqrt(squares / n) : null,
+            sampleSD: n > 1 ? Math.sqrt(squares / (n - 1)) : null,
+        }[fn] ?? null
+    );
+}
+
 // A real number, possibly written as a complex number with no imaginary
 // part (e.g. [2, 0]). A 3D point is never a real number.
 export function realPart(value: ScriptValue | null): number | null {
@@ -2692,6 +2741,8 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     const values = evalCodes(args, frame);
                     if (values === null) return null;
                     if (op) return evalBinary(op, values[0], values[1]);
+                    if ((STATISTICS as readonly string[]).includes(fn))
+                        return statistic(fn, values[0]);
                     if (fn === "ALERT") frame.env.alert?.(values[0]);
                     else if (fn === "VIEW_DIRECTION")
                         frame.env.turnView?.(values[0]);

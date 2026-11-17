@@ -596,6 +596,7 @@ const el: Texts = {
         List: "Λίστα",
         Sequence: "Ακολουθία",
         Element: "Στοιχείο",
+        BoxPlot: "Θηκόγραμμα",
         Slider: "Δρομέας",
         Text: "Κείμενο",
         Html: "Html",

@@ -584,6 +584,7 @@ const hi: Texts = {
         List: "सूची",
         Sequence: "अनुक्रम",
         Element: "तत्व",
+        BoxPlot: "बाक्सप्लाट",
         Slider: "स्लाइडर",
         Text: "पाठ",
         Html: "Html",

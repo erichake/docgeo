@@ -113,6 +113,15 @@ script écrit à la main dans une expression n'a pas à s'ouvrir en blocs. Toute
 et son aller-retour vérifié (`tests/unit/editor_blocks.test.ts`). Ne jamais
 déclarer réparée une figure Blockly sans l'avoir vérifié.
 
+De même, **chacun de ses objets doit s'écrire en une ligne dans l'éditeur** :
+aucune ligne `nom = …` (objet en lecture seule, que l'éditeur ne sait ni
+écrire ni relire). Une telle ligne ne fait que simuler la compatibilité : à
+éviter à tout prix. Un import ne passe jamais par des objets auxiliaires
+sans ligne (listes de formules, expressions cachées à script) ; il emploie
+un objet que l'éditeur écrit, quitte à en ajouter un au moteur avec sa
+commande et sa balise `.dgo`. Le corpus GeoGebra compte une figure qui a
+de telles lignes comme un échec (voir `GGB_IMPORT.md`, « Mesure »).
+
 ### Intégration dans DocTools
 
 DocGeo est destiné, entre autres, à devenir un utilitaire du module DocEval du

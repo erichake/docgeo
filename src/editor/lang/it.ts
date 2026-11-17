@@ -585,6 +585,7 @@ const it: Texts = {
         List: "Lista",
         Sequence: "Successione",
         Element: "Elemento",
+        BoxPlot: "BoxPlot",
         Slider: "Cursore",
         Text: "Testo",
         Html: "Html",

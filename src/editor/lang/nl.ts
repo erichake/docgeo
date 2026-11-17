@@ -591,6 +591,7 @@ const nl: Texts = {
         List: "Lijst",
         Sequence: "Rij",
         Element: "Element",
+        BoxPlot: "Boxplot",
         Slider: "Schuifknop",
         Text: "Tekst",
         Html: "Html",

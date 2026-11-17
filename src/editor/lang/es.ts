@@ -588,6 +588,7 @@ const es: Texts = {
         List: "Lista",
         Sequence: "Secuencia",
         Element: "Elemento",
+        BoxPlot: "DiagramaCaja",
         Slider: "Deslizador",
         Text: "Texto",
         Html: "Html",

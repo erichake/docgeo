@@ -584,6 +584,7 @@ const pt: Texts = {
         List: "Lista",
         Sequence: "Sequência",
         Element: "Elemento",
+        BoxPlot: "BoxPlot",
         Slider: "ControleDeslizante",
         Text: "Texto",
         Html: "Html",

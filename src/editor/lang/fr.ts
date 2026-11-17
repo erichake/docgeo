@@ -587,6 +587,7 @@ const fr: Texts = {
         List: "Liste",
         Sequence: "Séquence",
         Element: "Élément",
+        BoxPlot: "BoîteMoustaches",
         Slider: "Curseur",
         Text: "Texte",
         Html: "Html",

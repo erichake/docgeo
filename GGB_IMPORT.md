@@ -59,6 +59,19 @@ son style (relevé dans GeoGebra) : la comparaison en tient compte.
 Un texte LaTeX visible que KaTeX refuse, même réparé (`src/objects/latex.ts`),
 y est aussi un écart (« latex nom erreur ⟦texte⟧ »).
 
+**Aucune ligne `nom = …`.** `ellipsis` liste les objets que l'éditeur ne
+sait pas écrire en une ligne (`lineOf` nul, ou en échec : « nom classe
+erreur ») et qu'il montre donc `nom = …`, en lecture seule. Une telle ligne
+ne fait que simuler la compatibilité : l'objet ne se lit ni ne se redéfinit,
+la figure ne se reconstruit pas dans l'éditeur. Une figure qui en a échoue,
+comme pour un élément non importé (règle du 2026-11-17, voulue par l'auteur
+du projet : à éviter à tout prix). Une traduction ne passe donc jamais par
+des objets auxiliaires sans ligne (`List` de formules, expressions cachées
+à script) : elle emploie un objet du moteur que l'éditeur écrit, quitte à en
+créer un, avec sa commande, sa ligne et sa balise `.dgo` (comme `BoxPlot`,
+item 89). `roots.py` compte ces figures et classe ces lignes par classe
+d'objet : autant de leviers.
+
 `roots.py` affiche, pour chaque cause, le nombre de figures touchées et le
 nombre de figures où c'est la **seule** cause. Il ne compte pas les échecs en
 cascade : un `Segment` qui échoue parce qu'un de ses points dépend d'une
@@ -77,11 +90,19 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 329 / 459,
-72 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-331 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 275 / 459,
+60 %, depuis que les figures avec des lignes `= …` comptent comme des
+échecs, voir « Mesure » ; objectif réaliste ~75 %, voir « Périmètre »).
+Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
 (légendes LaTeX écrites telles quelles, item 83) restent fausses.
+
+**Premier levier : les lignes `= …`** (56 figures sans autre cause, 200
+lignes, classées par `roots.py`) : `net_vertex_object` (50),
+`list_object` (33), `conic_point_object` (33), `direction_point_object`
+(31), échecs d'écriture de `two_points_line_object` (28) et
+`angle_object` (10)… Chaque classe demande sa ligne dans l'éditeur
+(écriture et lecture), ou une traduction vers un objet qui en a une.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
 `python3 tools/ggb_corpus/roots.py` avant de choisir, l'ordre évolue) :
@@ -243,6 +264,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 325 / 457 (71 %)   | 357,5 Ko | item 86 : surfaces z = f(x, y), lieu d'un curseur, segments coupés par un cylindre (+2) |
 | 2026-11-17 | 328 / 457 (72 %)   | 358,5 Ko | item 87 : tétraèdre, octaèdre, dodécaèdre, icosaèdre (+1)                     |
 | 2026-11-17 | 329 / 459 (72 %)   | 358,5 Ko | item 89 : statistiques, `BoxPlot`, noms de commandes sans casse (+2)          |
+| 2026-11-17 | 275 / 459 (60 %)   | 360,8 Ko | item 89 : `BoxPlot` natif, fonctions statistiques ; lignes `= …` = échecs (−54) |
 
 ## À faire, par rapport gain / coût
 
@@ -1725,18 +1747,29 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       sont ceux de GeoGebra. **+1 figure** (puzzle), aucune perdue. Moteur
       inchangé, importeur GeoGebra 99,5 → 102,4 Ko.
 - [x] **89. Mesures_de_tendance_centrale (signalée hors corpus, ajoutée
-      au corpus sous `tendance.ggb`) : statistiques** : `Mean`, `Median`,
-      `Q1`, `Q3`, `SD` et `SampleSD` d'une liste, aussi dans une formule,
-      calculés par des expressions cachées (la liste triée une fois pour
-      toutes ses statistiques). Les quartiles de GeoGebra sont les médianes
-      des valeurs sous et au-dessus de la médiane, qu'aucune n'inclut,
-      indéfinis pour une seule valeur (relevé dans GeoGebra). `BoxPlot(y, s,
-      liste)` vaut la médiane et se dessine en objets existants : la boîte
-      de Q1 à Q3 sur y ± s (une région), la médiane, les moustaches jusqu'aux
-      extrêmes et leurs barres (une liste de segments). Aussi : un nom de
-      commande se lit quelle que soit sa casse (`mean`, vieux fichier), un
-      appel de commande peut avoir un chiffre dans son nom (`Q1(…)` n'était
-      pas reconnu) et une plage du tableur `A2:A11` en entrée est une liste.
-      Le texte qui renvoie au tableur reste sans objet (DocGeo n'a pas de
-      vue tableur). **+2 figures** (tendance, JAaEteFw), aucune perdue, aucun
-      écart. Moteur inchangé, importeur GeoGebra 102,4 → 104,4 Ko.
+      au corpus sous `tendance.ggb`) : statistiques, `BoxPlot` natif,
+      lignes `= …` comptées comme échecs** : `Mean`, `Median`, `Q1`, `Q3`,
+      `SD` et `SampleSD` deviennent les fonctions de formule `mean`,
+      `median`, `q1`, `q3`, `sd` et `sampleSD` d'une liste (moteur,
+      `statistic` de `dgp_formula.ts`) : `Moyenne_1 = mean(notes)`. Les
+      quartiles de GeoGebra sont les médianes des valeurs sous et au-dessus
+      de la médiane, qu'aucune n'inclut, indéfinis pour une seule valeur
+      (relevé dans GeoGebra). `BoxPlot(y, s, liste)` est un objet du moteur
+      (`box_plot_object`, `.dgo` `Box`, note 36 de `DGO.md`), commande de
+      l'éditeur (`BoîteMoustaches`… dans les 12 langues, noms de GeoGebra),
+      qu'une formule lit comme sa médiane : `Med_1 = BoxPlot(2, 0.5,
+      notes)`. Une première version, commitée, le dessinait par des `List`
+      de formules et calculait les statistiques par des expressions cachées
+      à script : huit lignes illisibles ou `= …` pour trois objets
+      GeoGebra ; elle a conduit à la règle « Aucune ligne `nom = …` » (voir
+      « Mesure »). Aussi : un nom de commande se lit quelle que soit sa casse
+      (`mean`, vieux fichier), un appel de commande peut avoir un chiffre
+      dans son nom (`Q1(…)` n'était pas reconnu) et une plage du tableur
+      `A2:A11` est une liste. Le texte qui renvoie au tableur reste sans
+      objet (DocGeo n'a pas de vue tableur). **+2 figures** (tendance,
+      JAaEteFw), aucune perdue, aucun écart. La mesure compte désormais les
+      figures avec des lignes `= …` comme des échecs : **331 → 275 / 459**
+      (56 figures, 200 lignes : sommets de patron, `List` de formules, points
+      de conique, points de direction, et des échecs d'écriture de
+      l'éditeur sur des droites et des angles). Moteur 358,5 → 360,8 Ko
+      (+2,3 Ko), importeur GeoGebra 102,4 → 103,3 Ko.

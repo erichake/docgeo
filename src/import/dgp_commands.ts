@@ -48,6 +48,7 @@ import {
 import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
 import { createRegion } from "../objects/region_object";
+import { createBoxPlot } from "../objects/box_plot_object";
 import { createCurve, type CurveBound } from "../objects/curve_object";
 import { createButton, type button_object } from "../objects/button_object";
 import { createEvent, runInits } from "../objects/event_object";
@@ -3355,6 +3356,45 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     vec3: context.is3D,
                 });
             },
+        },
+    ],
+    [
+        // DocGeo's: GeoGebra's BoxPlot(y, s, list), of three formulas.
+        "BoxPlot",
+        {
+            parameters: [string, string, string, string],
+            result: "expression",
+            validate: (args, lineNumber, variables) =>
+                args.slice(1).forEach((arg) => {
+                    const node = tryParseFormula(literalString(arg));
+                    if (!node)
+                        throw new Error(
+                            `Invalid DGP box plot formula at line ${lineNumber}`,
+                        );
+                    validateReferences(
+                        formulaIdentifiers(node),
+                        variables,
+                        lineNumber,
+                    );
+                }),
+            execute: (context, args) =>
+                createBoxPlot(
+                    context.construction,
+                    args[0] as string,
+                    (args.slice(1) as string[]).map((source) => {
+                        const node = parseFormula(source);
+                        return {
+                            node,
+                            source,
+                            variables: [],
+                            refs: formulaRefs(
+                                formulaIdentifiers(node),
+                                context.variables,
+                            ),
+                            vec3: context.is3D,
+                        };
+                    }),
+                ),
         },
     ],
     [

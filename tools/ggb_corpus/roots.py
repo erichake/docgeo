@@ -4,8 +4,14 @@ import xml.etree.ElementTree as ET
 rows=[json.loads(l) for l in open(os.path.join(HERE, "results.jsonl")) if l.strip()]
 rows=[r for r in rows if "Missing geogebra.xml" not in (r["error"] or "")]
 WORD=re.compile(r"[A-Za-z_À-ɏͰ-Ͽ][\wÀ-ɏͰ-Ͽ']*")
-ok=[r for r in rows if not r["error"] and not r["unsupported"] and (r["commands"] or r["types"])]
+# A figure whose objects the editor can't all write ("name = …") only
+# simulates its compatibility: it fails (see GGB_IMPORT.md, « Mesure »).
+ok=[r for r in rows if not r["error"] and not r["unsupported"] and not r.get("ellipsis") and (r["commands"] or r["types"])]
 print("figures",sum(1 for r in rows if r["commands"] or r["types"]),"sans perte",len(ok),"plantages",sum(1 for r in rows if r["error"]))
+ell=[r for r in rows if not r["error"] and not r["unsupported"] and r.get("ellipsis")]
+print('lignes "= …" : %d figures sans autre cause, %d lignes dans tout le corpus'%(len(ell),sum(len(r.get("ellipsis") or []) for r in rows)))
+for kind,n in C.Counter(e.split(" ",2)[1]+(" (échec d'écriture)" if e.count(" ")>1 else "") for r in rows for e in r.get("ellipsis") or []).most_common():
+    print("  %-48s %4d"%(kind,n))
 for r in rows:
     if r["error"]: print("  PLANTAGE",r["name"],r["error"][:150])
 ms=sorted(r["ms"] for r in rows if not r["error"])

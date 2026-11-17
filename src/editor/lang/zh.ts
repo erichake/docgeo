@@ -552,6 +552,7 @@ const zh: Texts = {
         List: "列表",
         Sequence: "序列",
         Element: "元素",
+        BoxPlot: "箱线图",
         Slider: "滑动条",
         Text: "文本",
         Html: "Html",

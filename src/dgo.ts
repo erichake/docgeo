@@ -50,6 +50,7 @@ import {
 import { partOf } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
 import { createRegion } from "./objects/region_object";
+import { createBoxPlot } from "./objects/box_plot_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createSurface, surface_object } from "./objects/surface_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
@@ -327,6 +328,7 @@ export const LOOKS: Record<string, Look> = {
     Loc: CURVE,
     Cur: CURVE,
     Reg: POLYGON,
+    Box: POLYGON,
     Lst: LIST,
     Seq: LIST,
     Pts: LIST,
@@ -2732,6 +2734,20 @@ const BUILDERS: Record<string, Builder> = {
             vec3,
         });
     },
+    Box: (parameters, { c, name, formula, vec3 }) =>
+        createBoxPlot(
+            c,
+            name,
+            list(parameters, 3).map((value) => {
+                const { source, refs } = formula(
+                    isNumber(value) ? String(value) : value,
+                    construction_object,
+                );
+                const node = parseFormula(source);
+                checkNames(formulaIdentifiers(node), refs);
+                return { node, source, variables: [], refs, vec3 };
+            }),
+        ),
     Lst: (parameters, reader) => {
         check(Array.isArray(parameters));
         const [nature, count, ...formulas] = list(
