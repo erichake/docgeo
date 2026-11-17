@@ -5398,6 +5398,57 @@ if ((!az ? 1 : 0) == 0) {
         expect(c.getObj("t")).toBeInstanceOf(expression_object);
     });
 
+    it("reads hidden functions of x and y, segments cut by a cylinder and their images in space", () => {
+        const c = createConstruction();
+        const point = (label: string, x: number, y: number, z: number) =>
+            `<element type="point3d" label="${label}"><coords x="${x}" y="${y}" z="${z}" w="1"/></element>`;
+        const xml = `<geogebra><construction>
+${point("D", 0, 0, -1)}${point("E", 0, 0, 1)}${point("P", -3, 0, 0)}${point("Q", 3, 0, 0)}${point("R", -3, 1, 0)}
+${point("K", 3, 0, 0)}${point("L", 0, 3, 0)}${point("M", 0, 0, 1)}
+<command name="Cylinder"><input a0="D" a1="E" a2="2"/><output a0="j" a1="p" a2="q" a3="l"/></command>
+<element type="quadriclimited" label="j"/><element type="conic3d" label="p"/><element type="conic3d" label="q"/><element type="quadricpart" label="l"/>
+<expression label="pr" exp="pr(x, y) = x^(2) - y^(2)"/>
+<element type="functionnvar" label="pr"><show object="false" label="false"/></element>
+<expression label="J" exp="(1, 2, pr(1, 2))" type="point"/>
+<element type="point3d" label="J"><coords x="1" y="2" z="-3" w="1"/></element>
+<command name="Polygon"><input a0="K" a1="L" a2="M" a3="J"/><output a0="poly"/></command>
+<element type="polygon3d" label="poly"/>
+<command name="CurveCartesian"><input a0="((2 * cos(t)), (2 * sin(t)), pr(1, t))" a1="t" a2="0" a3="1"/><output a0="m"/></command>
+<element type="curvecartesian3d" label="m"/>
+<command name="Sequence"><input a0="Segment[Intersect[Segment[P + (k * (R - P)), Q + (k * (R - P))], l, 1], Intersect[Segment[P + (k * (R - P)), Q + (k * (R - P))], l, 2]]" a1="k" a2="0" a3="1" a4="1"/><output a0="s"/></command>
+<element type="list" label="s"/>
+<command name="Rotate"><input a0="Mirror[s, xOyPlane]" a1="90°"/><output a0="s'"/></command>
+<element type="list" label="s'"/>
+</construction></geogebra>`;
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        expect(c.getObj("m")).toBeInstanceOf(locus_object);
+        const ends = (label: string) =>
+            (c.getObj(label) as list_object).items.map((item) =>
+                item.map((end) =>
+                    (end as readonly number[]).map((v) => +v.toFixed(9)),
+                ),
+            );
+        const r = +Math.sqrt(3).toFixed(9);
+        // Of the line through P and Q, from P, as GeoGebra sorts them.
+        expect(ends("s")).toEqual([
+            [
+                [-2, 0, 0],
+                [2, 0, 0],
+            ],
+            [
+                [-r, 1, 0],
+                [r, 1, 0],
+            ],
+        ]);
+        expect(ends("s'")[1]).toEqual([
+            [-1, -r, 0],
+            [-1, r, 0],
+        ]);
+        // Its vertices aren't coplanar.
+        expect(c.getObj("poly")!.isVisible).toBe(false);
+    });
+
     it("paints the graphics view above the 3D view in its own background", async () => {
         const c = createConstruction();
         importGgb(

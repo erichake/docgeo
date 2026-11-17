@@ -177,6 +177,8 @@ const FORMULA_COMMANDS = new Set([
     "Translate",
     "Dilate",
     "Angle",
+    "Intersect",
+    "Mirror",
 ]);
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set([
@@ -192,6 +194,8 @@ const LIST_COMMANDS = new Set([
 const RANDOM_DRAWS = ["Random", "RandomBetween", "RandomUniform"];
 // A command whose saved list GeoGebra drew at random.
 const RANDOM_LIST = /\b(?:random|Random[A-Za-z]*|Shuffle|Sample)\s*[([]/;
+// The transformations a Sequence's items may be images by.
+const TRANSFORMS = ["Rotate", "Translate", "Dilate", "Mirror"];
 const BINDING_COMMANDS = new Set([
     "Sequence",
     "IterationList",
@@ -1101,8 +1105,12 @@ export function translateGgb(
     // Whether GeoGebra turns a plane against its normal in DocGeo, for the
     // planes whose orientation is known: Plane(A, f)'s is turned.
     const turnedPlanes = new Map<string, boolean>([["xOyPlane", false]]);
-    // A cylinder or a cone, by its solid's or its side's label.
-    const revolutions = new Map<string, { label: string; cone: boolean }>();
+    // A cylinder or a cone, by its solid's or its side's label, with its
+    // axis's ends and its radius's formula.
+    const revolutions = new Map<
+        string,
+        { label: string; cone: boolean; axis: [string, string, string] }
+    >();
     const spheres = new Set<string>();
     const vectors = new LazyMap<[string, string]>();
     // A point of each line, where it is known.
@@ -1160,6 +1168,9 @@ export function translateGgb(
     const pointLists = new Set<string>();
     // The functions of x, which a formula calls by name.
     const functions = new Set<string>();
+    // The hidden functions of x and y, by their expression, which a
+    // formula writes out where it calls them.
+    const twoVariables = new Map<string, string>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     // A drawn text's source, which a formula reads as its value.
@@ -1551,14 +1562,26 @@ export function translateGgb(
                                   drawFormula(word, a, b, locals)
                             : functions.has(word)
                               ? kinds.length > 0 && objects.get(word)!.variable
-                              : list
-                                ? ([n]: string[]) => `(${list.item(n) ?? "?"})`
-                                : start
-                                  ? ([x]: string[]) => {
-                                        const p = objects.get(start)!.variable;
-                                        return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
-                                    }
-                                  : FUNCTIONS[word];
+                              : twoVariables.has(word)
+                                ? ([x, y]: string[]) =>
+                                      `(${formula(
+                                          twoVariables.get(word)!,
+                                          ["expression"],
+                                          new Map([
+                                              ["x", x],
+                                              ["y", y],
+                                          ]),
+                                      )})`
+                                : list
+                                  ? ([n]: string[]) =>
+                                        `(${list.item(n) ?? "?"})`
+                                  : start
+                                    ? ([x]: string[]) => {
+                                          const p =
+                                              objects.get(start)!.variable;
+                                          return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
+                                      }
+                                    : FUNCTIONS[word];
                     if (!fn) return null;
                     const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
@@ -1838,6 +1861,40 @@ export function translateGgb(
                     (point) => objects.get(point)!.variable,
                 );
                 return `(${p}+(${t})*(${q}-${p}))`;
+            }
+            // Intersect(Segment(P, Q), cylinder, n): P + t·(Q - P) at the
+            // n-th root t of |(P - A + t·(Q - P)) × (B - A)|² = r²·|B - A|²,
+            // undefined off the segment, as GeoGebra.
+            case "Intersect": {
+                const cylinder = revolutions.get(args[1]);
+                const path = commandCall(normalizeBrackets(args[0]));
+                const ends =
+                    path?.[0] === "Segment" && path[1].length === 2
+                        ? path[1]
+                        : segments.get(args[0]);
+                const sign = { 1: "-", 2: "+" }[args[2]];
+                if (!cylinder || cylinder.cone || !ends || !sign) return null;
+                const [p, q, a, b] = [...ends, ...cylinder.axis].map((point) =>
+                    formula(point, VALUE_KINDS, locals),
+                );
+                if (!p || !q || !a || !b) return null;
+                const r = cylinder.axis[2];
+                const u = `((${b})-(${a}))`;
+                const v = `((${q})-(${p}))`;
+                const [cw, cv] = [`(${p})-(${a})`, v].map(
+                    (w) => `cross(${w},${u})`,
+                );
+                const s = `dot(${cw},${cv})`;
+                const d = `(${s}*${s}-dot(${cv},${cv})*(dot(${cw},${cw})-(${r})*(${r})*dot(${u},${u})))`;
+                const t = `((-${s}${sign}sqrt(${d}))/dot(${cv},${cv}))`;
+                return `((${d}>=0&&abs(2*${t}-1)<=1)?((${p})+${v}*${t}):(0/0))`;
+            }
+            // A point's image by the plane z = 0.
+            case "Mirror": {
+                const p =
+                    args[1] === "xOyPlane" &&
+                    formula(args[0], VALUE_KINDS, locals);
+                return p ? `[x(${p}),y(${p}),-z(${p})]` : null;
             }
             // Of a point or a vector, around a point.
             case "Rotate":
@@ -3778,7 +3835,7 @@ export function translateGgb(
             );
             [solid, side].forEach((name) => {
                 if (!name) return;
-                revolutions.set(name, { label, cone });
+                revolutions.set(name, { label, cone, axis: [a, b, r] });
                 objects.set(name, objects.get(label)!);
             });
             define(bottom || auxiliary(), "circle", "Disk", [
@@ -3869,13 +3926,16 @@ export function translateGgb(
                 revolutions.get(surface)?.label ??
                 (spheres.has(surface) ? surface : undefined);
             if (solid) {
-                if (third !== undefined || !is(path, ["line"])) return false;
-                outputs.slice(0, 2).forEach((label, index) => {
+                // Intersect(path, solid, n), the n-th of the two points.
+                const nth = third === undefined ? 0 : Number(third) - 1;
+                if ((nth !== 0 && nth !== 1) || !is(path, ["line"]))
+                    return false;
+                outputs.slice(0, 2 - nth).forEach((label, index) => {
                     if (!label) return;
                     define(label, "point", "CylinderIntersection", [
                         ref(path),
                         ref(solid),
-                        literal(index),
+                        literal(index + nth),
                     ]);
                     target(label);
                 });
@@ -4410,6 +4470,23 @@ export function translateGgb(
             if (inputs.length < 3 || !points(...inputs)) return false;
             polygons.set(label, inputs);
             definePolygon(label, inputs);
+            // In space, undefined in GeoGebra unless its vertices are
+            // coplanar: drawn only then.
+            if (is3D && inputs.length > 3) {
+                const [o, p, q, ...rest] = inputs.map(
+                    (vertex) => objects.get(vertex)!.variable,
+                );
+                const test = hiddenExpression(
+                    rest
+                        .map(
+                            (r) =>
+                                `abs(dot(cross(${p}-${o},${q}-${o}),${r}-${o}))<=0.000000001*d(${p},${o})*d(${q},${o})*d(${r},${o})`,
+                        )
+                        .join("&&"),
+                );
+                branchTests.set(label, test);
+                push(null, "STL", [ref(label), literal(`sc:${test}`)]);
+            }
             sides.forEach(
                 (side, index) =>
                     side &&
@@ -4906,26 +4983,29 @@ export function translateGgb(
                 inner = items[0];
                 call = commandCall(inner);
             }
-            // Of a polygon's images, maybe images of images, the polygon
-            // of its vertices' images.
+            // Of a polygon's or a segment's images, maybe images of
+            // images, the polygon of its vertices' images, the segment of
+            // its ends'.
             const images: [string, string[]][] = [];
             let source = call;
             let polygon = "";
-            while (
-                source &&
-                ["Rotate", "Translate", "Dilate"].includes(source[0])
-            ) {
+            while (source && TRANSFORMS.includes(source[0])) {
                 images.unshift([source[0], source[1].slice(1)]);
                 polygon = source[1][0];
                 source = commandCall(polygon);
             }
-            const vertices = polygon && polygons.get(polygon);
-            if (vertices) {
-                inner = `Polygon(${vertices.map((vertex) =>
-                    images.reduce(
-                        (image, [name, rest]) => `${name}(${[image, ...rest]})`,
-                        vertex,
-                    ),
+            const corners =
+                source?.[0] === "Segment"
+                    ? source[1]
+                    : polygon && polygons.get(polygon);
+            if (images.length && corners) {
+                inner = `${source?.[0] === "Segment" ? "Segment" : "Polygon"}(${corners.map(
+                    (vertex) =>
+                        images.reduce(
+                            (image, [name, rest]) =>
+                                `${name}(${[image, ...rest]})`,
+                            vertex,
+                        ),
                 )})`;
                 call = commandCall(inner);
             }
@@ -5322,8 +5402,14 @@ export function translateGgb(
         },
         // CurveCartesian(x(t), y(t), t, a, b): the locus of (x(t), y(t)),
         // t being the abscissa of a point on a hidden y = 0 from a to b.
-        // In space, CurveCartesian(x(t), y(t), z(t), t, a, b).
+        // In space, CurveCartesian(x(t), y(t), z(t), t, a, b), or
+        // CurveCartesian((x(t), y(t), z(t)), t, a, b).
         CurveCartesian: (args, [label]) => {
+            const tuple =
+                args.length === 4 && /^\(.*\)$/.test(args[0])
+                    ? splitArguments(args[0].slice(1, -1))
+                    : null;
+            if (tuple) args = [...tuple, ...args.slice(1)];
             const coords = args.slice(0, is3D ? 3 : 2);
             const [t, a, b, extra] = args.slice(coords.length);
             if (b === undefined || extra !== undefined) return false;
@@ -6492,18 +6578,19 @@ export function translateGgb(
                     source ?? "",
                 ));
         if (single || /^functionnvar$/i.test(type ?? "")) {
-            if (is3D) return false;
-            if (!single && hidden(element)) return true;
             const text = writtenOut(label, new Set());
+            if (!single && hidden(element)) {
+                if (
+                    text !== null &&
+                    !/[<>≤≥]/.test(text) &&
+                    formula(text, ["expression"], PLANAR_VARIABLES) !== null
+                )
+                    twoVariables.set(label, text);
+                return true;
+            }
+            if (is3D) return false;
             if (text === null || !/[<>≤≥]/.test(text)) return false;
-            const body = formula(
-                text,
-                VALUE_KINDS,
-                new Map([
-                    ["x", "x"],
-                    ["y", "y"],
-                ]),
-            );
+            const body = formula(text, VALUE_KINDS, PLANAR_VARIABLES);
             return (
                 body !== null &&
                 define(
@@ -6853,6 +6940,23 @@ export function translateGgb(
                     ? `${name}(${sources.join(",")})`
                     : undefined);
             const element = elements.get(outputs[0]);
+            // An image of a Sequence, maybe an image of images: the
+            // Sequence of its items' images.
+            const imageOf = (text: string): string[] | null => {
+                const call = commandCall(normalizeBrackets(text));
+                const loop =
+                    call && TRANSFORMS.includes(call[0])
+                        ? imageOf(call[1][0])
+                        : null;
+                return loop
+                    ? [
+                          `${call![0]}(${[loop[0], ...call![1].slice(1)]})`,
+                          ...loop.slice(1),
+                      ]
+                    : (sequences.get(text.trim()) ?? null);
+            };
+            const sequence =
+                TRANSFORMS.includes(name) && imageOf(`${name}(${sources})`);
             // Without any output, GeoGebra failed to evaluate the command:
             // it builds nothing.
             if (
@@ -6866,7 +6970,9 @@ export function translateGgb(
                               ? `${name}(${sources.join(",")})`
                               : undefined,
                       )
-                    : handler?.(inputs(name, sources), outputs)) &&
+                    : sequence
+                      ? HANDLERS.Sequence(sequence, outputs)
+                      : handler?.(inputs(name, sources), outputs)) &&
                 !scriptCommand(name, sources, outputs, random)
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);

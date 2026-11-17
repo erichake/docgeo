@@ -1643,3 +1643,23 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       GeoGebra, de son intersection avec l'axe des ordonnées, au lieu de
       n'être pas dessiné sans signalement. Moteur inchangé (seul l'import,
       chargé à la demande, change).
+- [ ] **86. pringles (signalée hors corpus, ajoutée au corpus)** : une
+      selle z = x²/a² − y²/a² dans un cylindre. Fait, dans l'import seul
+      (moteur inchangé) : une fonction de x et y cachée (`functionnvar`,
+      aussi dans l'espace) n'est plus refusée, ses appels `pr(u, v)` sont
+      écrits en entier dans les formules ; `CurveCartesian((x(t), y(t),
+      z(t)), t, a, b)` d'un point ; `Intersect(chemin, cylindre, n)`, aussi
+      dans une formule (d'un segment : racine n le long du segment, indéfinie
+      hors de lui, relevé dans GeoGebra), donc les `Sequence` de segments
+      coupés par un cylindre ; l'image d'une `Sequence` par `Rotate`,
+      `Translate`, `Dilate` ou `Mirror` (plan xOy dans une formule) est la
+      `Sequence` des images ; un polygone de l'espace d'au moins quatre
+      sommets ne se montre que s'ils sont coplanaires (indéfini sinon dans
+      GeoGebra). Corpus : aucune figure perdue, 7 figures perdent des
+      éléments non importés (fonctions de x et y cachées de caz8zu6k et
+      ses copies, `Intersect(yAxis, a, 2)` d'adzmqjyu). Reste : la surface
+      g (quadrique donnée par une équation, montrée par une case), C =
+      `Intersect(i, g)` et ses lieux, qui demandent un objet surface au
+      moteur (chantier lancé). Écart de dessin connu : dans GeoGebra, la
+      grille (segments plus épais) reste visible sur le remplissage, posé
+      sur la même surface ; DocGeo les dessine dans l'ordre de construction.
