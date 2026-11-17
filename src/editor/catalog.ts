@@ -622,6 +622,15 @@ const sided = (tag: string, params: Param[]): Overload => ({
     },
 });
 
+// The regular polyhedra's commands, by their first form's tag.
+export const REGULAR_SOLIDS: Record<string, string> = {
+    Cube: "Cube",
+    Tetr: "Tetrahedron",
+    Octa: "Octahedron",
+    Dode: "Dodecahedron",
+    Icos: "Icosahedron",
+};
+
 // A center of a triangle, of Kimberling's number n (see
 // triangle_center_object.ts).
 const center = (n: number): Overload => ({
@@ -1157,23 +1166,23 @@ export const COMMANDS: Command[] = [
             withReal("Sph1", ["point"]),
         ],
     },
-    // Solids: of axis AB and radius r, the cube on the square ABCD of
-    // plane ABC, or parallel to a plane or horizontal, on the side of its
-    // normal or up (1) or the other (-1), a prism or a pyramid on a
+    // Solids: of axis AB and radius r, the regular polyhedra on the face
+    // ABC… of plane ABC, or parallel to a plane or horizontal, on the side of
+    // its normal or up (1) or the other (-1), a prism or a pyramid on a
     // polygon.
     { name: "Cylinder", overloads: [withReal("Cyl", ["point", "point"])] },
     { name: "Cone", overloads: [withReal("Cone", ["point", "point"])] },
     // The disk of a cylinder or a cone at A, and that of a cylinder at B.
     { name: "Bottom", overloads: [disk("revolution", 0)] },
     { name: "Top", overloads: [disk("cylinder", 1)] },
-    {
-        name: "Cube",
+    ...Object.entries(REGULAR_SOLIDS).map(([tag, name]) => ({
+        name,
         overloads: [
-            objects("Cube", ["point", "point", "point"]),
-            sided("CubP", ["point", "point", "planar"]),
-            sided("CubZ", ["point", "point"]),
+            objects(tag, ["point", "point", "point"]),
+            sided(`${tag.slice(0, 3)}P`, ["point", "point", "planar"]),
+            sided(`${tag.slice(0, 3)}Z`, ["point", "point"]),
         ],
-    },
+    })),
     // On a polygon, by a point or of a height h.
     {
         name: "Prism",

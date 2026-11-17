@@ -4177,6 +4177,60 @@ ${command("Translate", ["Q", "u"], ["Q1"])}
         expect(vertex("C").defined).toBe(false);
     });
 
+    it("builds GeoGebra's regular polyhedra, their vertices, faces and edges in its order", () => {
+        const c = createConstruction();
+        const outputs = (labels: string) =>
+            labels
+                .split(" ")
+                .map((label, index) => `a${index}="${label}"`)
+                .join(" ");
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point3d" label="A"><coords x="0" y="0" z="0" w="1"/></element>
+<element type="point3d" label="B"><coords x="1" y="0" z="0" w="1"/></element>
+<element type="point3d" label="C"><coords x="0.5" y="${Math.sqrt(3) / 2}" z="0" w="1"/></element>
+<command name="Icosahedron"><input a0="A" a1="B" a2="C"/><output ${outputs(
+                "i D E F G H I J K L faceABC faceACF faceAFG faceADG faceABD faceBDH faceBEH faceBCE faceCEI faceCFI faceEHK faceEIK faceIKL faceFIL faceHJK faceJKL faceGJL faceFGL faceDHJ faceDGJ edgeAC edgeAB edgeBC edgeAF edgeCF edgeAG edgeFG edgeAD edgeDG edgeBD edgeBH edgeDH edgeBE edgeEH edgeCE edgeCI edgeEI edgeFI edgeEK edgeHK edgeIK edgeIL edgeKL edgeFL edgeJK edgeHJ edgeJL edgeGL edgeGJ edgeDJ",
+            )}/></command>
+<element type="point3d" label="Q"><coords x="0" y="0" z="5" w="1"/></element>
+<element type="point3d" label="R"><coords x="1" y="0" z="5" w="1"/></element>
+<expression label="p" exp="z = 0" type="plane"/>
+<element type="plane3d" label="p"/>
+<command name="Octahedron"><input a0="Q" a1="R" a2="p"/><output a0="o" a1="S" a2="T" a3="U" a4="V"/></command>
+<element type="point3d" label="O"><coords x="0" y="0" z="-5" w="1"/></element>
+<element type="point3d" label="P"><coords x="1" y="0" z="-5" w="1"/></element>
+<command name="Tetrahedron"><input a0="A" a1="B" a2="xOyPlane"/><output a0="t" a1="W" a2="Z"/></command>
+<command name="Dodecahedron"><input a0="O" a1="P" a2="xOyPlane"/><output a0="d"/></command>
+</construction></geogebra>`,
+        );
+        const vertex = (name: string) =>
+            (c.getObj(name) as point_object).coords;
+        const near = (actual: Vec3, expected: Vec3) =>
+            expected.forEach((value, index) =>
+                expect(actual[index]).toBeCloseTo(value, 5),
+            );
+        // Relevé dans GeoGebra.
+        near(vertex("D"), [0.5, -0.645497, 0.57735]);
+        near(vertex("H"), [1.309017, -0.178411, 0.934172]);
+        near(vertex("L"), [0, 0.57735, 1.511523]);
+        expect(
+            (c.getObj("faceIKL") as polygon_object).points.map(
+                (point) => point.name,
+            ),
+        ).toEqual(["L", "I", "K"]);
+        const edge = c.getObj("edgeDJ") as segment_object;
+        expect([edge.P1.name, edge.P2.name]).toEqual(["D", "J"]);
+        near(vertex("S"), [0.5, 0.866025, 5]);
+        near(vertex("T"), [0.5, -0.288675, 5.816497]);
+        near(vertex("V"), [0, 0.57735, 5.816497]);
+        const dodecahedron = c.getObj("d") as polyhedron_object;
+        expect(dodecahedron.vertices).toHaveLength(20);
+        near(dodecahedron.vertices[17].coords, [1, 1.376382, -5 + 2.227033]);
+        near(vertex("W"), [0.5, Math.sqrt(3) / 2, 0]);
+        near(vertex("Z"), [0.5, Math.sqrt(3) / 6, Math.sqrt(2 / 3)]);
+    });
+
     it("reads GeoGebra's list commands", async () => {
         const c = createConstruction();
         const list = (label: string, name: string, inputs: string[]) =>

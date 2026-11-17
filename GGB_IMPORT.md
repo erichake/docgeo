@@ -241,6 +241,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 83 : scripts de clic des formes, `Text` dans une formule, `NaN` (+1, fausse) |
 | 2026-11-17 | 325 / 456 (71 %)   | 350,1 Ko | item 84 : textes lus dans une formule, `Sort`, `Reverse`, nouveau tirage par `UpdateConstruction` (+0) |
 | 2026-11-17 | 325 / 457 (71 %)   | 357,5 Ko | item 86 : surfaces z = f(x, y), lieu d'un curseur, segments coupés par un cylindre (+2) |
+| 2026-11-17 | 328 / 457 (72 %)   | 358,5 Ko | item 87 : tétraèdre, octaèdre, dodécaèdre, icosaèdre (+1)                     |
 
 ## À faire, par rapport gain / coût
 
@@ -1690,3 +1691,16 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       lignes `nom = …` 331 → 268 (figures 120 → 95), aller-retour `.dgo`
       identique sur tout le corpus, aucune figure perdue. Moteur
       356,9 → 357,5 Ko.
+- [x] **87. Polyèdres réguliers** : `Tetrahedron`, `Octahedron`,
+      `Dodecahedron` et `Icosahedron` de `(A, B, C)` ou `(A, B, plan)`,
+      traduits comme `Cube` (sommets, faces puis arêtes, dans l'ordre de
+      GeoGebra, l'ordre des arêtes déduit de celui des faces), calculés
+      dans le moteur par couches parallèles à la première face (`Tetr`,
+      `Octa`, `Dode`, `Icos` de `DGO.md`, note 35), sommets relevés dans
+      GeoGebra. Aussi dans l'éditeur, avec leurs outils. **+1 figure**
+      (BwwXeKd8, dodécaèdre ouvert en cube et six toits), aucune perdue.
+      Moteur 357,5 → 358,5 Ko, importeur GeoGebra +0,2 Ko. Écart connu,
+      commun au cube : sur un plan donné par une équation oblique
+      (`z = x`), GeoGebra oriente sa normale selon l'écriture de
+      l'équation (`z = x` et `x = z` donnent deux côtés opposés), DocGeo
+      selon ses trois premiers coins.

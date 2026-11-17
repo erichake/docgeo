@@ -304,10 +304,30 @@ window.DG_ICONS = {
             1,
             '<g class="dge-construction-icon" transform="scale(.75)"><path d="M4 25 16 3.5 28 25a12 4.4 0 0 1-24 0Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.25" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.2"/><path d="M4 25a12 4.4 0 0 1 24 0" stroke="var(--dge-icon-guide, #7d8795)" stroke-width="0.85" stroke-dasharray="1.5 2"/><circle cx="16" cy="3.5" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="16" cy="25" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
         ],
+        Tetrahedron: [
+            265,
+            1,
+            '<g class="dge-construction-icon" transform="scale(.75)"><path d="M16 3 4 23l15 6Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.2"/><path d="M16 3l3 26 9-9Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.37"/><path d="M4 23l24-3" stroke="var(--dge-icon-guide, #7d8795)" stroke-width="0.9" stroke-dasharray="1.7 2.1"/><circle cx="4" cy="23" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="19" cy="29" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="28" cy="20" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
+        ],
         Cube: [
             265,
             1,
             '<g class="dge-construction-icon" transform="scale(.75)"><path d="m5 9 11-6 11 6-11 6Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.13"/><path d="M5 9v14l11 6V15Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.23"/><path d="M16 15v14l11-6V9Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.37"/><circle cx="5" cy="23" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="16" cy="29" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="27" cy="23" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
+        ],
+        Octahedron: [
+            265,
+            1,
+            '<g class="dge-construction-icon" transform="scale(.75)"><path d="M16 2 4 15l9 4Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.2"/><path d="M16 2l-3 17 15-5Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.37"/><path d="M4 15l9 4 3 11Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.13"/><path d="M13 19l15-5-12 16Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.28"/><path d="M4 15l15-5 9 4M16 2l3 8-3 20" stroke="var(--dge-icon-guide, #7d8795)" stroke-width="0.9" stroke-dasharray="1.7 2.1"/><circle cx="4" cy="15" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="13" cy="19" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="16" cy="30" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
+        ],
+        Dodecahedron: [
+            265,
+            1,
+            '<g class="dge-construction-icon" transform="scale(.75)"><path d="M16 2l8.2 2.7 5.1 7v8.6l-5.1 7L16 30l-8.2-2.7-5.1-7v-8.6l5.1-7Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.18"/><path d="M16 9.5l6.2 4.5-2.4 7.3h-7.6l-2.4-7.3Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.37"/><path d="M16 9.5V2M22.2 14l7.1-2.3M19.8 21.3l4.4 6M12.2 21.3l-4.4 6M9.8 14l-7.1-2.3" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" /><circle cx="12.2" cy="21.3" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="19.8" cy="21.3" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="22.2" cy="14" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
+        ],
+        Icosahedron: [
+            265,
+            1,
+            '<g class="dge-construction-icon" transform="scale(.75)"><path d="M16 2l12.1 7v14L16 30 3.9 23V9Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.18"/><path d="M16 23 9.9 12.5h12.2Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.37"/><path d="M3.9 23h24.2M16 23v7M3.9 23l6-10.5M3.9 9l6 3.5L16 2l6.1 10.5 6-3.5M22.1 12.5l6 10.5" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.15" /><circle cx="16" cy="23" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="9.9" cy="12.5" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/><circle cx="22.1" cy="12.5" r="2.25" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-blue, #3574e8)"/></g>',
         ],
         Prism: [
             265,

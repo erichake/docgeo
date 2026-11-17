@@ -156,6 +156,7 @@ import { createAxisCircle } from "./objects/axis_circle_object";
 import {
     createPolyhedron,
     polyhedron_object,
+    type Regular,
 } from "./objects/polyhedron_object";
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createNet } from "./objects/net_object";
@@ -302,9 +303,13 @@ export const LOOKS: Record<string, Look> = {
     Cyl: SOLID,
     Surf: SOLID,
     Cone: SOLID,
-    Cube: SOLID,
-    CubP: SOLID,
-    CubZ: SOLID,
+    ...Object.fromEntries(
+        ["Cube", "Tetr", "Octa", "Dode", "Icos"].flatMap((tag) =>
+            [tag, ...["P", "Z"].map((form) => tag.slice(0, 3) + form)].map(
+                (tag) => [tag, SOLID],
+            ),
+        ),
+    ),
     Prsm: SOLID,
     Pyr: SOLID,
     PrsH: SOLID,
@@ -1772,6 +1777,44 @@ const onPolygon =
         );
     };
 
+// A regular polyhedron on the face of plane ABC, or on AB parallel to a
+// plane or horizontal, on one side of it.
+const regular = (
+    tag: "Cube" | "Tetr" | "Octa" | "Dode" | "Icos",
+): Record<string, Builder> => {
+    const kind = tag.slice(0, 3) as Regular;
+    return {
+        [tag]: (parameters, { c, name, points }) =>
+            createPolyhedron(c, name, {
+                tag,
+                points: points(parameters, 3) as [
+                    point_object,
+                    point_object,
+                    point_object,
+                ],
+            }),
+        [`${kind}P`]: (parameters, { c, name, at }) => {
+            const [a, b, plane, side] = list(parameters, 4);
+            check(side === 1 || side === -1);
+            return createPolyhedron(c, name, {
+                tag: `${kind}P`,
+                points: [at(a, point_object), at(b, point_object)],
+                plane: at(plane, polygon_object),
+                side,
+            });
+        },
+        [`${kind}Z`]: (parameters, { c, name, points }) => {
+            const [a, b, side] = list(parameters, 3);
+            check(side === 1 || side === -1);
+            return createPolyhedron(c, name, {
+                tag: `${kind}Z`,
+                points: points([a, b], 2) as [point_object, point_object],
+                side,
+            });
+        },
+    };
+};
+
 // A cylinder or a cone of axis AB and radius r.
 const revolution =
     (cone: boolean): Builder =>
@@ -2405,34 +2448,11 @@ const BUILDERS: Record<string, Builder> = {
             at(plane, polygon_object),
         );
     },
-    Cube: (parameters, { c, name, points }) =>
-        createPolyhedron(c, name, {
-            tag: "Cube",
-            points: points(parameters, 3) as [
-                point_object,
-                point_object,
-                point_object,
-            ],
-        }),
-    CubP: (parameters, { c, name, at }) => {
-        const [a, b, plane, side] = list(parameters, 4);
-        check(side === 1 || side === -1);
-        return createPolyhedron(c, name, {
-            tag: "CubP",
-            points: [at(a, point_object), at(b, point_object)],
-            plane: at(plane, polygon_object),
-            side,
-        });
-    },
-    CubZ: (parameters, { c, name, points }) => {
-        const [a, b, side] = list(parameters, 3);
-        check(side === 1 || side === -1);
-        return createPolyhedron(c, name, {
-            tag: "CubZ",
-            points: points([a, b], 2) as [point_object, point_object],
-            side,
-        });
-    },
+    ...regular("Cube"),
+    ...regular("Tetr"),
+    ...regular("Octa"),
+    ...regular("Dode"),
+    ...regular("Icos"),
     Prsm: onPolygon("Prsm"),
     Pyr: onPolygon("Pyr"),
     PrsH: onPolygon("PrsH"),

@@ -3,7 +3,7 @@ import { vCross, vNormalize, vSub } from "../vec";
 import type { DgoContext } from "./construction_object";
 import { polygon_object } from "./polygon_object";
 import { point_object } from "./point_object";
-import { cubeVertices, normalOf } from "./polyhedron_object";
+import { normalOf, regularVertices } from "./polyhedron_object";
 
 // A vertex of GeoGebra's cube on the square ABCD of plane ABC, on the side
 // of AB × BC, or parallel to a plane, on the side of its normal, none when
@@ -47,7 +47,8 @@ export class cube_vertex_object extends point_object {
             A.defined &&
             B.defined &&
             third.defined &&
-            cubeVertices(
+            regularVertices(
+                "Cub",
                 a,
                 b,
                 third instanceof polygon_object
@@ -58,7 +59,7 @@ export class cube_vertex_object extends point_object {
             this.defined = false;
             return;
         }
-        this.coords = vertices[this.rank];
+        this.coords = vertices[this.rank + 2];
         super.computeGeometry();
     }
 

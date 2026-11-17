@@ -91,6 +91,7 @@ import {
     COMMANDS,
     decodeEntry,
     findCommand,
+    REGULAR_SOLIDS,
     FormulaArg,
     isCommand,
     mappedSlot,
@@ -2254,16 +2255,18 @@ export function addPointOn(
     return point;
 }
 
-// Cube(A, B, C) with A and B alone: two points on one plane or polygon
-// give its square, the cube on the camera's side; two free points at one
-// height, as on the floor, a horizontal square, the cube above.
-export function cubeOn(
+// Cube(A, B, C), Tetrahedron(A, B, C)… with A and B alone: two points on
+// one plane or polygon give its face, the solid on the camera's side; two
+// free points at one height, as on the floor, a horizontal face, the solid
+// above.
+export function regularOn(
     c: construction,
     { tag }: Overload,
     [a, b, third]: (Arg | undefined)[],
 ): Omit<Spec, "name"> | null {
-    if (tag !== "Cube" || !b || third) return null;
-    const [, onPlane, horizontal] = findCommand("Cube")!.overloads;
+    const name = REGULAR_SOLIDS[tag];
+    if (!name || !b || third) return null;
+    const [, onPlane, horizontal] = findCommand(name)!.overloads;
     const [p, q] = [a, b] as point_object[];
     if (p instanceof point_on_object && q instanceof point_on_object) {
         const { support } = p;

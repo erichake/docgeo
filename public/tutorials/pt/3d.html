@@ -146,6 +146,10 @@
                                 <code>Cilindro(A, B, r)</code>,
                                 <code>Cone(A, B, r)</code>,
                                 <code>Cubo(A, B, C)</code>,
+                                <code>Tetraedro(A, B, C)</code>,
+                                <code>Octaedro(A, B, C)</code>,
+                                <code>Dodecaedro(A, B, C)</code>,
+                                <code>Icosaedro(A, B, C)</code>,
                                 <code>Prisma(p, P)</code>,
                                 <code>Pirâmide(p, S)</code>
                             </td>
@@ -207,7 +211,9 @@
                     do lado voltado para a câmera; dois pontos da mesma altura
                     dão <code>Cubo(A, B, 1)</code>, acima (−1: abaixo). Senão a
                     ferramenta espera um terceiro ponto. O cubo fica indefinido
-                    se [AB] deixar de ser paralelo ao plano.
+                    se [AB] deixar de ser paralelo ao plano. O tetraedro, o
+                    octaedro, o dodecaedro e o icosaedro se constroem da mesma
+                    forma.
                 </li>
                 <li>
                     A ferramenta <strong>Seção</strong> aceita o sólido e o

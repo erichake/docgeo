@@ -2662,6 +2662,13 @@ Fait (2026-10-11) :
   un plan tout juste créé n'était pas désignable avant un changement de
   vue, ses coins n'étant pas projetés. Éditeur +1,0 Ko (+0,4 Ko en
   gzip) ; moteur +0,6 Ko (+0,2 Ko en gzip), lecteur inchangé.
+- Polyèdres réguliers (2026-11-17) : `Tétraèdre`, `Octaèdre`,
+  `Dodécaèdre`, `Icosaèdre`, comme `Cube` : sur la face ABC… du plan ABC
+  (C ne donnant que le plan et le côté), et en deux clics (voir le cube
+  en deux clics) `Tétraèdre(A, B, p, ±1)` et `Tétraèdre(A, B, ±1)`. Leurs
+  outils, au menu « Solides », encadrent le cube (tétraèdre, cube,
+  octaèdre, dodécaèdre, icosaèdre). Sections, patrons, sommets et images
+  par une transformation leur viennent du polyèdre commun.
 - Construction panneau de propriétés ouvert (2026-10-15, section « Panneau
   de propriétés ») : un outil du menu ou la ligne de saisie prend les
   clics, l'objet construit s'affiche dans le panneau ; auparavant, l'outil

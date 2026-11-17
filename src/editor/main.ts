@@ -62,6 +62,7 @@ import {
     commandsStarting,
     crossable,
     findCommand,
+    REGULAR_SOLIDS,
     FormulaArg,
     FUNCTIONS,
     isCommand,
@@ -88,7 +89,7 @@ import {
     setConditions,
     showOnly,
     showWhile,
-    cubeOn,
+    regularOn,
     entryOf,
     figureIndex,
     formatArg,
@@ -3414,7 +3415,7 @@ function take(picked: Hit[]): void {
 
 // What the tool builds at once from the objects picked, when they are all
 // its arguments: the intersections of two objects, a polygon closed from
-// three vertices, a cube from two points.
+// three vertices, a regular polyhedron from two points.
 function builtFrom(tool: Tool, picked: Hit[]): Built[] | null {
     const objects = picked.map(({ object }) => object);
     if (tool.mode === "intersection")
@@ -3426,7 +3427,7 @@ function builtFrom(tool: Tool, picked: Hit[]): Built[] | null {
             ? [{ overload: tool.overload, args: args as Arg[] }]
             : null;
     const built =
-        cubeOn(scene(), tool.overload, args) ??
+        regularOn(scene(), tool.overload, args) ??
         (args.includes(undefined)
             ? null
             : { overload: formOf(tool, args as Arg[]), args: args as Arg[] });
@@ -5307,11 +5308,11 @@ function begin(tool: Tool, object: construction_object): void {
     if (keeping) keep(pending.args.indexOf(object));
 }
 
-// Builds the object once all its arguments are designated, or a cube
-// from two points that give its plane.
+// Builds the object once all its arguments are designated, or a regular
+// polyhedron from two points that give its plane.
 function proceed(): void {
     const { tool, args } = pending!;
-    const cube = cubeOn(scene(), tool.overload, args);
+    const cube = regularOn(scene(), tool.overload, args);
     if (cube) return build(cube.overload, cube.args);
     if (tool.overload.variadic || args.includes(undefined)) return prompt();
     build(formOf(tool, args as Arg[]), args as Arg[]);
@@ -5522,8 +5523,8 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         missing > 0 &&
         missing <= (overload.tag === "Quad" ? 3 : 1) &&
         STAND_INS[overload.tag];
-    // A cube from two points, which may not give its plane.
-    const cube = !!pending && overload.tag === "Cube" && slot === 1;
+    // A regular polyhedron from two points, which may not give its plane.
+    const cube = !!pending && !!REGULAR_SOLIDS[overload.tag] && slot === 1;
     if (missing > 0 && !stand && !cube) return clearPreview();
     const param = paramAt(overload, slot)!;
     const hit =
@@ -5590,7 +5591,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
             return standIn;
         });
         const form = cube
-            ? cubeOn(c, overload, full)
+            ? regularOn(c, overload, full)
             : {
                   overload: pending
                       ? formOf(pending.tool, full as Arg[])

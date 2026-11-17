@@ -2,6 +2,7 @@ import type { Animation } from "../animation";
 import type { SegmentMap } from "../objects/iteration_object";
 import { $ } from "../dom";
 import { CURSOR_OFFSET_Y } from "../objects/expression_object";
+import { regularFaces } from "../objects/polyhedron_object";
 import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     evaluateFormula,
@@ -361,31 +362,6 @@ const CLICKED: Kind[] = [
     "locus",
     "curve",
     "image",
-];
-// Cube(A, B, C)'s outputs, after the polyhedron itself: vertices D to H,
-// then its faces and edges as vertex indices (A..H = 0..7), in GeoGebra's
-// order (see PlatonicSolidsFactory.getCube), which also numbers its nets.
-const CUBE_FACES = [
-    [3, 0, 1, 2],
-    [4, 0, 3, 7],
-    [1, 0, 4, 5],
-    [2, 1, 5, 6],
-    [3, 2, 6, 7],
-    [4, 7, 6, 5],
-];
-const CUBE_EDGES = [
-    [0, 3],
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [0, 4],
-    [3, 7],
-    [4, 7],
-    [4, 5],
-    [1, 5],
-    [5, 6],
-    [2, 6],
-    [6, 7],
 ];
 // The axes' names in a script, English or French.
 const AXIS_NAME = /^(?:([xyz])Axis|axe([XYZ]))$/;
@@ -3843,6 +3819,56 @@ export function translateGgb(
         return define(label, "line", "Vector", [ref(start), ref(end)]);
     };
 
+    // Cube(A, B, C), Tetrahedron(A, B, C)…, on the face ABC… of plane ABC,
+    // on the side of AB × BC, exactly as GeoGebra builds them, or (A, B, p)
+    // on AB parallel to plane or polygon p, on the side of its normal. Their
+    // vertices C (unless given), D… are their own; then come their faces and
+    // their edges, those of each face in turn, in GeoGebra's order.
+    const regular =
+        (command: string, tag: string): Handler =>
+        (inputs, [solid, ...outputs]) => {
+            const [a, b, c] = inputs;
+            const plane = isDirection(c);
+            if (inputs.length !== 3 || !points(a, b) || !(plane || points(c)))
+                return false;
+            defineSolid(solid, command, [a, b, c].map(ref));
+            const faces = regularFaces(tag);
+            const given = plane ? 2 : 3;
+            const vertices = Array.from(
+                { length: Math.max(...faces.flat()) + 1 },
+                (_, rank) =>
+                    rank < given
+                        ? inputs[rank]
+                        : vertexOf(solid, rank, outputs[rank - given]),
+            );
+            const rest = outputs.slice(vertices.length - given);
+            const shell = faces.map((face) =>
+                face.map((vertex) => vertices[vertex]),
+            );
+            shell.forEach((face, index) => {
+                const label = rest[index];
+                if (!label) return;
+                polygons.set(label, face);
+                definePolygon(label, face);
+            });
+            const edges = new Map<string, [number, number]>();
+            faces.forEach((face) =>
+                face.forEach((p, index) => {
+                    const q = face[(index + 1) % face.length];
+                    edges.set(`${Math.min(p, q)},${Math.max(p, q)}`, [
+                        Math.min(p, q),
+                        Math.max(p, q),
+                    ]);
+                }),
+            );
+            [...edges.values()].forEach(([p, q], index) => {
+                const label = rest[faces.length + index];
+                if (label) defineSegment(label, vertices[p], vertices[q]);
+            });
+            shells.set(solid, shell);
+            return true;
+        };
+
     // Cylinder(A, B, r), Cone(A, B, r) of apex B: drawn in the style of
     // GeoGebra's side, which it is, and its disks.
     const revolution =
@@ -4516,41 +4542,11 @@ export function translateGgb(
             );
             return true;
         },
-        // Cube(A, B, C), or Cube(A, B, p) whose square ABCD is parallel to
-        // plane or polygon p.
-        Cube: (inputs, [solid, ...outputs]) => {
-            const [a, b, c] = inputs;
-            const plane = isDirection(c);
-            if (inputs.length !== 3 || !points(a, b) || !(plane || points(c)))
-                return false;
-            // The square ABCD lies in plane ABC, the cube on the side of
-            // AB × BC, exactly as GeoGebra builds it; or on the side of p's
-            // normal. Its vertices C (unless given), D, …, H are its own.
-            defineSolid(solid, "Cube", [a, b, c].map(ref));
-            const ranks = plane ? [2, 3, 4, 5, 6, 7] : [3, 4, 5, 6, 7];
-            const vertices = [
-                ...inputs.slice(0, plane ? 2 : 3),
-                ...ranks.map((rank, index) =>
-                    vertexOf(solid, rank, outputs[index]),
-                ),
-            ];
-            const others = ranks;
-            const faces = CUBE_FACES.map((face) =>
-                face.map((vertex) => vertices[vertex]),
-            );
-            faces.forEach((face, index) => {
-                const label = outputs[others.length + index];
-                if (!label) return;
-                polygons.set(label, face);
-                definePolygon(label, face);
-            });
-            CUBE_EDGES.forEach(([p, q], index) => {
-                const label = outputs[others.length + 6 + index];
-                if (label) defineSegment(label, vertices[p], vertices[q]);
-            });
-            shells.set(solid, faces);
-            return true;
-        },
+        Cube: regular("Cube", "Cube"),
+        Tetrahedron: regular("Tetrahedron", "Tetr"),
+        Octahedron: regular("Octahedron", "Octa"),
+        Dodecahedron: regular("Dodecahedron", "Dode"),
+        Icosahedron: regular("Icosahedron", "Icos"),
         // Net(P, v, base, e1, e2, …): P's net unfolded by v (0: folded, 1:
         // flat) from its base face, e1, e2, … being cut, which a prism or a
         // pyramid ignores; after the net itself come its points, its faces

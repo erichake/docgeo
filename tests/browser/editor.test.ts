@@ -9,7 +9,7 @@ import {
     addEvent,
     addFloor,
     addPointOn,
-    cubeOn,
+    regularOn,
     entryOf,
     figureIndex,
     figureTurtles,
@@ -760,11 +760,11 @@ describe("Editor", () => {
         ].map(([first, second], index) =>
             add(c, {
                 name: "abd"[index],
-                ...cubeOn(c, cube, [first, second, undefined])!,
+                ...regularOn(c, cube, [first, second, undefined])!,
             }),
         ) as polyhedron_object[];
-        expect(cubeOn(c, cube, [A, P, undefined])).toBe(null);
-        expect(cubeOn(c, cube, [A, B, P])).toBe(null);
+        expect(regularOn(c, cube, [A, P, undefined])).toBe(null);
+        expect(regularOn(c, cube, [A, B, P])).toBe(null);
         // Horizontal, above AB.
         expectClose(a.vertices[2].coords, [2, 2, 0]);
         expectClose(a.vertices[4].coords, [0, 0, 2]);
@@ -787,6 +787,56 @@ describe("Editor", () => {
         const other = createConstruction([800, 600]);
         readDgo(other, await describeDgo(c));
         expect(lines(other)).toEqual(text);
+    });
+
+    it("writes and reads the regular polyhedra, from two points as the cube", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (0, 2, 0)",
+            "p = z = 1",
+            "a = Tetrahedron(A, B, C)",
+            "b = Octahedron(A, B, C)",
+            "d = Dodecahedron(A, B, p, -1)",
+            "e = Icosahedron(A, B, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        const solid = (name: string) => c.getObj(name) as polyhedron_object;
+        expect(
+            ["a", "b", "d", "e"].map((name) => [
+                solid(name).vertices.length,
+                solid(name).faces.length,
+            ]),
+        ).toEqual([
+            [4, 4],
+            [6, 8],
+            [20, 12],
+            [12, 20],
+        ]);
+        expectClose(solid("a").vertices[2].coords, [1, Math.sqrt(3), 0]);
+        expect(solid("a").vertices[3].coords[2]).toBeCloseTo(
+            2 * Math.sqrt(2 / 3),
+            9,
+        );
+        // Under the plane, its normal going up.
+        expect(solid("d").vertices[19].coords[2]).toBeLessThan(0);
+        expect(lines(c)).toEqual(text);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        const [A, B] = ["A", "B"].map((name) => c.getObj(name)!);
+        expect(
+            regularOn(c, findCommand("Icosahedron")!.overloads[0], [
+                A,
+                B,
+                undefined,
+            ]),
+        ).toEqual({
+            overload: findCommand("Icosahedron")!.overloads[2],
+            args: [A, B, 1],
+        });
     });
 
     it("writes and reads planes, sections and nets in space", async () => {
@@ -2383,7 +2433,11 @@ describe("Editor", () => {
                 ["Sphere", "Sph"],
                 ["Cylinder", "Cyl"],
                 ["Cone", "Cone"],
+                ["Tetrahedron", "Tetr"],
                 ["Cube", "Cube"],
+                ["Octahedron", "Octa"],
+                ["Dodecahedron", "Dode"],
+                ["Icosahedron", "Icos"],
                 ["Prism", "Prsm"],
                 ["Pyramid", "Pyr"],
                 ["Section", ""],

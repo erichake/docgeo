@@ -516,6 +516,18 @@ Q), s, n)` de GeoGebra (2026-11-17).
 | `Cube`  | cube sur le carré ABCD du plan ABC                                          | `[A, B, C]` (21)                                         |
 | `CubP`  | cube sur AB parallèle à un plan                                             | `[A, B, plan ou polygone, ±1]` (20, 21)                  |
 | `CubZ`  | cube sur AB, carré ABCD horizontal                                          | `[A, B, ±1]` (20, 21)                                    |
+| `Tetr`  | tétraèdre régulier sur la face ABC du plan ABC (35)                         | `[A, B, C]` (21)                                         |
+| `TetP`  | tétraèdre sur AB parallèle à un plan (35)                                   | `[A, B, plan ou polygone, ±1]` (20, 21)                  |
+| `TetZ`  | tétraèdre sur AB, face horizontale (35)                                     | `[A, B, ±1]` (20, 21)                                    |
+| `Octa`  | octaèdre régulier sur la face ABC du plan ABC (35)                          | `[A, B, C]` (21)                                         |
+| `OctP`  | octaèdre sur AB parallèle à un plan (35)                                    | `[A, B, plan ou polygone, ±1]` (20, 21)                  |
+| `OctZ`  | octaèdre sur AB, face horizontale (35)                                      | `[A, B, ±1]` (20, 21)                                    |
+| `Dode`  | dodécaèdre régulier sur la face ABCDE du plan ABC (35)                      | `[A, B, C]` (21)                                         |
+| `DodP`  | dodécaèdre sur AB parallèle à un plan (35)                                  | `[A, B, plan ou polygone, ±1]` (20, 21)                  |
+| `DodZ`  | dodécaèdre sur AB, face horizontale (35)                                    | `[A, B, ±1]` (20, 21)                                    |
+| `Icos`  | icosaèdre régulier sur la face ABC du plan ABC (35)                         | `[A, B, C]` (21)                                         |
+| `IcoP`  | icosaèdre sur AB parallèle à un plan (35)                                   | `[A, B, plan ou polygone, ±1]` (20, 21)                  |
+| `IcoZ`  | icosaèdre sur AB, face horizontale (35)                                     | `[A, B, ±1]` (20, 21)                                    |
 | `Prsm`  | prisme sur un polygone, jusqu'à P                                           | `[polygone, P]` (21)                                     |
 | `Pyr`   | pyramide sur un polygone, de sommet S                                       | `[polygone, S]` (21)                                     |
 | `PrsH`  | prisme sur un polygone, de hauteur h (31)                                   | `[polygone, h]`                                          |
@@ -919,6 +931,19 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     (`CyI`) est exacte quand f est au plus du second degré le long de la
     droite, cherchée sinon par échantillonnage. Le lieu d'un curseur prend
     1000 valeurs régulières de son min à son max, quel que soit son pas.
+35. Ajoutés le 2026-11-17, comme les polyèdres réguliers de GeoGebra
+    (`Tetrahedron`, `Octahedron`, `Dodecahedron`, `Icosahedron`) : la
+    face ABC… (un triangle, un pentagone pour le dodécaèdre) est dans le
+    plan ABC, du côté de AB × BC, C ne donnant que ce plan et ce côté, ou
+    dans le plan de AB parallèle au plan donné ou horizontal, et le solide
+    du côté de sa normale ou du haut, multipliée par ±1, comme le cube.
+    Ses sommets ont l'ordre et les noms de ceux de GeoGebra (A, B, puis
+    les siens, par couches parallèles à la première face), et ses faces
+    son ordre (`PlatonicSolidsFactory`), qui numérote aussi leurs patrons :
+    tétraèdre CAB DAC BAD CBD ; octaèdre CAB FAC DAF BAD EBD CBE FCE FED ;
+    dodécaèdre EABCD JAEIO BAJKF CBFLG DCGMH EDHNI OINST JOTPK FKPQL
+    GLQRM HMRSN TSRQP ; icosaèdre CAB FAC GAF DAG BAD HBD EBH CBE ICE FCI
+    KEH IEK LIK FIL JKH LKJ GLJ FLG DJH GJD (A = 0, B = 1…).
 
 ### Macro-constructions
 
@@ -1318,6 +1343,8 @@ non définie).
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `PrsH`, `PyrH`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Tetr`, `TetP`, `TetZ`, `Octa`, `OctP`, `OctZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Dode`, `DodP`, `DodZ`, `Icos`, `IcoP`, `IcoZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Surf` (opacité 0,4)                                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |

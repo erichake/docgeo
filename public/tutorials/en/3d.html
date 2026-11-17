@@ -145,6 +145,10 @@
                                 <code>Cylinder(A, B, r)</code>,
                                 <code>Cone(A, B, r)</code>,
                                 <code>Cube(A, B, C)</code>,
+                                <code>Tetrahedron(A, B, C)</code>,
+                                <code>Octahedron(A, B, C)</code>,
+                                <code>Dodecahedron(A, B, C)</code>,
+                                <code>Icosahedron(A, B, C)</code>,
                                 <code>Prism(p, P)</code>,
                                 <code>Pyramid(p, S)</code>
                             </td>
@@ -207,7 +211,9 @@
                     side facing the camera; two points at the same height give
                     <code>Cube(A, B, 1)</code>, above (−1: below). Otherwise the
                     tool waits for a third point. The cube becomes undefined if
-                    [AB] stops being parallel to the plane.
+                    [AB] stops being parallel to the plane. The tetrahedron,
+                    octahedron, dodecahedron and icosahedron are built the same
+                    way.
                 </li>
                 <li>
                     The <strong>Section</strong> tool takes the solid and the

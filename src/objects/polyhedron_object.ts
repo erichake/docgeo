@@ -27,36 +27,88 @@ import {
 import { solid_object } from "./solid_object";
 import { convexHull } from "./sphere_object";
 
-// The cube on the square ABCD of plane ABC, on the side of AB × BC, or
-// of a plane, or horizontal, on the side of its normal, or up, times
-// `side` (1 or -1); the prism of a base polygon whose first vertex is
-// translated to P; the pyramid of a base polygon and an apex S; of
-// height h, as GeoGebra's Prism(poly, h) and Pyramid(poly, h), the prism's
-// first top vertex or the pyramid's apex at height h (see above_object).
+// The regular polyhedra, GeoGebra's: of tag Cube, Tetr, Octa, Dode or
+// Icos, on the face ABC… of plane ABC, on the side of AB × BC; of tag CubP,
+// TetP…, parallel to a plane, or CubZ, TetZ…, horizontal, on the side of
+// its normal, or up, times `side` (1 or -1). The prism of a base polygon
+// whose first vertex is translated to P; the pyramid of a base polygon and
+// an apex S; of height h, as GeoGebra's Prism(poly, h) and Pyramid(poly,
+// h), the prism's first top vertex or the pyramid's apex at height h (see
+// above_object).
+export type Regular = "Cub" | "Tet" | "Oct" | "Dod" | "Ico";
 export type polyhedron_definition =
-    | { tag: "Cube"; points: [point_object, point_object, point_object] }
     | {
-          tag: "CubP";
+          tag: "Cube" | "Tetr" | "Octa" | "Dode" | "Icos";
+          points: [point_object, point_object, point_object];
+      }
+    | {
+          tag: `${Regular}P`;
           points: [point_object, point_object];
           plane: polygon_object;
           side: number;
       }
-    | { tag: "CubZ"; points: [point_object, point_object]; side: number }
+    | { tag: `${Regular}Z`; points: [point_object, point_object]; side: number }
     | { tag: "Prsm" | "Pyr"; base: polygon_object; point: point_object }
     | { tag: "PrsH" | "PyrH"; base: polygon_object; height: circle1_radius }
     // An image by a transformation: these vertices, on these faces (see
     // transformed_object.ts).
     | { tag: "Map"; vertices: point_object[]; faces: number[][] };
 
-// The cube's faces, by its vertices A..H = 0..7, as GeoGebra's.
-const CUBE_FACES = [
-    [3, 0, 1, 2],
-    [4, 0, 3, 7],
-    [1, 0, 4, 5],
-    [2, 1, 5, 6],
-    [3, 2, 6, 7],
-    [4, 7, 6, 5],
-];
+const PHI = (1 + Math.sqrt(5)) / 2;
+// By the first three letters of their tags: the vertices of a face, then
+// layers of as many over its center, or one over it, each of radius r and
+// at height h, in units of the face's circumradius, turned by t half
+// steps (the cube's exact, apart); their faces, by the vertices' letters
+// A, B, C…, as GeoGebra's (PlatonicSolidsFactory), which also numbers
+// their nets.
+export const REGULAR: Record<
+    string,
+    [sides: number, layers: number[][], faces: string]
+> = {
+    Cub: [4, [], "DABC EADH BAEF CBFG DCGH EHGF"],
+    Tet: [
+        3,
+        [
+            [1, 0, 0],
+            [0, Math.SQRT2, 0],
+        ],
+        "CAB DAC BAD CBD",
+    ],
+    Oct: [
+        3,
+        [
+            [1, 0, 0],
+            [1, Math.SQRT2, 1],
+        ],
+        "CAB FAC DAF BAD EBD CBE FCE FED",
+    ],
+    Dod: [
+        5,
+        [
+            [1, 0, 0],
+            [PHI, 1, 2],
+            [PHI, PHI, 1],
+            [1, PHI * PHI, 1],
+        ],
+        "EABCD JAEIO BAJKF CBFLG DCGMH EDHNI OINST JOTPK FKPQL GLQRM HMRSN TSRQP",
+    ],
+    Ico: [
+        3,
+        [
+            [1, 0, 0],
+            [PHI, 1, 1],
+            [PHI, PHI, 0],
+            [1, PHI * PHI, 1],
+        ],
+        "CAB FAC GAF DAG BAD HBD EBH CBE ICE FCI KEH IEK LIK FIL JKH LKJ GLJ FLG DJH GJD",
+    ],
+};
+
+// A regular polyhedron's faces, by its vertices' indices.
+export const regularFaces = (tag: string): number[][] =>
+    REGULAR[tag.slice(0, 3)][2]
+        .split(" ")
+        .map((face) => [...face].map((letter) => letter.charCodeAt(0) - 65));
 
 // The unit normal of a polygon's plane, that of its first three vertices.
 export function normalOf({ points }: polygon_object): Vec3 | null {
@@ -64,23 +116,60 @@ export function normalOf({ points }: polygon_object): Vec3 | null {
     return vNormalize(vCross(vSub(q, p), vSub(r, p)));
 }
 
-// Vertices C to H of the cube on AB rising along the unit vector n, its
-// square ABCD on the side of n × AB; none unless n is orthogonal to AB, as
-// in GeoGebra.
-export function cubeVertices(a: Vec3, b: Vec3, n: Vec3 | null): Vec3[] | null {
+// The vertices of the regular polyhedron of this tag on AB, A and B
+// included, rising along the unit vector n, its first face on the side of
+// n × AB; none unless n is orthogonal to AB, as in GeoGebra.
+export function regularVertices(
+    tag: string,
+    a: Vec3,
+    b: Vec3,
+    n: Vec3 | null,
+): Vec3[] | null {
     const side = vSub(b, a);
     const length = vNorm(side);
     if (!n || !length || Math.abs(vDot(n, side)) > 1e-9 * length) return null;
-    const across = vCross(n, side);
-    const up = vScale(n, length);
-    return [
-        vAdd(b, across),
-        vAdd(a, across),
-        vAdd(a, up),
-        vAdd(b, up),
-        vAdd(vAdd(b, across), up),
-        vAdd(vAdd(a, across), up),
-    ];
+    const [sides, layers] = REGULAR[tag.slice(0, 3)];
+    const u = vScale(side, 1 / length);
+    const w = vCross(n, u);
+    if (!layers.length) {
+        const across = vCross(n, side);
+        const up = vScale(n, length);
+        return [
+            a,
+            b,
+            vAdd(b, across),
+            vAdd(a, across),
+            vAdd(a, up),
+            vAdd(b, up),
+            vAdd(vAdd(b, across), up),
+            vAdd(vAdd(a, across), up),
+        ];
+    }
+    const step = Math.PI / sides;
+    const radius = length / 2 / Math.sin(step);
+    const center = vAdd(
+        vScale(vAdd(a, b), 0.5),
+        vScale(w, length / 2 / Math.tan(step)),
+    );
+    return layers.flatMap(([r, h, t]) =>
+        Array.from({ length: r ? sides : 1 }, (_, k) => {
+            const angle = (1.5 * sides - 1 + t + 2 * k) * step;
+            return [u, w, n].reduce(
+                (point, axis, i) =>
+                    vAdd(
+                        point,
+                        vScale(
+                            axis,
+                            radius *
+                                [r * Math.cos(angle), r * Math.sin(angle), h][
+                                    i
+                                ],
+                        ),
+                    ),
+                center,
+            );
+        }),
+    );
 }
 
 // A polyhedron drawn whole: its faces, the far ones first, lit like
@@ -118,10 +207,10 @@ export class polyhedron_object extends solid_object {
             this.faces = definition.faces;
         } else if ("points" in definition) {
             const [a, b] = definition.points;
-            this.vertices = [a, b, ...own(6)];
-            this.faces = CUBE_FACES;
+            this.faces = regularFaces(definition.tag);
+            this.vertices = [a, b, ...own(Math.max(...this.faces.flat()) - 1)];
             this.addParents(...definition.points);
-            if (definition.tag === "CubP") this.addParents(definition.plane);
+            if ("plane" in definition) this.addParents(definition.plane);
         } else {
             const { base } = definition;
             const point =
@@ -174,14 +263,13 @@ export class polyhedron_object extends solid_object {
             ];
         if (!("points" in d))
             return [d.tag, [d.base, d.point].map(context.index)];
-        const points = d.points.map(context.index);
         return [
             d.tag,
-            d.tag === "Cube"
-                ? points
-                : d.tag === "CubP"
-                  ? [...points, context.index(d.plane), d.side]
-                  : [...points, d.side],
+            [
+                ...d.points.map(context.index),
+                ...("plane" in d ? [context.index(d.plane)] : []),
+                ...("side" in d ? [d.side] : []),
+            ],
         ];
     }
 
@@ -196,21 +284,22 @@ export class polyhedron_object extends solid_object {
         if ("points" in d) {
             const [a, b] = coords;
             const along: Vec3 | null =
-                d.tag === "CubP" ? normalOf(d.plane) : [0, 0, 1];
-            const vertices = cubeVertices(
+                "plane" in d ? normalOf(d.plane) : [0, 0, 1];
+            const vertices = regularVertices(
+                d.tag,
                 a,
                 b,
-                d.tag === "Cube"
-                    ? vNormalize(
+                "side" in d
+                    ? along && vScale(along, d.side)
+                    : vNormalize(
                           vCross(vSub(b, a), vSub(d.points[2].coords, b)),
-                      )
-                    : along && vScale(along, d.side),
+                      ),
             );
             if (!vertices) {
                 this.defined = false;
                 return;
             }
-            vertices.forEach((point, i) => (coords[i + 2] = point));
+            for (let i = 2; i < vertices.length; i++) coords[i] = vertices[i];
         } else if (d.tag === "Prsm" || d.tag === "PrsH") {
             const n = d.base.vertices.length;
             const shift = vSub(coords[n], coords[0]);

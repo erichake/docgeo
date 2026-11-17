@@ -318,7 +318,13 @@ const FAMILIES: [
             // Two points of the axis, then a radius the line changes.
             tool("Cylinder", 0, CONSTRUCTION_ICONS.Cylinder),
             tool("Cone", 0, CONSTRUCTION_ICONS.Cone),
+            // Two points, and a third of the face's plane unless they are
+            // on a plane or at one height.
+            tool("Tetrahedron", 0, CONSTRUCTION_ICONS.Tetrahedron),
             tool("Cube", 0, CONSTRUCTION_ICONS.Cube),
+            tool("Octahedron", 0, CONSTRUCTION_ICONS.Octahedron),
+            tool("Dodecahedron", 0, CONSTRUCTION_ICONS.Dodecahedron),
+            tool("Icosahedron", 0, CONSTRUCTION_ICONS.Icosahedron),
             // The base, then the first top vertex or the apex.
             tool("Prism", 0, CONSTRUCTION_ICONS.Prism),
             tool("Pyramid", 0, CONSTRUCTION_ICONS.Pyramid),

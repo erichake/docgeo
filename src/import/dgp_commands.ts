@@ -20,6 +20,7 @@ import {
 import {
     createPolyhedron,
     type polyhedron_object,
+    type Regular,
 } from "../objects/polyhedron_object";
 import { createRegularPolygon } from "../objects/regular_polygon_object";
 import { createTriangleCenter } from "../objects/triangle_center_object";
@@ -2424,11 +2425,19 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
-    // GeoGebra's cube on the square ABCD of plane ABC, on the side of
-    // AB × BC, or parallel to a polygon or a plane, on the side of its
-    // normal.
-    [
-        "Cube",
+    // GeoGebra's regular polyhedra on the face ABC… of plane ABC, on the
+    // side of AB × BC, or on AB parallel to a polygon or a plane, on the
+    // side of its normal.
+    ...(
+        [
+            ["Cube", "Cube"],
+            ["Tetrahedron", "Tetr"],
+            ["Octahedron", "Octa"],
+            ["Dodecahedron", "Dode"],
+            ["Icosahedron", "Icos"],
+        ] as const
+    ).map(([command, tag]): [string, CommandDefinition] => [
+        command,
         {
             parameters: [string, point, point, object],
             result: "polyhedron",
@@ -2443,9 +2452,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     context.construction,
                     name,
                     third instanceof point_object
-                        ? { tag: "Cube", points: [a, b, third] }
+                        ? { tag, points: [a, b, third] }
                         : {
-                              tag: "CubP",
+                              tag: `${tag.slice(0, 3) as Regular}P`,
                               points: [a, b],
                               plane: third,
                               side: 1,
@@ -2453,7 +2462,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 );
             },
         },
-    ],
+    ]),
     // On a polygon, by a point, its apex or its first top vertex, or of a
     // height.
     ["Prism", polyhedronOn("Prsm", point)],
