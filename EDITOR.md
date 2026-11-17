@@ -3025,7 +3025,7 @@ rotation) et, avec plusieurs vues, lui donne sa propre image de fond
 (`VUES.md`, section « Éditeur »).
 La vue active (la dernière appuyée) est entourée de bleu quand il y en a
 plusieurs ; l'onglet « Figure » règle la sienne (axes, grille, et « Fond »,
-propre à la vue). Menu Fichier : « Nouvelle vue » ajoute une colonne à
+propre à la vue). Menu Fichier, sous-menu « Vue » : « Nouvelle vue » ajoute une colonne à
 droite, toutes de même largeur, avec les réglages de la vue active ;
 « Supprimer la vue » (la vue active, s'il y en a plusieurs) donne sa
 largeur à la colonne voisine et y passe ses objets. Les deux, et le

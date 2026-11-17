@@ -1158,25 +1158,7 @@ const menus: Menu[] = [
                 shortcut: installed ? shortcut("T") : undefined,
                 run: () => void addPage(),
             },
-            {
-                label: message("new_view"),
-                run: () => void addView(),
-            },
-            {
-                label: message("delete_view"),
-                run: () => void deleteView(),
-                enabled: () => scene().views.length > 1,
-            },
-            {
-                label: message("move_view_left"),
-                run: () => void shiftView(-1),
-                enabled: () => scene().active > 0,
-            },
-            {
-                label: message("move_view_right"),
-                run: () => void shiftView(1),
-                enabled: () => scene().active < scene().views.length - 1,
-            },
+            null,
             {
                 label: `${message("open")}…`,
                 shortcut: shortcut("O"),
@@ -1223,6 +1205,33 @@ const menus: Menu[] = [
                         pageInput.dom() as HTMLInputElement,
                         (files) => void openInTabs(files),
                     ),
+            },
+            null,
+            {
+                label: message("view_section"),
+                items: () => [
+                    {
+                        label: message("new_view"),
+                        run: () => void addView(),
+                    },
+                    {
+                        label: message("delete_view"),
+                        run: () => void deleteView(),
+                        enabled: () => scene().views.length > 1,
+                    },
+                    null,
+                    {
+                        label: message("move_view_left"),
+                        run: () => void shiftView(-1),
+                        enabled: () => scene().active > 0,
+                    },
+                    {
+                        label: message("move_view_right"),
+                        run: () => void shiftView(1),
+                        enabled: () =>
+                            scene().active < scene().views.length - 1,
+                    },
+                ],
             },
             null,
             {

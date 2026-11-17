@@ -143,7 +143,7 @@ colonnes ». Décision de l'auteur (2026-11-16) : on garde la bande.
 
 ## Éditeur
 
-Fichier > Nouvelle vue : une colonne de plus, à droite ; toutes les
+Fichier > Vue > Nouvelle vue : une colonne de plus, à droite ; toutes les
 colonnes prennent la même largeur, chacune gardant son centre ; la nouvelle
 reprend les réglages de la vue active, son origine en son centre. Fichier >
 Supprimer la vue (la vue active) : sa largeur revient à la colonne de
@@ -153,7 +153,7 @@ L'origine et l'unité de chaque vue ne font pas d'étape d'annulation (comme
 celles de la première) ; à la reconstruction d'une étape, chaque vue garde
 ce qu'elle montre au même endroit de l'écran (`reframe`, `lefts`).
 
-Fichier > Déplacer la vue à gauche, à droite : la colonne de la vue active
+Fichier > Vue > Déplacer la vue à gauche, à droite : la colonne de la vue active
 échange sa place avec sa voisine (`shiftView`, `moveView` du moteur), une
 étape d'annulation. Chaque étape de l'historique garde l'identifiant de ses
 vues (`ids`, propre à l'éditeur ; `nextIds` pour l'étape qui ajoute,
@@ -275,7 +275,7 @@ graphiques, régions coloriées).
 - Éditeur réel : un script Playwright (dans `tools/`, pour trouver
   `playwright`) qui ouvre `http://localhost:5199/editor.html?lang=fr`,
   tape des lignes dans `.dge-input`, survole une vue, clique
-  `.dge-menubar > div > button:has-text("Fichier")` puis
+  `.dge-menubar > div > button:has-text("Fichier")`, `button:has-text("Vue")`, puis
   `.dge-menu-popup button:has-text("Nouvelle vue")`, et lit l'état par
   `(await import("/src/editor/main.ts")).studio.scene` (`views`,
   `OBJS.V` avec `view`). Une séparation se déplace par
