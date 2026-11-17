@@ -3315,10 +3315,13 @@ régénérées, contrôle passé.
 
 Un classeur (`.dgo` à pages, voir `DGO.md` « Classeur ») montre ses pages
 par des onglets sous la figure (`src/workbook.ts`, partagé avec le
-lecteur). Menu Fichier : « Nouvelle page » ajoute une page vide après les
-autres et la montre (la figure devient la page 1 d'un classeur si elle n'en
-était pas un) ; « Supprimer la page », après confirmation, supprime la page
-montrée et montre sa voisine (une seule page restante redevient une
+lecteur). L'interface dit « onglet », jamais « page » (choix de l'auteur,
+2026-11-17 : « Nouvel onglet », « Enregistrer l'onglet sous… »…), et un
+nouvel onglet s'appelle « Figure 1 », « Figure 2 »… ; « page » reste le terme du code et du format. Menu Fichier :
+« Nouvel onglet » ajoute une page vide après les autres et la montre (la
+figure devient la page 1 d'un classeur si elle n'en était pas un). « Supprimer
+l'onglet », dans le menu de l'onglet seulement, après confirmation, supprime
+la page montrée et montre sa voisine (une seule page restante redevient une
 figure). Un double clic sur un onglet modifie le nom de sa page (Entrée
 valide, Échap annule). Une fois le classeur créé, sa barre d'onglets
 reprend celle de DocCells (FortuneSheet) : un bouton « + » ajoute une page
@@ -3327,7 +3330,7 @@ couleur de son onglet) pour en montrer une, et chaque onglet a sa flèche
 ▾. Un clic droit sur un onglet ou sa flèche (qui montrent d'abord sa page)
 ouvre le menu de la page (`contextMenu` de `src/editor/menus.ts`) :
 Renommer, Dupliquer (copie insérée après elle et montrée, nommée
-« … (copie) »), Supprimer la page, Déplacer vers la gauche ou la droite,
+« … (copie) »), Supprimer l'onglet, Déplacer vers la gauche ou la droite,
 et la couleur de l'onglet (8 couleurs ou aucune, clé `c` de la page, voir
 `DGO.md`), que le lecteur montre aussi. Un onglet se déplace aussi par
 glisser-déposer, les autres s'écartant pour lui faire place. Pas de
@@ -3363,14 +3366,14 @@ description qu'une fois ouvert). Une figure devient une page nommée d'après
 son fichier (sans extension), un classeur y met toutes ses pages, sous leurs
 noms, sa page montrée l'étant ; un nom déjà pris est numéroté, et les
 références entre pages insérées suivent ce renommage (`renamedJson`). Une
-figure seule devient d'abord la page 1 d'un classeur, comme pour « Nouvelle
-page ». Le classeur garde son fichier d'enregistrement : le handle du
+figure seule devient d'abord la page 1 d'un classeur, comme pour « Nouvel
+onglet ». Le classeur garde son fichier d'enregistrement : le handle du
 fichier ouvert n'est pas repris. Les globales Blockly suivent la règle du
 classeur : la page quittée donne ses valeurs aux autres. Un fichier
 illisible arrête l'insertion, ses pages retirées (« Impossible d'ouvrir
 cette figure »).
 
-« Enregistrer la page sous… » (classeur seulement) écrit la page montrée
+« Enregistrer l'onglet sous… » (classeur seulement) écrit la page montrée
 seule dans un `.dgo` (`saveOther`), sans changer le fichier du classeur.
 
 Glisser-déposer (`dropFigures` de `src/drop.ts`, qui donne tous les

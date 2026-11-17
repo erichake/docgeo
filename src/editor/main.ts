@@ -1159,11 +1159,6 @@ const menus: Menu[] = [
                 run: () => void addPage(),
             },
             {
-                label: message("delete_page"),
-                run: () => void deletePage(),
-                enabled: () => !!book,
-            },
-            {
                 label: message("new_view"),
                 run: () => void addView(),
             },
