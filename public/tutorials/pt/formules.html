@@ -84,41 +84,40 @@
                 simétrico de A em relação a B.
             </p>
 
-            <h2 id="autres-pages">Ler outra página</h2>
+            <h2 id="autres-pages">Ler outra aba</h2>
             <p>
                 Numa <a href="demarrage.html#classeur">pasta de trabalho</a>,
-                uma fórmula lê o valor de um objeto de outra página, como numa
-                planilha: o nome da página entre aspas simples, um ponto de
+                uma fórmula lê o valor de um objeto de outra aba, como numa
+                planilha: o nome da aba entre aspas simples, um ponto de
                 exclamação, o nome do objeto.
             </p>
-            <pre><code>m = 'Página 1'!c
+            <pre><code>m = 'Figura 1'!c
 area = Dados!p * 2</code></pre>
             <ul>
                 <li>
-                    As aspas são desnecessárias se o nome da página não tiver
+                    As aspas são desnecessárias se o nome da aba não tiver
                     espaços nem sinais (<code>Dados!p</code>); um apóstrofo do
                     nome escreve-se <code>\'</code> (<code>'D\'Ávila'!c</code>).
                 </li>
                 <li>
-                    O valor é o que uma fórmula dessa página leria: coordenadas
-                    de um ponto, comprimento de um segmento… Uma função não pode
+                    O valor é o que uma fórmula dessa aba leria: coordenadas de
+                    um ponto, comprimento de um segmento… Uma função não pode
                     ser lida.
                 </li>
                 <li>
-                    Somente leitura: nada numa página modifica outra página. O
-                    valor é relido ao voltar à página que o lê. Única exceção:
-                    as globais dos programas, comuns a toda a pasta de trabalho.
+                    Somente leitura: nada numa aba modifica outra aba. O valor é
+                    relido ao voltar à aba que o lê. Única exceção: as globais
+                    dos programas, comuns a toda a pasta de trabalho.
                 </li>
                 <li>
-                    Uma página não pode ler a si mesma, nem ler uma página que a
-                    lê («Referência circular»). Uma página ou um objeto
-                    desconhecido é recusado na digitação.
+                    Uma aba não pode ler a si mesma, nem ler uma aba que a lê
+                    («Referência circular»). Uma aba ou um objeto desconhecido é
+                    recusado na digitação.
                 </li>
                 <li>
-                    Renomear uma página, ou um objeto da página mostrada,
-                    atualiza as fórmulas das outras páginas. Depois da
-                    eliminação de uma página, as fórmulas que a liam ficam
-                    indefinidas.
+                    Renomear uma aba, ou um objeto da aba mostrada, atualiza as
+                    fórmulas das outras abas. Depois da eliminação de uma aba,
+                    as fórmulas que a liam ficam indefinidas.
                 </li>
             </ul>
 

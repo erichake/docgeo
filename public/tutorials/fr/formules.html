@@ -86,41 +86,41 @@
                 symétrique de A par rapport à B.
             </p>
 
-            <h2 id="autres-pages">Lire une autre page</h2>
+            <h2 id="autres-pages">Lire un autre onglet</h2>
             <p>
                 Dans un <a href="demarrage.html#classeur">classeur</a>, une
-                formule lit la valeur d’un objet d’une autre page, comme dans un
-                tableur : le nom de la page entre apostrophes, un point
+                formule lit la valeur d’un objet d’un autre onglet, comme dans
+                un tableur : le nom de l’onglet entre apostrophes, un point
                 d’exclamation, le nom de l’objet.
             </p>
-            <pre><code>m = 'Page 1'!c
+            <pre><code>m = 'Figure 1'!c
 aire = Calculs!p * 2</code></pre>
             <ul>
                 <li>
-                    Les apostrophes sont inutiles si le nom de la page n’a ni
+                    Les apostrophes sont inutiles si le nom de l’onglet n’a ni
                     espace ni signe (<code>Calculs!p</code>) ; une apostrophe du
                     nom s’écrit <code>\'</code> (<code>'L\'aire'!c</code>).
                 </li>
                 <li>
-                    La valeur est celle que lirait une formule de cette page :
+                    La valeur est celle que lirait une formule de cet onglet :
                     coordonnées d’un point, longueur d’un segment… Une fonction
                     ne se lit pas.
                 </li>
                 <li>
-                    Lecture seule : rien dans une page ne modifie une autre
-                    page. La valeur est relue quand on revient sur la page qui
-                    la lit. Seule exception : les globales des programmes,
+                    Lecture seule : rien dans un onglet ne modifie un autre
+                    onglet. La valeur est relue quand on revient sur l’onglet
+                    qui la lit. Seule exception : les globales des programmes,
                     communes à tout le classeur.
                 </li>
                 <li>
-                    Une page ne peut pas se lire elle-même, ni lire une page qui
-                    la lit (« Référence circulaire »). Une page ou un objet
+                    Un onglet ne peut pas se lire lui-même, ni lire un onglet
+                    qui le lit (« Référence circulaire »). Un onglet ou un objet
                     inconnu est refusé à la saisie.
                 </li>
                 <li>
-                    Renommer une page, ou un objet de la page montrée, met à
-                    jour les formules des autres pages. Après la suppression
-                    d’une page, les formules qui la lisaient sont indéfinies.
+                    Renommer un onglet, ou un objet de l’onglet montré, met à
+                    jour les formules des autres onglets. Après la suppression
+                    d’un onglet, les formules qui le lisaient sont indéfinies.
                 </li>
             </ul>
 

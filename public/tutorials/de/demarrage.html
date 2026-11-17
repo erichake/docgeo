@@ -191,7 +191,7 @@
                 </li>
                 <li>
                     In einer <a href="#classeur">Arbeitsmappe</a> druckt
-                    <strong>Alle Seiten</strong> ein Blatt pro Seite.
+                    <strong>Alle Tabs</strong> ein Blatt pro Tab.
                 </li>
             </ul>
             <p>
@@ -200,65 +200,72 @@
                 Editors erhalten.
             </p>
 
-            <h2 id="classeur">Arbeitsmappen: mehrere Seiten</h2>
+            <h2 id="classeur">Arbeitsmappen: mehrere Tabs</h2>
             <p>
-                Eine Arbeitsmappe fasst mehrere Figuren, ihre Seiten, in einer
-                einzigen <code>.dgo</code>-Datei zusammen. Ihre Register unter
-                der Figur zeigen jeweils eine Seite.
+                Eine Arbeitsmappe fasst mehrere Figuren, jede in ihrem Tab, in
+                einer einzigen <code>.dgo</code>-Datei zusammen. Die Tabs unter
+                der Figur zeigen jeweils eine davon.
             </p>
             <figure>
                 <img
                     src="img/classeur.webp"
-                    alt="Register von drei Seiten; Menü von Seite 2 geöffnet"
+                    alt="Drei Tabs; Menü des zweiten geöffnet"
                     width="720"
                     height="420"
                 />
             </figure>
             <ul>
                 <li>
-                    <strong>Datei › Neue Seite</strong> fügt nach den anderen
-                    eine leere Seite hinzu: Die aktuelle Figur wird Seite 1.
-                    Danach tut die Schaltfläche <strong>+</strong> am Anfang der
-                    Register dasselbe, und die Schaltfläche daneben listet alle
-                    Seiten auf.
+                    <strong>Datei › Neuer Tab</strong> fügt nach den anderen
+                    einen leeren Tab hinzu, „Figur 2“, „Figur 3“… genannt: Die
+                    aktuelle Figur wird „Figur 1“. Danach tut die Schaltfläche
+                    <strong>+</strong> am Anfang der Tabs dasselbe, und die
+                    Schaltfläche daneben listet alle Tabs auf.
                 </li>
                 <li>
-                    Ein Rechtsklick auf ein Register oder auf seinen Pfeil ▾
-                    öffnet das Menü der Seite: <strong>Umbenennen</strong>,
-                    <strong>Duplizieren</strong>,
-                    <strong>Seite löschen</strong>,
+                    <strong>Datei › In neuem Tab öffnen…</strong> fügt
+                    gespeicherte Figuren hinzu, jede in einem Tab mit ihrem
+                    Namen (eine Arbeitsmappe bringt alle ihre Tabs mit).
+                    <strong>Datei › Tab speichern unter…</strong> speichert die
+                    Figur des angezeigten Tabs allein.
+                </li>
+                <li>
+                    Ein Rechtsklick auf einen Tab oder auf seinen Pfeil ▾ öffnet
+                    sein Menü: <strong>Umbenennen</strong>,
+                    <strong>Duplizieren</strong>, <strong>Tab löschen</strong>,
                     <strong>Nach links verschieben</strong> oder
                     <strong>Nach rechts verschieben</strong> und die
-                    <strong>Registerfarbe</strong>.
+                    <strong>Tab-Farbe</strong>.
                 </li>
                 <li>
-                    Ein Doppelklick auf ein Register benennt seine Seite um
-                    (<kbd>Eingabe</kbd> bestätigt, <kbd>Esc</kbd> bricht ab);
-                    zwei Seiten können nicht gleich heißen. Ein gezogenes
-                    Register wechselt seinen Platz.
+                    Ein Doppelklick auf einen Tab benennt ihn um (<kbd
+                        >Eingabe</kbd
+                    >
+                    bestätigt, <kbd>Esc</kbd> bricht ab); zwei Tabs können nicht
+                    gleich heißen. Ein gezogener Tab wechselt seinen Platz.
                 </li>
                 <li>
-                    Die Seiten sind unabhängig: Jede hat ihre Objekte, ihr
-                    Koordinatensystem, ihre Makros und ihren Rückgängig-Verlauf,
-                    den man beim Zurückkehren wiederfindet. Eine Formel kann
-                    jedoch einen Wert einer anderen Seite lesen (<a
-                        href="formules.html#autres-pages"
-                        >Eine andere Seite lesen</a
+                    Die Tabs sind unabhängig: Jeder hat seine Objekte, sein
+                    Koordinatensystem, seine Makros und seinen
+                    Rückgängig-Verlauf, den man beim Zurückkehren wiederfindet.
+                    Eine Formel kann jedoch einen Wert eines anderen Tabs lesen
+                    (<a href="formules.html#autres-pages"
+                        >Einen anderen Tab lesen</a
                     >). Die Globalen der Programme gelten dagegen für die ganze
                     Arbeitsmappe (<a href="expressions.html#blocs"
                         >Blöcke und Schildkröte</a
                     >).
                 </li>
                 <li>
-                    Beim Speichern wird die ganze Arbeitsmappe geschrieben, jede
-                    Seite so, wie man sie verlassen hat; die angezeigte Seite
-                    ist die, die sich öffnen wird. Eine Arbeitsmappe mit nur
-                    noch einer Seite wird wieder eine einfache Figur.
+                    Beim Speichern wird die ganze Arbeitsmappe geschrieben,
+                    jeder Tab so, wie man ihn verlassen hat; der angezeigte Tab
+                    ist der, der sich öffnen wird. Eine Arbeitsmappe mit nur
+                    noch einem Tab wird wieder eine einfache Figur.
                 </li>
             </ul>
             <p>
-                Der Player zeigt die Register ebenfalls. Eine in eine Webseite
-                eingebettete Figur zeigt nur die Seite, die beim Speichern
+                Der Player zeigt die Tabs ebenfalls. Eine in eine Webseite
+                eingebettete Figur zeigt nur den Tab, der beim Speichern
                 angezeigt war.
             </p>
 

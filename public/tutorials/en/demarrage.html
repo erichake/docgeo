@@ -174,7 +174,7 @@
                 </li>
                 <li>
                     In a <a href="#classeur">workbook</a>,
-                    <strong>All pages</strong> prints one sheet per page.
+                    <strong>All tabs</strong> prints one sheet per tab.
                 </li>
             </ul>
             <p>
@@ -182,59 +182,65 @@
                 The settings stay the same until the editor is closed.
             </p>
 
-            <h2 id="classeur">Workbooks: several pages</h2>
+            <h2 id="classeur">Workbooks: several tabs</h2>
             <p>
-                A workbook gathers several figures, its pages, in a single
-                <code>.dgo</code> file. Its tabs, below the figure, show one
-                page at a time.
+                A workbook gathers several figures, each in its tab, in a single
+                <code>.dgo</code> file. The tabs, below the figure, show one at
+                a time.
             </p>
             <figure>
                 <img
                     src="img/classeur.webp"
-                    alt="Tabs of three pages; the menu of page 2 open"
+                    alt="Three tabs; the menu of the second one open"
                     width="720"
                     height="420"
                 />
             </figure>
             <ul>
                 <li>
-                    <strong>File › New page</strong> adds an empty page after
-                    the others: the current figure becomes page 1. Then the
-                    <strong>+</strong> button at the start of the tabs does the
-                    same, and the button next to it lists all the pages.
+                    <strong>File › New tab</strong> adds an empty tab after the
+                    others, named “Figure 2”, “Figure 3”…: the current figure
+                    becomes “Figure 1”. Then the <strong>+</strong> button at
+                    the start of the tabs does the same, and the button next to
+                    it lists all the tabs.
                 </li>
                 <li>
-                    A right click on a tab, or on its ▾ arrow, opens the page’s
-                    menu: <strong>Rename</strong>, <strong>Duplicate</strong>,
-                    <strong>Delete the page</strong>,
+                    <strong>File › Open in new tab…</strong> adds saved figures,
+                    each in a tab named after it (a workbook brings all its
+                    tabs). <strong>File › Save tab as…</strong> saves the figure
+                    of the tab shown on its own.
+                </li>
+                <li>
+                    A right click on a tab, or on its ▾ arrow, opens its menu:
+                    <strong>Rename</strong>, <strong>Duplicate</strong>,
+                    <strong>Delete the tab</strong>,
                     <strong>Move left</strong> or <strong>Move right</strong>,
                     and the <strong>Tab color</strong>.
                 </li>
                 <li>
-                    A double click on a tab renames its page (<kbd>Enter</kbd>
-                    confirms, <kbd>Esc</kbd> cancels); two pages cannot have the
+                    A double click on a tab renames it (<kbd>Enter</kbd>
+                    confirms, <kbd>Esc</kbd> cancels); two tabs cannot have the
                     same name. A dragged tab changes place.
                 </li>
                 <li>
-                    Pages are independent: each has its objects, its axes, its
+                    Tabs are independent: each has its objects, its axes, its
                     macros and its undo history, found again when you come back
-                    to it. A formula can however read a value from another page
-                    (<a href="formules.html#autres-pages"
-                        >Reading another page</a
+                    to it. A formula can however read a value from another tab
+                    (<a href="formules.html#autres-pages">Reading another tab</a
                     >). Program globals, however, are common to the whole
                     workbook (<a href="expressions.html#blocs"
                         >Blocks and turtle</a
                     >).
                 </li>
                 <li>
-                    Saving writes the whole workbook, each page as it was left;
-                    the page shown is the one that will open. A workbook reduced
-                    to one page becomes a plain figure again.
+                    Saving writes the whole workbook, each tab as it was left;
+                    the tab shown is the one that will open. A workbook reduced
+                    to one tab becomes a plain figure again.
                 </li>
             </ul>
             <p>
                 The player shows the tabs too. A figure embedded in a web page
-                shows only the page that was displayed when it was saved.
+                shows only the tab that was displayed when it was saved.
             </p>
 
             <h2 id="lien">Sharing a figure by link</h2>

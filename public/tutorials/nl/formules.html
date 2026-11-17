@@ -84,43 +84,44 @@
                 spiegelbeeld van A ten opzichte van B.
             </p>
 
-            <h2 id="autres-pages">Een andere pagina lezen</h2>
+            <h2 id="autres-pages">Een ander tabblad lezen</h2>
             <p>
                 In een <a href="demarrage.html#classeur">werkmap</a> leest een
-                formule de waarde van een object van een andere pagina, zoals in
-                een spreadsheet: de naam van de pagina tussen apostrofs, een
+                formule de waarde van een object van een ander tabblad, zoals in
+                een spreadsheet: de naam van het tabblad tussen apostrofs, een
                 uitroepteken, de naam van het object.
             </p>
-            <pre><code>m = 'Pagina 1'!c
+            <pre><code>m = 'Figuur 1'!c
 oppervlakte = Gegevens!p * 2</code></pre>
             <ul>
                 <li>
-                    De apostrofs zijn overbodig als de paginanaam geen spaties
+                    De apostrofs zijn overbodig als de tabbladnaam geen spaties
                     of tekens bevat (<code>Gegevens!p</code>); een apostrof in
                     de naam schrijf je als
                     <code>\'</code> (<code>'Anna\'s'!c</code>).
                 </li>
                 <li>
-                    De waarde is die welke een formule van die pagina zou lezen:
-                    coördinaten van een punt, lengte van een lijnstuk… Een
-                    functie kan niet worden gelezen.
+                    De waarde is die welke een formule van dat tabblad zou
+                    lezen: coördinaten van een punt, lengte van een lijnstuk…
+                    Een functie kan niet worden gelezen.
                 </li>
                 <li>
-                    Alleen lezen: niets op een pagina wijzigt een andere pagina.
-                    De waarde wordt opnieuw gelezen wanneer je terugkeert naar
-                    de pagina die haar leest. Enige uitzondering: de globalen
-                    van de programma’s, gemeenschappelijk voor de hele werkmap.
+                    Alleen lezen: niets in een tabblad wijzigt een ander
+                    tabblad. De waarde wordt opnieuw gelezen wanneer je
+                    terugkeert naar het tabblad dat haar leest. Enige
+                    uitzondering: de globalen van de programma’s,
+                    gemeenschappelijk voor de hele werkmap.
                 </li>
                 <li>
-                    Een pagina kan zichzelf niet lezen, en ook geen pagina die
-                    haar leest („Kringverwijzing”). Een onbekende pagina of een
+                    Een tabblad kan zichzelf niet lezen, en ook geen tabblad dat
+                    het leest („Kringverwijzing”). Een onbekend tabblad of een
                     onbekend object wordt bij het invoeren geweigerd.
                 </li>
                 <li>
-                    De naam van een pagina, of van een object van de getoonde
-                    pagina, wijzigen werkt de formules van de andere pagina’s
-                    bij. Na het verwijderen van een pagina zijn de formules die
-                    haar lazen ongedefinieerd.
+                    De naam van een tabblad, of van een object van het getoonde
+                    tabblad, wijzigen werkt de formules van de andere tabbladen
+                    bij. Na het verwijderen van een tabblad zijn de formules die
+                    het lazen ongedefinieerd.
                 </li>
             </ul>
 

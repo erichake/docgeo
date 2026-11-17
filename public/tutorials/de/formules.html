@@ -85,44 +85,43 @@
                 der Spiegelpunkt von A an B.
             </p>
 
-            <h2 id="autres-pages">Eine andere Seite lesen</h2>
+            <h2 id="autres-pages">Einen anderen Tab lesen</h2>
             <p>
                 In einer
                 <a href="demarrage.html#classeur">Arbeitsmappe</a> liest eine
-                Formel den Wert eines Objekts einer anderen Seite, wie in einer
-                Tabellenkalkulation: der Name der Seite in Apostrophen, ein
+                Formel den Wert eines Objekts eines anderen Tabs, wie in einer
+                Tabellenkalkulation: der Name des Tabs in Apostrophen, ein
                 Ausrufezeichen, der Name des Objekts.
             </p>
-            <pre><code>m = 'Seite 1'!c
+            <pre><code>m = 'Figur 1'!c
 fläche = Daten!p * 2</code></pre>
             <ul>
                 <li>
-                    Die Apostrophe sind unnötig, wenn der Seitenname weder
+                    Die Apostrophe sind unnötig, wenn der Tabname weder
                     Leerzeichen noch Zeichen enthält (<code>Daten!p</code>); ein
                     Apostroph im Namen wird <code>\'</code> geschrieben
                     (<code>'Tom\'s'!c</code>).
                 </li>
                 <li>
-                    Der Wert ist der, den eine Formel dieser Seite lesen würde:
+                    Der Wert ist der, den eine Formel dieses Tabs lesen würde:
                     Koordinaten eines Punktes, Länge einer Strecke… Eine
                     Funktion kann nicht gelesen werden.
                 </li>
                 <li>
-                    Nur lesend: Nichts auf einer Seite ändert eine andere Seite.
-                    Der Wert wird neu gelesen, wenn man zu der Seite
-                    zurückkehrt, die ihn liest. Einzige Ausnahme: die Globalen
-                    der Programme, die für die ganze Arbeitsmappe gelten.
+                    Nur lesend: Nichts in einem Tab ändert einen anderen Tab.
+                    Der Wert wird neu gelesen, wenn man zu dem Tab zurückkehrt,
+                    der ihn liest. Einzige Ausnahme: die Globalen der Programme,
+                    die für die ganze Arbeitsmappe gelten.
                 </li>
                 <li>
-                    Eine Seite kann weder sich selbst lesen noch eine Seite, die
-                    sie liest („Zirkelbezug“). Eine unbekannte Seite oder ein
+                    Ein Tab kann weder sich selbst lesen noch einen Tab, der ihn
+                    liest („Zirkelbezug“). Ein unbekannter Tab oder ein
                     unbekanntes Objekt wird bei der Eingabe abgelehnt.
                 </li>
                 <li>
-                    Das Umbenennen einer Seite oder eines Objekts der
-                    angezeigten Seite passt die Formeln der anderen Seiten an.
-                    Nach dem Löschen einer Seite sind die Formeln, die sie
-                    lasen, undefiniert.
+                    Das Umbenennen eines Tabs oder eines Objekts des angezeigten
+                    Tabs passt die Formeln der anderen Tabs an. Nach dem Löschen
+                    eines Tabs sind die Formeln, die ihn lasen, undefiniert.
                 </li>
             </ul>
 
