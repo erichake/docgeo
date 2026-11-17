@@ -167,10 +167,13 @@ export interface ExpressionProgram {
     vec3: boolean;
 }
 
+// A region's, which imports this module, by its family.
 const functionFormula = (ref: construction_object | undefined) =>
-    (ref instanceof expression_object || ref instanceof curve_object) &&
-    ref.formula
-        ? ref.formula
+    (ref instanceof expression_object ||
+        ref instanceof curve_object ||
+        ref?.familytype === "region") &&
+    (ref as expression_object).formula
+        ? (ref as expression_object).formula
         : null;
 
 // A call "E1(...)" of a function-valued expression or a curve among `refs`,

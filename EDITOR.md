@@ -322,6 +322,17 @@ de `src/import/dgp_commands.ts`.
   qu'écrits. Une équation qui lit z (s'il ne nomme pas d'objet) est un
   plan (`PlE`), de degré 1 ; z en tête de ligne reste un nom : `z = 3` est
   une expression, le plan s'écrit `p = z = 3`.
+- **Inégalités** (2026-11-16, comme dans GeoGebra) : une comparaison hors
+  des parenthèses (`<`, `<=`, `>`, `>=`, `&&`, `||`), sans `=`, `?`, `;`
+  ni `{`, d'une formule qui lit x ou y, est la région où elle est vraie
+  (`Reg`) : `x < 2`, `a(x, y) = (x - x(A))^2 + (y - y(A))^2 ≤ r^2`. Les
+  signes de GeoGebra `≤ ≥ ≠ ∧ ∨` valent ceux des formules, et la ligne se
+  relit avec eux, `nom(x, y) = …`. Une formule appelle une région comme une
+  fonction de x et y : `d(x, y) = a(x, y) ∧ b(x, y)` (un nom de fonction
+  des formules, comme `d`, reste cette fonction). Une comparaison de
+  nombres (`F = r < 3`) reste une expression. À l'import GeoGebra, les
+  inégalités d'une variable (`x ≤ k`, `x² < 2`) sont aussi des régions,
+  plus des polygones dépassant la fenêtre.
 - **Coordonnées polaires** (2026-10-17, comme dans GeoGebra) :
   `P = (3; 60°)`, rayon et angle séparés par un point-virgule, est un point
   défini par une formule (`Fp`, `[(3)*cos(60°), (3)*sin(60°)]`), que la

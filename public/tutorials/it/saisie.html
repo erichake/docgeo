@@ -252,6 +252,53 @@ M = PuntoMedio(A, B)</code></pre>
                 il piano si scrive <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">Disuguaglianze</h2>
+            <p>
+                Un confronto in x e y dà la regione in cui vale, colorata:
+                <code>&lt;</code>, <code>&lt;=</code> o <code>≤</code>,
+                <code>&gt;</code>, <code>&gt;=</code> o <code>≥</code>,
+                combinati con <code>&amp;&amp;</code> o <code>∧</code> (e),
+                <code>||</code> o <code>∨</code> (o).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Riga</th>
+                            <th>Oggetto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>semipiano</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>disco</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>tra una parabola e una retta</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>parte comune di a e b</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                La riga si rilegge <code>a(x, y) = …</code> con ≤, ≥, ∧ e ∨, e
+                una formula chiama la regione come una funzione di x e y, tranne
+                se porta il nome di una
+                <a href="formules.html#fonctions">funzione delle formule</a>
+                (come <code>d</code>). Un confronto di soli numeri (<code
+                    >F = r &lt; 3</code
+                >) resta un’espressione, che vale 1 o 0. Le disuguaglianze delle
+                figure GeoGebra si aprono allo stesso modo.
+            </p>
+
             <h2>Intersezioni e punti su oggetto</h2>
             <ul>
                 <li>

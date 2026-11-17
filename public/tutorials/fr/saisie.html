@@ -250,6 +250,53 @@ M = Milieu(A, B)</code></pre>
                 expression, le plan s’écrit <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">Inégalités</h2>
+            <p>
+                Une comparaison en x et y donne la région où elle est vraie,
+                coloriée : <code>&lt;</code>, <code>&lt;=</code> ou
+                <code>≤</code>, <code>&gt;</code>, <code>&gt;=</code> ou
+                <code>≥</code>, combinées par <code>&amp;&amp;</code> ou
+                <code>∧</code> (et), <code>||</code> ou <code>∨</code> (ou).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ligne</th>
+                            <th>Objet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>demi-plan</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>disque</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>entre une parabole et une droite</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>partie commune de a et b</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                La ligne se relit <code>a(x, y) = …</code> avec ≤, ≥, ∧ et ∨, et
+                une formule appelle la région comme une fonction de x et y, sauf
+                si elle porte le nom d’une
+                <a href="formules.html#fonctions">fonction des formules</a>
+                (comme <code>d</code>). Une comparaison de nombres seuls (<code
+                    >F = r &lt; 3</code
+                >) reste une expression, qui vaut 1 ou 0. Les inégalités des
+                figures GeoGebra s’ouvrent de même.
+            </p>
+
             <h2>Intersections et points sur objet</h2>
             <ul>
                 <li>

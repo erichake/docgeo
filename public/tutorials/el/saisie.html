@@ -253,6 +253,53 @@ M = Μέσο(A, B)</code></pre>
                 <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">Ανισότητες</h2>
+            <p>
+                Μια σύγκριση σε x και y δίνει την περιοχή όπου ισχύει,
+                χρωματισμένη: <code>&lt;</code>, <code>&lt;=</code> ή
+                <code>≤</code>, <code>&gt;</code>, <code>&gt;=</code> ή
+                <code>≥</code>, συνδυασμένες με <code>&amp;&amp;</code> ή
+                <code>∧</code> (και), <code>||</code> ή <code>∨</code> (ή).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Γραμμή</th>
+                            <th>Αντικείμενο</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>ημιεπίπεδο</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>δίσκος</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>ανάμεσα σε παραβολή και ευθεία</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>κοινό μέρος των a και b</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Η γραμμή ξαναδιαβάζεται <code>a(x, y) = …</code> με ≤, ≥, ∧ και
+                ∨, και ένας τύπος καλεί την περιοχή σαν συνάρτηση των x και y,
+                εκτός αν έχει το όνομα μιας
+                <a href="formules.html#fonctions">συνάρτησης των τύπων</a> (όπως
+                <code>d</code>). Μια σύγκριση μόνο αριθμών (<code
+                    >F = r &lt; 3</code
+                >) μένει έκφραση, με τιμή 1 ή 0. Οι ανισότητες των σχημάτων
+                GeoGebra ανοίγουν με τον ίδιο τρόπο.
+            </p>
+
             <h2>Τομές και σημεία πάνω σε αντικείμενα</h2>
             <ul>
                 <li>

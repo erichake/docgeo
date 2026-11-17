@@ -49,7 +49,9 @@
                                 >), Open… (<kbd>Ctrl</kbd> <kbd>O</kbd>), Open
                                 recent, Save (<kbd>Ctrl</kbd> <kbd>S</kbd>),
                                 Save as… (<kbd>Ctrl</kbd> <kbd>Shift</kbd>
-                                <kbd>S</kbd>), Embed in a web page…
+                                <kbd>S</kbd>), Embed in a web page…; New view,
+                                Delete the view, Move view left, Move view right
+                                (<a href="#vues">views</a>)
                             </td>
                         </tr>
                         <tr>
@@ -268,6 +270,79 @@
             <p>
                 The round button at the bottom left, present when the figure has
                 animations, pauses or restarts them.
+            </p>
+
+            <h2 id="vues">Several views</h2>
+            <p>
+                Like GeoGebra’s graphics views, a figure can be shown in several
+                views, in columns side by side. There is still a single
+                construction: each object is drawn in one view, and everything
+                updates live.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>How</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Add a view</td>
+                            <td>
+                                <strong>File › New view</strong>: one more
+                                column, on the right, with the settings of the
+                                active view; the columns take the same width
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Activate a view</td>
+                            <td>
+                                touch it: a thin blue bar marks its top edge.
+                                This click creates no point.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Resize</td>
+                            <td>drag the boundary between two columns</td>
+                        </tr>
+                        <tr>
+                            <td>Change the order</td>
+                            <td>
+                                <strong>File › Move view left</strong>,
+                                <strong>File › Move view right</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Delete</td>
+                            <td>
+                                <strong>File › Delete the view</strong>: its
+                                neighbor takes its place and its objects
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    An object is created in the active view, with a tool as with
+                    the input line. Built on objects of another view, it relies
+                    on their coordinates in its own.
+                </li>
+                <li>
+                    Each view has its own settings:
+                    <strong>View › Axes</strong> and
+                    <strong>View › 3D view</strong>, like the
+                    <a href="proprietes.html#l-onglet-figure">“Figure” tab</a>,
+                    apply to the active view. A plane view beside a 3D view
+                    shows the figure from above.
+                </li>
+            </ul>
+            <p>
+                These actions can be undone. A GeoGebra figure with two graphics
+                views, or whose graphics view is beside the 3D view, opens in
+                two views.
             </p>
 
             <h2>Undoing</h2>

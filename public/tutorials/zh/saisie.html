@@ -229,6 +229,54 @@ M = 中点(A, B)</code></pre>
                 是表达式，平面应写作<code>p = z = 3</code>。
             </p>
 
+            <h2 id="inegalites">不等式</h2>
+            <p>
+                关于 x 和 y
+                的比较给出它成立的区域，并填充颜色：<code>&lt;</code>,
+                <code>&lt;=</code> 或 <code>≤</code>, <code>&gt;</code>,
+                <code>&gt;=</code> 或 <code>≥</code>，可用
+                <code>&amp;&amp;</code> 或 <code>∧</code> (且),
+                <code>||</code> 或 <code>∨</code> (或) 组合。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>行</th>
+                            <th>对象</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>半平面</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>圆盘</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>抛物线与直线之间</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>a 与 b 的公共部分</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                该行重读为 <code>a(x, y) = …</code>，使用 ≤、≥、∧ 和
+                ∨；公式可以像调用 x 和 y 的函数一样调用该区域，除非它与某个<a
+                    href="formules.html#fonctions"
+                    >公式函数</a
+                >同名（如 <code>d</code>）。仅比较数的式子（<code
+                    >F = r &lt; 3</code
+                >）仍是表达式，值为 1 或 0。GeoGebra
+                图形中的不等式也以同样方式打开。
+            </p>
+
             <h2>交点与对象上的点</h2>
             <ul>
                 <li>

@@ -49,7 +49,11 @@
                                 >), 打开… (<kbd>Ctrl</kbd> <kbd>O</kbd>),
                                 打开最近的文档, 保存 (<kbd>Ctrl</kbd>
                                 <kbd>S</kbd>), 另存为… (<kbd>Ctrl</kbd>
-                                <kbd>Shift</kbd> <kbd>S</kbd>), 嵌入网页…
+                                <kbd>Shift</kbd> <kbd>S</kbd>),
+                                嵌入网页…；新建视图、删除视图、视图左移、视图右移（<a
+                                    href="#vues"
+                                    >视图</a
+                                >）
                             </td>
                         </tr>
                         <tr>
@@ -247,6 +251,71 @@
             </div>
             <p>
                 当图形含有动画时，左下角会出现一个圆形按钮，用于暂停或继续动画。
+            </p>
+
+            <h2 id="vues">多个视图</h2>
+            <p>
+                与 GeoGebra
+                的绘图区一样，一个图形可以显示在多个并排成列的视图中。作图仍只有一个：每个对象画在一个视图中，一切实时更新。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>方法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>添加视图</td>
+                            <td>
+                                <strong>文件 › 新建视图</strong
+                                >：在右侧多出一列，沿用当前视图的设置；各列宽度相同
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>激活视图</td>
+                            <td>
+                                点按它：一条细蓝线标出它的上边缘。这次点击不会创建点。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>调整大小</td>
+                            <td>拖动两列之间的分隔线</td>
+                        </tr>
+                        <tr>
+                            <td>改变顺序</td>
+                            <td>
+                                <strong>文件 › 视图左移</strong>,
+                                <strong>文件 › 视图右移</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>删除</td>
+                            <td>
+                                <strong>文件 › 删除视图</strong
+                                >：相邻视图接收它的位置和对象
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    对象创建在当前视图中，用工具或输入行都是如此。基于另一视图中的对象作出的对象，使用它们在自己视图中的坐标。
+                </li>
+                <li>
+                    每个视图有自己的设置：<strong>视图 › 坐标系</strong
+                    >和<strong>视图 › 3D 视图</strong>，与<a
+                        href="proprietes.html#l-onglet-figure"
+                        >“图形”选项卡</a
+                    >一样，作用于当前视图。3D 视图旁的平面视图从上方显示图形。
+                </li>
+            </ul>
+            <p>
+                这些操作都可以撤销。有两个绘图区，或绘图区位于 3D 视图旁的
+                GeoGebra 图形，会以两个视图打开。
             </p>
 
             <h2>撤销</h2>

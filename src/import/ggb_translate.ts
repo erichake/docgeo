@@ -2741,7 +2741,7 @@ export function translateGgb(
         if (source === undefined || calling.has(label)) return null;
         let failed = false;
         const text = source
-            .replace(/^[^=]*\(\s*x\s*,\s*y\s*\)\s*=/, "")
+            .replace(/^[^=]*\(\s*[xy]\s*(?:,\s*y\s*)?\)\s*=/, "")
             .replace(
                 new RegExp(
                     `(${LABEL_WORDS.source})\\s*\\(\\s*x\\s*,\\s*y\\s*\\)`,
@@ -6184,42 +6184,18 @@ export function translateGgb(
                 ...corners.map(ref),
             ]);
         }
-        // x ≤ k, y > k… shown: its half-plane, a polygon reaching beyond the
-        // window. Another inequality isn't a function.
-        const inequality =
+        // An inequality, x ≤ k, x² < 2 or of x and y: in the plane, the
+        // region where it holds, the inequalities of x and y it calls
+        // (a(x, y)) written out in it, one of them hidden drawing nothing.
+        const single =
             type === "function" &&
-            /^(?:[^=]*\(\s*[xy]\s*\)\s*=)?\s*([xy])\s*([<>≤≥])=?([^<>≤≥=∧∨]+)$/.exec(
-                source ?? "",
-            );
-        if (inequality) {
-            const [, variable, sign, bound] = inequality;
-            const k = formula(bound, VALUE_KINDS);
-            if (k === null || is3D) return false;
-            const [c, size] =
-                variable === "x"
-                    ? ["windowcx()", "windoww()"]
-                    : ["windowcy()", "windowh()"];
-            const [d, across] =
-                variable === "x"
-                    ? ["windowcy()", "windowh()"]
-                    : ["windowcx()", "windoww()"];
-            const edge = `min(max(${k},${c}-${size}),${c}+${size})`;
-            const far = `${c}${/[<≤]/.test(sign) ? "-" : "+"}${size}`;
-            return definePolygon(
-                label,
-                [edge, edge, far, far].map((u, n) => {
-                    const v = `${d}${n === 1 || n === 2 ? "+" : "-"}${across}`;
-                    return formulaPoint(
-                        variable === "x" ? `[${u},${v}]` : `[${v},${u}]`,
-                    );
-                }),
-            );
-        }
-        // An inequality of x and y: in the plane, the region where it
-        // holds, the inequalities it calls (a(x, y)) written out in it. One
-        // hidden draws nothing.
-        if (/^functionnvar$/i.test(type ?? "") && !is3D) {
-            if (hidden(element)) return true;
+            (inequalities.has(label) ||
+                /^(?:[^=]*\(\s*[xy]\s*\)\s*=)?\s*[xy]\s*[<>≤≥]/.test(
+                    source ?? "",
+                ));
+        if (single || /^functionnvar$/i.test(type ?? "")) {
+            if (is3D) return false;
+            if (!single && hidden(element)) return true;
             const text = writtenOut(label, new Set());
             if (text === null || !/[<>≤≥]/.test(text)) return false;
             const body = formula(

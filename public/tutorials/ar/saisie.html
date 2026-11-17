@@ -232,6 +232,52 @@ M = منتصف(A, B)</code></pre>
                 <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">المتباينات</h2>
+            <p>
+                مقارنة في x وy تعطي المنطقة التي تتحقق فيها، ملوّنة:
+                <code>&lt;</code>, <code>&lt;=</code> أو <code>≤</code>,
+                <code>&gt;</code>, <code>&gt;=</code> أو <code>≥</code>، مجمّعة
+                بـ <code>&amp;&amp;</code> أو <code>∧</code> (و),
+                <code>||</code> أو <code>∨</code> (أو).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>السطر</th>
+                            <th>العنصر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>نصف مستوٍ</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>قرص</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>بين قطع مكافئ ومستقيم</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>الجزء المشترك بين a وb</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                يُعاد قراءة السطر <code>a(x, y) = …</code> بالرموز ≤ و≥ و∧ و∨،
+                وتستدعي الصيغة المنطقة كدالة في x وy، إلا إذا حملت اسم إحدى
+                <a href="formules.html#fonctions">دوال الصيغ</a> (مثل
+                <code>d</code>). والمقارنة بين أعداد فقط (<code
+                    >F = r &lt; 3</code
+                >) تبقى تعبيرًا قيمته 1 أو 0. وتُفتح متباينات أشكال GeoGebra
+                بالطريقة نفسها.
+            </p>
+
             <h2>التقاطعات والنقاط على العناصر</h2>
             <ul>
                 <li>

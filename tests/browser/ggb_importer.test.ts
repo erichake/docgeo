@@ -29,6 +29,7 @@ import { parabola_object } from "../../src/objects/parabola_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import type { region_object } from "../../src/objects/region_object";
 import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { rotation_object } from "../../src/objects/rotation_object";
 import type { construction_object } from "../../src/objects/construction_object";
@@ -5145,7 +5146,7 @@ if ((!az ? 1 : 0) == 0) {
         expect(restored.GRID.axisLabels).toEqual(["x", "y", "z"]);
     });
 
-    it("waits for a later point past a function reading its own name, shades half-planes, keeps layers", () => {
+    it("waits for a later point past a function reading its own name, shades inequalities of one variable, keeps layers", () => {
         const c = createConstruction();
         expect(
             importGgb(
@@ -5169,19 +5170,17 @@ if ((!az ? 1 : 0) == 0) {
 <element type="button" label="go"><ggbscript val="SetValue[n, 2]"/><font sizeM="0.5" size="-7"/><dimensions width="30" height="30"/></element>
 </construction></geogebra>`,
             ),
-        ).toEqual(["function q"]);
+        ).toEqual([]);
         expect(c.getObj("t")).toBeInstanceOf(text_object);
-        // Beyond the window, its edge on x = -2.
-        const left = c.getObj("a") as polygon_object;
-        expect(left).toBeInstanceOf(polygon_object);
-        const xs = left.parents.map((p) => (p as point_object).coords[0]);
-        expect(xs.slice(0, 2)).toEqual([-2, -2]);
-        expect(Math.min(...xs)).toBeLessThan(-2);
-        expect(left.level).toBe(4);
-        const ys = (c.getObj("b") as polygon_object).parents.map(
-            (p) => (p as point_object).coords[1],
-        );
-        expect(ys.slice(0, 2)).toEqual([1, 1]);
+        // Where it holds, as one of x and y.
+        const region = (name: string) =>
+            (c.getObj(name) as region_object).formula.source;
+        expect(["a", "b", "q"].map(region)).toEqual([
+            "x <= (-2)",
+            "y >= 1",
+            "x^2 < 2",
+        ]);
+        expect(c.getObj("a")!.level).toBe(4);
         expect((c.getObj("n") as expression_object).level).toBe(6);
         expect((c.getObj("go") as button_object).fontSize).toBe(8);
     });

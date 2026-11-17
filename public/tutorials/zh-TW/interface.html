@@ -49,7 +49,11 @@
                                 >), 開啟… (<kbd>Ctrl</kbd> <kbd>O</kbd>),
                                 開啟最近的文件, 儲存 (<kbd>Ctrl</kbd>
                                 <kbd>S</kbd>), 另存新檔… (<kbd>Ctrl</kbd>
-                                <kbd>Shift</kbd> <kbd>S</kbd>), 嵌入網頁…
+                                <kbd>Shift</kbd> <kbd>S</kbd>),
+                                嵌入網頁…；新增檢視、刪除檢視、視圖左移、視圖右移（<a
+                                    href="#vues"
+                                    >檢視</a
+                                >）
                             </td>
                         </tr>
                         <tr>
@@ -244,6 +248,71 @@
             </div>
             <p>
                 當圖形含有動畫時，左下角會出現一個圓形按鈕，用於暫停或繼續動畫。
+            </p>
+
+            <h2 id="vues">多個檢視</h2>
+            <p>
+                與 GeoGebra
+                的繪圖區一樣，一個圖形可以顯示在多個並排成欄的檢視中。作圖仍只有一個：每個物件畫在一個檢視中，一切即時更新。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>方法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>加入檢視</td>
+                            <td>
+                                <strong>檔案 › 新增檢視</strong
+                                >：在右側多出一欄，沿用目前檢視的設定；各欄寬度相同
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>啟用檢視</td>
+                            <td>
+                                點按它：一條細藍線標出它的上緣。這次點擊不會建立點。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>調整大小</td>
+                            <td>拖曳兩欄之間的分隔線</td>
+                        </tr>
+                        <tr>
+                            <td>改變順序</td>
+                            <td>
+                                <strong>檔案 › 視圖左移</strong>,
+                                <strong>檔案 › 視圖右移</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>刪除</td>
+                            <td>
+                                <strong>檔案 › 刪除檢視</strong
+                                >：相鄰檢視接收它的位置和物件
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    物件建立在目前檢視中，用工具或輸入列都是如此。以另一檢視中的物件作出的物件，使用它們在自己檢視中的座標。
+                </li>
+                <li>
+                    每個檢視有自己的設定：<strong>檢視 › 座標系</strong
+                    >和<strong>檢視 › 3D 檢視</strong>，與<a
+                        href="proprietes.html#l-onglet-figure"
+                        >「圖形」分頁</a
+                    >一樣，作用於目前檢視。3D 檢視旁的平面檢視從上方顯示圖形。
+                </li>
+            </ul>
+            <p>
+                這些操作都可以復原。有兩個繪圖區，或繪圖區位於 3D 檢視旁的
+                GeoGebra 圖形，會以兩個檢視開啟。
             </p>
 
             <h2>復原</h2>

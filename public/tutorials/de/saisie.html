@@ -251,6 +251,54 @@ M = Mittelpunkt(A, B)</code></pre>
                 Ausdruck, die Ebene schreibt sich <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">Ungleichungen</h2>
+            <p>
+                Ein Vergleich in x und y ergibt den Bereich, in dem er gilt,
+                gefüllt: <code>&lt;</code>, <code>&lt;=</code> oder
+                <code>≤</code>, <code>&gt;</code>, <code>&gt;=</code> oder
+                <code>≥</code>, verknüpft mit <code>&amp;&amp;</code> oder
+                <code>∧</code> (und), <code>||</code> oder
+                <code>∨</code> (oder).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zeile</th>
+                            <th>Objekt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>Halbebene</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>Kreisscheibe</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>zwischen einer Parabel und einer Geraden</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>gemeinsamer Teil von a und b</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Die Zeile wird als <code>a(x, y) = …</code> mit ≤, ≥, ∧ und ∨
+                zurückgelesen, und eine Formel ruft den Bereich wie eine
+                Funktion von x und y auf, außer er trägt den Namen einer
+                <a href="formules.html#fonctions">Formelfunktion</a> (wie
+                <code>d</code>). Ein Vergleich nur von Zahlen (<code
+                    >F = r &lt; 3</code
+                >) bleibt ein Ausdruck mit dem Wert 1 oder 0. Ungleichungen aus
+                GeoGebra-Figuren werden ebenso geöffnet.
+            </p>
+
             <h2>Schnittpunkte und Punkte auf Objekten</h2>
             <ul>
                 <li>

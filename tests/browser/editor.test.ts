@@ -585,6 +585,40 @@ describe("Editor", () => {
             );
     });
 
+    it("writes and reads inequalities, the regions where they hold", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (1, 0)",
+            "r = 2",
+            "p(x, y) = (x - x(A))^2 + y^2 ≤ r^2",
+            "q(x, y) = y > 0",
+            "s(x, y) = p(x, y) ∧ q(x, y)",
+        ];
+        text.forEach((line) => type(c, line));
+        // GeoGebra's signs or the formulas', with or without a name.
+        type(c, "u = x <= 2 || y >= 1");
+        const named = type(c, "x < -1").name;
+        type(c, "E = s(1, 1) + 2*s(1, -1) + 4*u(3, 0)");
+        c.flush();
+        expect(lines(c)).toEqual([
+            ...text,
+            "u(x, y) = x ≤ 2 ∨ y ≥ 1",
+            `${named}(x, y) = x < -1`,
+            "E = s(1, 1) + 2*s(1, -1) + 4*u(3, 0)",
+        ]);
+        const index = figureIndex(c);
+        expect(entryOf(c.getObj("p")!, index)).toEqual([
+            "Reg",
+            ["(x - x(A))^2 + y^2 <= r^2", { A: 0, r: 1 }],
+        ]);
+        expect((c.getObj("E") as expression_object).value).toBe(1);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(lines(c));
+        // A comparison of numbers stays an expression.
+        expect(entryOf(type(c, "F = r < 3"), figureIndex(c))[0]).toBe("Ex");
+    });
+
     it("writes and reads solids in space, drawn whole", async () => {
         const { scene: c } = studio(true);
         const text = [

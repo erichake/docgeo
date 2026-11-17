@@ -248,6 +248,53 @@ M = Midpoint(A, B)</code></pre>
                 expression, the plane is written <code>p = z = 3</code>.
             </p>
 
+            <h2 id="inegalites">Inequalities</h2>
+            <p>
+                A comparison in x and y gives the region where it holds, filled:
+                <code>&lt;</code>, <code>&lt;=</code> or <code>≤</code>,
+                <code>&gt;</code>, <code>&gt;=</code> or <code>≥</code>,
+                combined with <code>&amp;&amp;</code> or <code>∧</code> (and),
+                <code>||</code> or <code>∨</code> (or).
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Object</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>x &lt; 2</code></td>
+                            <td>half-plane</td>
+                        </tr>
+                        <tr>
+                            <td><code>a(x, y) = x^2 + y^2 ≤ 4</code></td>
+                            <td>disc</td>
+                        </tr>
+                        <tr>
+                            <td><code>b(x, y) = y ≥ x^2 ∧ y ≤ 4</code></td>
+                            <td>between a parabola and a line</td>
+                        </tr>
+                        <tr>
+                            <td><code>c(x, y) = a(x, y) ∧ b(x, y)</code></td>
+                            <td>common part of a and b</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                The line reads back <code>a(x, y) = …</code> with ≤, ≥, ∧ and ∨,
+                and a formula calls the region like a function of x and y,
+                unless it has the name of a
+                <a href="formules.html#fonctions">formula function</a> (such as
+                <code>d</code>). A comparison of numbers only (<code
+                    >F = r &lt; 3</code
+                >) stays an expression, worth 1 or 0. Inequalities of GeoGebra
+                figures open the same way.
+            </p>
+
             <h2>Intersections and points on objects</h2>
             <ul>
                 <li>

@@ -258,11 +258,11 @@ graphiques, régions coloriées).
 
 ## Reste à faire
 
+Manuel fait le 2026-11-16 (12 langues) : section « Plusieurs vues » de
+`interface.html` (`#vues`), menu Fichier, « Vue verrouillée » et réglages
+par vue dans `proprietes.html` (`#l-onglet-figure`) ; sans capture.
+
 1. Choisir la vue d'un objet dans ses propriétés (éditeur), ou le faire
    glisser d'une vue à l'autre.
-2. Manuel (12 langues, après accord de l'auteur) : Fichier > Nouvelle vue,
-   Supprimer la vue, Déplacer la vue à gauche / à droite ; boutons
-   « Repère » et « Vue 3D » sur la vue active ; « Vue verrouillée » et
-   « Image de fond » d'une vue.
-3. Performances des régions : ~27 ms par image en déplaçant A dans
+2. Performances des régions : ~27 ms par image en déplaçant A dans
    `synthese_couleurs.ggb` (12 régions, grille de 8 px).

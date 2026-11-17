@@ -54,7 +54,9 @@
                                     >Ctrl</kbd
                                 >
                                 <kbd>Maj</kbd> <kbd>S</kbd>), Intégrer dans une
-                                page web…
+                                page web…; Nouvelle vue, Supprimer la vue,
+                                Déplacer la vue à gauche, Déplacer la vue à
+                                droite (<a href="#vues">vues</a>)
                             </td>
                         </tr>
                         <tr>
@@ -272,6 +274,85 @@
             <p>
                 Le bouton rond en bas à gauche, présent quand la figure contient
                 des animations, les met en pause ou les relance.
+            </p>
+
+            <h2 id="vues">Plusieurs vues</h2>
+            <p>
+                Comme les graphiques de GeoGebra, une figure peut se montrer
+                dans plusieurs vues, en colonnes côte à côte. La construction
+                reste unique : chaque objet est dessiné dans une vue, et tout se
+                met à jour en direct.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ajouter une vue</td>
+                            <td>
+                                <strong>Fichier › Nouvelle vue</strong> : une
+                                colonne de plus, à droite, avec les réglages de
+                                la vue active ; les colonnes prennent la même
+                                largeur
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Activer une vue</td>
+                            <td>
+                                la toucher : un liseré bleu marque son bord
+                                haut. Ce clic ne crée pas de point.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Redimensionner</td>
+                            <td>tirer la séparation de deux colonnes</td>
+                        </tr>
+                        <tr>
+                            <td>Changer l’ordre</td>
+                            <td>
+                                <strong
+                                    >Fichier › Déplacer la vue à gauche</strong
+                                >,
+                                <strong
+                                    >Fichier › Déplacer la vue à droite</strong
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer</td>
+                            <td>
+                                <strong>Fichier › Supprimer la vue</strong> : sa
+                                voisine prend sa place et ses objets
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Un objet est créé dans la vue active, à l’outil comme par la
+                    ligne de saisie. Construit sur des objets d’une autre vue,
+                    il s’appuie sur leurs coordonnées dans la sienne.
+                </li>
+                <li>
+                    Chaque vue a ses propres réglages :
+                    <strong>Affichage › Repère</strong> et
+                    <strong>Affichage › Vue 3D</strong>, comme l’<a
+                        href="proprietes.html#l-onglet-figure"
+                        >onglet « Figure »</a
+                    >, s’appliquent à la vue active. Une vue plane à côté d’une
+                    vue 3D montre la figure de dessus.
+                </li>
+            </ul>
+            <p>
+                Ces actions s’annulent. Une figure GeoGebra à deux graphiques,
+                ou dont le graphique est à côté de la vue 3D, s’ouvre en deux
+                vues.
             </p>
 
             <h2>Annuler</h2>

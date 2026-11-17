@@ -44,6 +44,7 @@ import {
 } from "../objects/construction_object";
 import { partOf } from "../objects/polygon_part";
 import type { curve_object } from "../objects/curve_object";
+import type { region_object } from "../objects/region_object";
 import {
     equationCoeffs,
     equationValue,
@@ -105,6 +106,7 @@ import {
     formatName,
     coordinatesText,
     formatNumber,
+    inequalitySigns,
     parseLine,
     quoteText,
     renameFormula,
@@ -531,6 +533,10 @@ export function lineOf(
             ? body
             : `${body}, (${min === null ? "" : `${min} ≤ `}x${max === null ? "" : ` ≤ ${max}`})`;
     }
+    if (tag === "Reg") {
+        const { source, refs } = (object as region_object).formula;
+        return `${name}(x, y) = ${inequalitySigns(oneLine(renamed(source, refs)))}`;
+    }
     const text = (formula: FormulaNode) => {
         const source = oneLine(
             renamed(formulaSource(formula), (object as list_object).refs),
@@ -636,6 +642,8 @@ export function resolve(
         ({ overload, args } = equation(c, definition!.sides));
     else if (definition!.kind === "curve")
         ({ overload, args } = curve(c, definition!.source));
+    else if (definition!.kind === "region")
+        ({ overload, args } = region(c, definition!.source));
     else if (definition!.kind === "list")
         ({ overload, args } = pointList(c, definition!.items));
     else if (findCommand(definition!.command)?.name === "Sequence")
@@ -1000,6 +1008,7 @@ function products(
         case "formula":
         case "pointFormula":
         case "curve":
+        case "region":
             return { ...definition, source: split(definition.source) };
         case "equation":
             return {
@@ -1827,6 +1836,23 @@ function pointList(
             encode: (_, index) => encode(tree, index),
         },
         args: argObjects(formulas(tree)),
+    };
+}
+
+// `a(x, y) = x^2 + y^2 ≤ 4`, where it holds, which formulas call as a
+// function of x and y.
+function region(
+    c: construction,
+    text: string,
+): { overload: Overload; args: Arg[] } {
+    const { source, refs } = formulaArg(c, text, ["x", "y"]);
+    return {
+        overload: {
+            params: [],
+            tag: "Reg",
+            encode: (_, index) => formulaParameter(source, refs, index),
+        },
+        args: [...new Set(refs.values())],
     };
 }
 

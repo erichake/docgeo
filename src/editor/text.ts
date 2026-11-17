@@ -24,6 +24,8 @@ export type Definition =
     | { kind: "curve"; source: string }
     | { kind: "pointFormula"; source: string }
     | { kind: "equation"; sides: [string, string] }
+    // `x < 2`, `a(x, y) = x^2 + y^2 ≤ r^2`: where it holds.
+    | { kind: "region"; source: string }
     // `{A, (1, 2)}`, GeoGebra's list of points.
     | { kind: "list"; items: string[] };
 
@@ -46,6 +48,7 @@ export class TextError extends Error {
 }
 
 const SPACE = /\s*/y;
+const COMPARISONS = new Set(["<", "<=", ">", ">=", "&&", "||"]);
 
 // Its tokens up to where the grammar stops reading it, each with where it
 // starts and ends, the last one "eof" when it reads it all; else, where it
@@ -109,11 +112,33 @@ const polar = (radius: string, angle: string) =>
     `[(${radius})*cos(${angle}), (${radius})*sin(${angle})]`;
 const POLAR = /^\[\((.*)\)\*cos\((.*)\), \(\1\)\*sin\(\2\)\]$/;
 
+// GeoGebra's signs, as the formulas write them, but in strings.
+const SIGNS: Record<string, string> = {
+    "≤": "<=",
+    "≥": ">=",
+    "≠": "!=",
+    "∧": "&&",
+    "∨": "||",
+};
+const SIGN = /"(?:[^"\\]|\\.)*"|[≤≥≠∧∨]/g;
+const formulaSigns = (text: string): string =>
+    text.replace(SIGN, (sign) => SIGNS[sign] ?? sign);
+// And back, for an inequality's line.
+const WRITTEN: Record<string, string> = Object.fromEntries(
+    Object.entries(SIGNS).map(([sign, written]) => [written, sign]),
+);
+export const inequalitySigns = (source: string): string =>
+    source.replace(
+        /"(?:[^"\\]|\\.)*"|<=|>=|!=|&&|\|\|/g,
+        (sign) => WRITTEN[sign] ?? sign,
+    );
+
 // A command's line when the catalog has the name before "(".
 export function parseLine(
-    text: string,
+    written: string,
     isCommand: (name: string) => boolean,
 ): Line {
+    const text = formulaSigns(written);
     const { tokens, starts, ends } = lex(text);
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
@@ -143,6 +168,7 @@ export function parseLine(
         if (name === null) throw new TextError("expected", "");
         return { name, definition: null };
     }
+    if (inequality()) return { name, definition: { kind: "region", source } };
     if (curve) return { name, definition: { kind: "curve", source } };
     const braces = peek()?.type === "{" ? whole(position) : null;
     if (braces && !braces.semicolons.length) {
@@ -257,6 +283,28 @@ export function parseLine(
         return tokens[at - 1].type === ")" && tokens[at]?.type === "="
             ? at + 1
             : 0;
+    }
+
+    // A comparison outside brackets, of a formula reading x or y, which
+    // isn't a statement nor a choice.
+    function inequality(): boolean {
+        let depth = 0;
+        let compares = false;
+        let reads = false;
+        for (let index = position; index < tokens.length; index++) {
+            const { type, value } = tokens[index];
+            if (type === "(" || type === "[") depth++;
+            else if (type === ")" || type === "]") depth--;
+            else if (["=", "?", ";", "{"].includes(type)) return false;
+            else if (!depth && COMPARISONS.has(type)) compares = true;
+            else if (
+                type === "identifier" &&
+                (value === "x" || value === "y") &&
+                tokens[index + 1]?.type !== "("
+            )
+                reads = true;
+        }
+        return compares && reads;
     }
 
     // The bracket opened at `at`, closed at the end of the line.
