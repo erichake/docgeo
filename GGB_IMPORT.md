@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 325 / 457,
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 327 / 458,
 71 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-327 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+329 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
 (légendes LaTeX écrites telles quelles, item 83) restent fausses.
 
@@ -1704,3 +1704,22 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       (`z = x`), GeoGebra oriente sa normale selon l'écriture de
       l'équation (`z = x` et `x = z` donnent deux côtés opposés), DocGeo
       selon ses trois premiers coins.
+- [x] **88. puzzle (signalée hors corpus, ajoutée au corpus)** : dix
+      pièces en triangles de Reuleaux, avec une question sur leurs aires et
+      leurs périmètres, dont la réponse vient du tableur. Rien ne
+      s'importait : chaque pièce part de
+      `D + Rotate(C - A, arg(E - D) - arg(B - A))`, et `arg` manquait aux
+      fonctions (écrit `atan2`, dans ]-π, π] comme GeoGebra). Aussi : un
+      nombre lit un polygone comme son aire (`sect - dep`) ;
+      `ContingencyTable` de deux listes de textes (lignes et colonnes
+      triées comme des chaînes, totaux, en anglais : GeoGebra écrit
+      « Frequency » ou « Effectifs » selon la langue de l'utilisateur) ;
+      `CellRange` de cellules textes ; `Max`, `Min` d'une liste (aussi dans
+      une `Sequence`, si la liste ne lit pas sa variable) et `IndexOf` ;
+      `RemoveUndefined` d'une liste (souvent `Sequence(If(…), …)`) ; une
+      liste dans un texte s'écrit comme GeoGebra (`{"C", "H"}`, `{1, 2.5}`) ;
+      `Name` d'une expression est sa définition (`CellRange(A1, A11)`
+      écrit `A1:A11`) ; un terme d'un texte entre parenthèses est lu même
+      écrit avec des crochets. Les quatre textes de réponse et la table
+      sont ceux de GeoGebra. **+1 figure** (puzzle), aucune perdue. Moteur
+      inchangé, importeur GeoGebra 99,5 → 102,4 Ko.

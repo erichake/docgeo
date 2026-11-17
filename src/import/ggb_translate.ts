@@ -169,6 +169,10 @@ const FORMULA_COMMANDS = new Set([
     "Corner",
     "FractionText",
     "TableText",
+    "ContingencyTable",
+    "Max",
+    "Min",
+    "IndexOf",
     "RotateText",
     "Text",
     "First",
@@ -295,6 +299,8 @@ const FUNCTIONS: Record<string, string | Expansion> = {
     imaginary: "y",
     // Of a complex number, its modulus.
     abs: "mod",
+    // In ]-π, π], where DGPad's arg is in [0, 2π[.
+    arg: ([a]) => `atan2(y((${a})+0*i),x((${a})+0*i))`,
 };
 
 // The other end of the bracket at `index`, searching `step`wards.
@@ -416,7 +422,7 @@ const PLANAR_VARIABLES = new Map([
     ["x", "x"],
     ["y", "y"],
 ]);
-// A text also reads a polygon, as its area.
+// A text or a number also reads a polygon, as its area.
 const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
 
 const literal = (value: string | number | boolean): DgpValue => ({
@@ -1909,6 +1915,42 @@ export function translateGgb(
             }
             case "TableText":
                 return tableFormula(args, locals);
+            case "ContingencyTable":
+                return contingencyFormula(args, locals);
+            // Of a list's items, by a hidden Expression's script, which
+            // can't read a Sequence's variable.
+            case "Max":
+            case "Min": {
+                const list =
+                    args.length === 1 &&
+                    !args[0]
+                        .match(LABEL_WORDS)
+                        ?.some((word) => locals.has(word)) &&
+                    listFormula(args[0]);
+                const item = list && list.item("$k");
+                if (!item) {
+                    const values = args.map((arg) =>
+                        formula(arg, kinds, locals),
+                    );
+                    return values.includes(null)
+                        ? null
+                        : `${name.toLowerCase()}(${values.join(",")})`;
+                }
+                return hiddenExpression(
+                    `var $m=${list.item("1")};for(var $k=2;$k<=${list.count};$k++){$m=${name.toLowerCase()}($m,${item})};$m`,
+                );
+            }
+            // The first index of a value in a list, undefined if none.
+            case "IndexOf": {
+                const list =
+                    args.length === 2 && !locals.size && listFormula(args[1]);
+                const item = list && list.item("$k");
+                const value = item && formula(args[0], VALUE_KINDS);
+                if (!value) return null;
+                return hiddenExpression(
+                    `var $i=0/0;for(var $k=${list.count};$k>=1;$k=$k-1){if((${item})==(${value})){$i=$k}};$i`,
+                );
+            }
             // A text's first or last n characters.
             case "First":
             case "Last": {
@@ -1998,6 +2040,25 @@ export function translateGgb(
                   .join(";");
         return hiddenExpression(
             `var $n=${size},$s="{\\\\begin{array}{",$j,$k,$v;for(var $i=0;$i<=${columns};$i++){$s=$s+(${vertical("$i")}?"|":"")+($i<${columns}?[${aligns.map((a) => `"${a}"`)}][min($i,${aligns.length - 1})]:"")};$s=$s+"}"+(${horizontal("0")}?"\\\\hline ":"");${body};$s+"\\\\end{array}}"`,
+        );
+    };
+
+    // The counts of the pairs of values of two lists of texts, by row and
+    // column, each sorted as strings, and their totals, as GeoGebra writes
+    // them (in English).
+    const contingencyFormula = (
+        args: string[],
+        locals: Map<string, string>,
+    ): string | null => {
+        const lists = args.map((arg) => listFormula(arg, locals));
+        const [x, y] = lists.map((list) => list?.item("$k"));
+        if (args.length !== 2 || locals.size || !x || !y) return null;
+        const values = (item: string, array: string) =>
+            `${array}=[];for($k=1;$k<=$n;$k++){$v=${item};$f=1;for($i=0;$i<${array}.length;$i++){if(${array}[$i]==$v){$f=0}};if($f){${array}.push($v)}};for($i=0;$i<${array}.length;$i++){for($j=0;$j<${array}.length-1;$j++){if(${array}[$j]>${array}[$j+1]){$v=${array}[$j];${array}[$j]=${array}[$j+1];${array}[$j+1]=$v}}};`;
+        const count = (test: string) =>
+            `$m=0;for($k=1;$k<=$n;$k++){if(${test}){$m=$m+1}};`;
+        return hiddenExpression(
+            `var $n=${lists[0]!.count},$r,$c,$k,$i,$j,$v,$f,$m,$t,$s;${values(x, "$r")}${values(y, "$c")}$s="{\\\\begin{array}{|l|";for($j=0;$j<$c.length;$j++){$s=$s+"r|"};$s=$s+"|r|}\\\\hline \\\\text{Frequency}";for($j=0;$j<$c.length;$j++){$s=$s+"&\\\\text{"+$c[$j]+"}"};$s=$s+"&\\\\text{Total}\\\\\\\\\\\\hline ";for($i=0;$i<$r.length;$i++){$s=$s+"\\\\text{"+$r[$i]+"}";$t=0;for($j=0;$j<$c.length;$j++){${count(`(${x})==$r[$i]&&(${y})==$c[$j]`)}$s=$s+"&"+$m;$t=$t+$m};$s=$s+"&"+$t+"\\\\\\\\\\\\hline "};$s=$s+"\\\\hline \\\\text{Total}";for($j=0;$j<$c.length;$j++){${count(`(${y})==$c[$j]`)}$s=$s+"&"+$m};$s+"&"+$n+"\\\\\\\\\\\\hline \\\\end{array}}"`,
         );
     };
 
@@ -2300,16 +2361,28 @@ export function translateGgb(
                 { length: Number(last[2]) - Number(first[2]) + 1 },
                 (_, index) => `${first[1]}${Number(first[2]) + index}`,
             );
-            if (
-                labels.length === 0 ||
-                !labels.every((label) => is(label, VALUE_KINDS))
-            )
-                return null;
-            const items = `[${labels.map((label) => objects.get(label)!.variable).join(",")}]`;
+            // A shown text cell, by its text.
+            const values = labels.map((label) =>
+                texts.has(label)
+                    ? textFormula(texts.get(label)!)
+                    : is(label, VALUE_KINDS)
+                      ? objects.get(label)!.variable
+                      : null,
+            );
+            if (labels.length === 0 || values.includes(null)) return null;
+            const items = `[${values.join(",")}]`;
             return {
                 count: String(labels.length),
                 item: (n) => `${items}[(${n})-1]`,
             };
+        }
+        // Computed by a hidden Expression's script, its size varying.
+        if (name === "RemoveUndefined" && !locals.size) {
+            let counter = 0;
+            const value = scripted(text, new Map(), () => `$q${++counter}`);
+            return value?.depth === 1
+                ? named(hiddenExpression(scriptedProgram(value)), 1)
+                : null;
         }
         if (name === "Sequence" && args.length >= 4 && args.length <= 5) {
             const [expression, variable, from, to, step = "1"] = args;
@@ -2476,7 +2549,8 @@ export function translateGgb(
         array: string;
         guard: string;
     }
-    const SCRIPTED = /\b(Sequence|CountIf|Sum|BinomialDist|Random)\(/;
+    const SCRIPTED =
+        /\b(Sequence|CountIf|Sum|BinomialDist|Random|RemoveUndefined)\(/;
     const scripted = (
         source: string,
         locals: Map<string, string>,
@@ -2503,6 +2577,8 @@ export function translateGgb(
         const value = formula(text, VALUE_KINDS, inner);
         return value === null ? null : { code, value, depth: 0 };
     };
+    const scriptedProgram = ({ code, value }: Scripted) =>
+        `var $qs=${seed ? `${seed}==0?1:floor(${seed}*2147483646)+1` : 1};${code}${value}`;
     const scriptedCall = (
         [name, args]: [string, string[]],
         locals: Map<string, string>,
@@ -2585,6 +2661,19 @@ export function translateGgb(
                 depth: 0,
             };
         }
+        if (name === "RemoveUndefined" && args.length === 1) {
+            const list = listFormula(args[0], locals);
+            const items = list ? null : scripted(args[0], locals, fresh);
+            if (!list && items?.depth !== 1) return null;
+            const [kept, index, item] = [fresh(), fresh(), fresh()];
+            const x = list ? list.item(index) : `${items!.value}[${index}-1]`;
+            if (x === null) return null;
+            return {
+                code: `${items?.code ?? ""}var ${kept}=[],${item};for(var ${index}=1;${index}<=${list ? list.count : `${items!.value}.length`};${index}++){${item}=${x};if(isNaN(${item})==0){${kept}.push(${item})}};`,
+                value: kept,
+                depth: 1,
+            };
+        }
         if (name === "Sequence" && args.length >= 4 && args.length <= 5) {
             const [expression, variable, ...range] = args;
             const bounds = values(range);
@@ -2648,7 +2737,7 @@ export function translateGgb(
                 : undefined,
         );
         if (!value || (type === "list") !== value.depth > 0) return false;
-        const program = `var $qs=${seed ? `${seed}==0?1:floor(${seed}*2147483646)+1` : 1};${value.code}${value.value}`;
+        const program = scriptedProgram(value);
         if (type === "numeric") {
             hiddenExpression(program, label);
             return true;
@@ -5267,6 +5356,7 @@ export function translateGgb(
         },
         FractionText: formulaCommand("FractionText"),
         TableText: formulaCommand("TableText"),
+        ContingencyTable: formulaCommand("ContingencyTable"),
         RotateText: formulaCommand("RotateText"),
         // A polygon of a Sequence, by its vertices.
         Element: (inputs, [label]) => {
@@ -5686,7 +5776,7 @@ export function translateGgb(
             return true;
         }
         const dependent =
-            source === undefined ? null : formula(source, VALUE_KINDS);
+            source === undefined ? null : formula(source, TEXT_KINDS);
         // Drawn from the seed alone: the value GeoGebra saved until a
         // script draws it again.
         const seeded =
@@ -5872,6 +5962,39 @@ export function translateGgb(
         return printed && at === tokens.length ? printed.parts : null;
     };
 
+    // Whether a list's items, or a value, are texts.
+    const textValued = (source: string): boolean => {
+        const text = normalizeBrackets(source.trim());
+        if (/^"[^"]*"$/.test(text)) return true;
+        if (elements.has(text))
+            return elements.get(text)!.getAttribute("type") === "text";
+        if (/^\{.*\}$/.test(text))
+            return (
+                splitArguments(text.slice(1, -1))?.every(textValued) ?? false
+            );
+        const [name, args] = commandCall(text) ?? ["", []];
+        return (
+            [
+                "CellRange",
+                "Element",
+                "RemoveUndefined",
+                "Sequence",
+                "If",
+            ].includes(name) && textValued(args[name === "If" ? 1 : 0] ?? "")
+        );
+    };
+
+    // A list in a text, as GeoGebra writes it: {"A", "B"}, {1, 2.5}.
+    const listText = (source: string): string | null => {
+        const list = listFormula(source);
+        const item = list?.item("$k");
+        if (!item) return null;
+        const quote = textValued(source) ? `+'"'` : "";
+        return hiddenExpression(
+            `var $o="{";for(var $k=1;$k<=${list!.count};$k++){$o=$o+($k>1?", ":"")${quote}+(${item})${quote}};$o+"}"`,
+        );
+    };
+
     // A text's literal strings and formulas: GeoGebra adds up the numbers
     // before its first string, then concatenates every term, writing an
     // object's name, an angle in degrees and a point as its coordinates.
@@ -5891,13 +6014,35 @@ export function translateGgb(
             let inner = term;
             while (
                 /^\(.*\)$/.test(inner) &&
-                splitArguments(inner.slice(1, -1))?.length === 1
+                splitArguments(normalizeBrackets(inner.slice(1, -1)))
+                    ?.length === 1
             )
                 inner = inner.slice(1, -1).trim();
             const name = /^Name\[(.*)\]$/.exec(inner)?.[1];
-            if (/^"[^"]*"$/.test(inner) || (name && elements.has(name))) {
+            if (/^"[^"]*"$/.test(inner) || name !== undefined) {
                 if (!addSum()) return null;
-                parts.push(name ?? inner.slice(1, -1));
+                // Of an expression, its definition as GeoGebra writes it.
+                parts.push(
+                    name === undefined
+                        ? inner.slice(1, -1)
+                        : elements.has(name)
+                          ? name
+                          : normalizeBrackets(name).replace(
+                                /CellRange\((\w+),\s*(\w+)(?:,\s*"[^"]*")?\)/g,
+                                "$1:$2",
+                            ),
+                );
+                concatenating = true;
+                continue;
+            }
+            const list = /^(\{|(RemoveUndefined|Sequence|CellRange)[[(])/.test(
+                inner,
+            )
+                ? listText(inner)
+                : null;
+            if (list) {
+                if (!addSum()) return null;
+                parts.push({ formula: list });
                 concatenating = true;
                 continue;
             }
