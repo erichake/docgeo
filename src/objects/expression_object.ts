@@ -32,7 +32,11 @@ import { angle_object } from "./angle_object";
 import { curve_object, typedFormula } from "./curve_object";
 import { point_object } from "./point_object";
 import type { point_on_object } from "./point_on_object";
-import { scriptCenter } from "./primitive_quadric_object";
+import {
+    primitive_quadric_object,
+    scriptCenter,
+} from "./primitive_quadric_object";
+import { conicPoint } from "./conic_point_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
 // GeoGebra's background of a text, a few pixels around it.
@@ -199,6 +203,11 @@ export function callFunction(
         const t = solid.meet(p as Vec3, ray)[n - 1];
         return t >= 0 && t <= 1 ? vAdd(p as Vec3, vScale(ray, t)) : null;
     }
+    // Of a conic, called by eccentricity (see dgp_formula.ts).
+    if (!args.length && ref instanceof primitive_quadric_object)
+        return ref.defined && ref.COEFFS
+            ? (conicPoint(ref.COEFFS, "e")?.[0] ?? null)
+            : null;
     const formula = functionFormula(ref);
     // A prime ("f'(x)") derives with respect to the function's variable.
     const derived =

@@ -210,6 +210,7 @@ describe("Editor", () => {
             "W3 = Incenter(A, B, C)",
             "W4 = Centroid(A, B, C)",
             "W5 = Circumcenter(A, B, C)",
+            "W8 = NinePointCenter(A, B, C)",
             "W6 = Inversion(c, D)",
             "p3 = RegularPolygon(A, B, 5)",
             "W7 = Vertex(p3, 3)",
@@ -228,6 +229,7 @@ describe("Editor", () => {
             "T = Reflect(d, D)",
             "K = Rotation(A, D, 30)",
             "L = Dilation(A, D, 2)",
+            "L2 = Dilation(D, 2)",
             "N = Translation(u, D)",
             "v1 = Reflect(d, v)",
             "s1 = Rotation(A, s, 30)",
@@ -271,7 +273,7 @@ describe("Editor", () => {
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
-            ["Circle(A, a)", "arguments"],
+            ["Circle(A, b)", "arguments"],
             ["Intersection(b, a, 5)", "branch"],
             ["Tangent(A, b, 3)", "tangent_branch"],
             ["RegularPolygon(A, B, 2)", "arguments"],
@@ -504,7 +506,7 @@ describe("Editor", () => {
             ["E = d(A, Z)", "unknown_object", "Z"],
             ["E = Distance(A, B)", "unknown_command", "Distance"],
             ["E = 1 +", "syntax", "1 +"],
-            ["c = Circle(A, s)", "arguments", "Circle"],
+            ["c = Circle(L)", "arguments", "Circle"],
         ])
             expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
                 expect.objectContaining({ key, detail }),
@@ -705,6 +707,217 @@ describe("Editor", () => {
         expect(c.getObj("b")).toBeInstanceOf(box_plot_object);
         expectClose(c.getObj("M")!.scriptValue(false), [3.5, 0]);
         expect(c.getObj("m")!.scriptValue(false)).toBeCloseTo(3.5 + 2 + 5, 9);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // As in GeoGebra.
+    it("reads a segment as its length and an angle as its value where a number is expected", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (0, 0)",
+            "B = (3, 0)",
+            "C = (0, 4)",
+            "s = Segment(B, C)",
+            "α = Angle(B, A, C)",
+            "c = Circle(A, s)",
+            "e = Ellipse(A, B, s)",
+            "D = Rotation(A, B, α)",
+            "n = Slider(3, 8, 5)",
+            "p = RegularPolygon(A, B, n)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("D")!.scriptValue(false), [0, 3]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's net's, here of the face ABFE of a cube, which turns
+    // around AB, away from C, to the plane of the face ABCD.
+    it("writes and reads the vertices of a net", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (1, 0, 0)",
+            "C = (1, 1, 0)",
+            "E = (0, 0, 1)",
+            "F = (1, 0, 1)",
+            "f = Slider(0, 1, 1)",
+            "A' = NetVertex(A, f)",
+            "E' = NetVertex(E, f, A, B, F, C)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("E'")!.scriptValue(true), [0, -1, 0]);
+        expect(() => type(c, "NetVertex(E, f, A, B, F)")).toThrow(TextError);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's, of a polygon of a slider's n: the last closes it.
+    it("writes and reads the sides of a polygon", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (0, 0)",
+            "B = (1, 0)",
+            "n = Slider(3, 8, 4)",
+            "p = RegularPolygon(A, B, n)",
+            "C = Vertex(p, 3)",
+            "a = Side(p, 2)",
+            "b = Side(p, 4)",
+            "M = Midpoint(b)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("M")!.scriptValue(false), [0, 0.5]);
+        const n = c.getObj("n") as expression_object;
+        n.value = 3;
+        c.invalidateGeometry(n);
+        c.flush();
+        expect(c.getObj("M")!.defined).toBe(false);
+        n.value = 4;
+        c.invalidateGeometry(n);
+        c.flush();
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        expect(() => type(c, "Side(p, 0)")).toThrow(TextError);
+    });
+
+    // GeoGebra's section of a pyramid, by its edges, in their order.
+    it("writes and reads a plane's section by segments", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (2, 2, 0)",
+            "H = (0, 0, 2)",
+            "p = z = 1",
+            "s = Section(p, H, A, A, B, H, B, B, C, H, C, C, A)",
+            "E = Vertex(s, 3)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("E")!.scriptValue(true), [1, 0, 1]);
+        expect(() => type(c, "Section(p, H, A, A, B, H)")).toThrow(TextError);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's angle of two lines, at their intersection.
+    it("writes and reads direction points", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (0, 3)",
+            "d = Line(B, C)",
+            "e = Parallel(A, AngleBisector(B, A, C))",
+            "U = DirectionPoint(d, A)",
+            "α = Angle(DirectionPoint(e, A), A, DirectionPoint(d, A))",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("U")!.scriptValue(false), [-0.8, 0.6]);
+        expect(c.getObj("α")!.scriptValue(false)).toBeCloseTo(
+            ((Math.atan2(3, -4) - Math.PI / 4) * 180) / Math.PI,
+            9,
+        );
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's, in its order (see conic_point_object.ts).
+    it("writes and reads the center, foci, vertices and directrices of a conic", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "c = x^2 / 25 + y^2 / 9 = 1",
+            "O = Center(c)",
+            "F = Focus(c, 2)",
+            "V = Vertex(c, 3)",
+            "d = Directrix(c, 1)",
+            "e = eccentricity(c)",
+            "M = Intersection(d, Line(O, F))",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expectClose(c.getObj("O")!.scriptValue(false), [0, 0]);
+        expectClose(c.getObj("F")!.scriptValue(false), [4, 0]);
+        expectClose(c.getObj("V")!.scriptValue(false), [0, -3]);
+        expectClose(c.getObj("M")!.scriptValue(false), [25 / 4, 0]);
+        expect(c.getObj("e")!.scriptValue(false)).toBeCloseTo(0.8, 9);
+        for (const line of ["Focus(c, 3)", "Directrix(c, 0)", "Vertex(c, 5)"])
+            expect(() => type(c, line)).toThrow(TextError);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's: s, f(s), f(f(s))…
+    it("writes and reads iteration lists", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "n = Slider(1, 10, 3)",
+            "f(x) = 2x + 1",
+            "L = IterationList(f(t), t, 1, n)",
+            "M = IterationList(z^2 + [0, 1], z, (0, 0), 2)",
+            "s = L[3] + d(M[2], [0, 0])",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expect(c.getObj("L")!.scriptValue(false)).toEqual([1, 3, 7, 15]);
+        // z = 0, i, i² + i = -1 + i.
+        expectClose(
+            (c.getObj("M")!.scriptValue(false) as number[][])[2],
+            [-1, 1],
+        );
+        expect(c.getObj("s")!.scriptValue(false)).toBeCloseTo(
+            15 + Math.SQRT2,
+            9,
+        );
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+    });
+
+    // GeoGebra's, read as their value.
+    it("writes and reads integrals and lower and upper sums", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "n = Slider(1, 50, 4)",
+            "f(x) = x^2",
+            "A = (2, 0)",
+            "a = Integral(f, 0, x(A))",
+            "s = LowerSum(f, 0, 2, n)",
+            "S = UpperSum(f, 0, 2, n)",
+            "m = a + s + S",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        expect(c.getObj("a")!.scriptValue(false)).toBeCloseTo(8 / 3, 9);
+        expect(c.getObj("s")!.scriptValue(false)).toBeCloseTo(
+            0.5 * (0 + 0.25 + 1 + 2.25),
+            9,
+        );
+        expect(c.getObj("S")!.scriptValue(false)).toBeCloseTo(
+            0.5 * (0.25 + 1 + 2.25 + 4),
+            9,
+        );
+        expect(c.getObj("m")!.scriptValue(false)).toBeCloseTo(8 / 3 + 5.5, 9);
         const other = createConstruction([800, 600]);
         readDgo(other, await describeDgo(c));
         expect(lines(other)).toEqual(text);

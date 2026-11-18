@@ -38,6 +38,11 @@
                     >); <code>n</code>, <code>t</code>: written numbers.
                 </li>
                 <li>
+                    Where a number is expected, a segment stands for its length
+                    and an angle for its value, as in GeoGebra:
+                    <code>Circle(O, s)</code>, <code>Rotation(O, P, α)</code>.
+                </li>
+                <li>
                     The icon is that of the tool in the
                     <a href="menu-outils.html">palette</a>;
                     <span class="badge d3">3D</span>: forms in space.
@@ -130,11 +135,23 @@
                             <td>midpoint of the segment s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>Center</strong>
                             </td>
                             <td class="syntax"><code>Center(c)</code></td>
                             <td>center of the circle c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Center(c)</code></td>
+                            <td>center of the conic c (ellipse, hyperbola)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Focus</strong></td>
+                            <td class="syntax"><code>Focus(c, n)</code></td>
+                            <td>
+                                focus n (1 or 2) of the conic c, in GeoGebra’s
+                                order
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -260,11 +277,39 @@
                             <td>orthocenter of the triangle ABC</td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>Vertex</strong></td>
+                            <td rowspan="1">
+                                <strong>NinePointCenter</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>NinePointCenter(A, B, C)</code>
+                            </td>
+                            <td>
+                                center of the nine-point circle of triangle ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>Vertex</strong></td>
                             <td class="syntax"><code>Vertex(p, k)</code></td>
                             <td>
                                 k-th vertex (from 1) of a polygon or a
                                 polyhedron
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Vertex(c, n)</code></td>
+                            <td>
+                                vertex n (1 to 4) of the conic c, in GeoGebra’s
+                                order
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>DirectionPoint</strong></td>
+                            <td class="syntax">
+                                <code>DirectionPoint(d, P)</code>
+                            </td>
+                            <td>
+                                point P moved by the unit direction vector of
+                                line d
                             </td>
                         </tr>
                     </tbody>
@@ -310,6 +355,11 @@
                             </td>
                             <td class="syntax"><code>Vector(A, B)</code></td>
                             <td>vector from A to B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Directrix</strong></td>
+                            <td class="syntax"><code>Directrix(c, n)</code></td>
+                            <td>directrix n (1 or 2) of the conic c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>equation</strong></td>
@@ -791,7 +841,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Dilation</strong>
                             </td>
@@ -801,6 +851,13 @@
                             <td>
                                 image of P by the dilation with center O and
                                 ratio k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Dilation(P, k)</code></td>
+                            <td>
+                                image of P under the dilation centered at the
+                                origin with ratio k
                             </td>
                         </tr>
                         <tr>
@@ -1042,7 +1099,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i>
                                 <strong>Section</strong>
                             </td>
@@ -1054,6 +1111,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Section(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                polygon whose vertices are the points where
+                                plane p cuts each of the segments [A1B1],
+                                [A2B2]… (undefined where it misses one), as
+                                GeoGebra cuts a pyramid
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Net</strong>
                             </td>
@@ -1061,6 +1129,19 @@
                             <td>
                                 net of a polyhedron, unfolded by f (0: folded,
                                 1: flat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>NetVertex</strong></td>
+                            <td class="syntax">
+                                <code>NetVertex(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                vertex A of a net unfolded by f, like
+                                GeoGebra’s: turned around the edge [OE] of its
+                                face (C a point of that face, Q of the
+                                neighboring face), then likewise for each
+                                following face
                             </td>
                         </tr>
                     </tbody>
@@ -1151,6 +1232,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1"><strong>IterationList</strong></td>
+                            <td class="syntax">
+                                <code>IterationList(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                list s, f(s), f(f(s))… of n + 1 values, f being
+                                a formula of the variable z (numbers, complex
+                                numbers or points)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2"><strong>Element</strong></td>
                             <td class="syntax">
                                 <code>Element(L, n)</code>, <code>L(n)</code>
@@ -1179,6 +1271,39 @@
                             <td>
                                 box plot of the list of numbers L, around height
                                 y and 2s high; a formula reads it as its median
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Integral</strong></td>
+                            <td class="syntax">
+                                <code>Integral(g, a, b)</code>
+                            </td>
+                            <td>
+                                integral of the function g from a to b, with the
+                                region between its graph and the x-axis; a
+                                formula reads it as its value
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>LowerSum</strong></td>
+                            <td class="syntax">
+                                <code>LowerSum(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                lower sum of the function g from a to b on n
+                                rectangles, drawn; a formula reads it as its
+                                value
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>UpperSum</strong></td>
+                            <td class="syntax">
+                                <code>UpperSum(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                upper sum of the function g from a to b on n
+                                rectangles, drawn; a formula reads it as its
+                                value
                             </td>
                         </tr>
                         <tr>
@@ -1317,6 +1442,12 @@
                 construction. This also works for regular polygons.
             </p>
             <pre><code>M = Midpoint(Side(p, 2))</code></pre>
+            <p>
+                On a line of its own, <code>c = Side(p, k)</code> adds a
+                segment: from vertex k − 1 to vertex k, or to the first vertex
+                for the last side, like the sides of a regular polygon whose
+                number of sides is a slider in GeoGebra.
+            </p>
             <h2 id="faces">Polyhedron faces</h2>
             <p>
                 <strong>Face</strong> · A tool that expects a plane or a

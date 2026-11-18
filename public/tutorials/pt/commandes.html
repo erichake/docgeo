@@ -38,6 +38,11 @@
                     <code>t</code>: números escritos.
                 </li>
                 <li>
+                    Onde se espera um número, um segmento vale o seu comprimento
+                    e um ângulo o seu valor, como no GeoGebra:
+                    <code>Círculo(O, s)</code>, <code>Rotação(O, P, α)</code>.
+                </li>
+                <li>
                     O ícone é o da ferramenta da
                     <a href="menu-outils.html">paleta</a>;
                     <span class="badge d3">3D</span>: formas do espaço.
@@ -138,12 +143,26 @@
                             <td>ponto médio do segmento s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>Centro</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>Centro(c)</code></td>
                             <td>centro do círculo c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Centro(c)</code></td>
+                            <td>centro da cônica c (elipse, hipérbole)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Foco</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>Foco(c, n)</code></td>
+                            <td>
+                                foco n (1 ou 2) da cônica c, na ordem do
+                                GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -279,6 +298,20 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>CentroNovePontos</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>CentroNovePontos(A, B, C)</code>
+                            </td>
+                            <td>
+                                centro da circunferência dos nove pontos do
+                                triângulo ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Vértice</strong><br /><small
                                     >Vertex</small
                                 >
@@ -287,6 +320,27 @@
                             <td>
                                 k-ésimo vértice (a partir de 1) de um polígono
                                 ou de um poliedro
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Vértice(c, n)</code></td>
+                            <td>
+                                vértice n (1 a 4) da cônica c, na ordem do
+                                GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>PontoDireção</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>PontoDireção(d, P)</code>
+                            </td>
+                            <td>
+                                ponto P deslocado pelo vetor diretor unitário da
+                                reta d
                             </td>
                         </tr>
                     </tbody>
@@ -337,6 +391,15 @@
                             </td>
                             <td class="syntax"><code>Vetor(A, B)</code></td>
                             <td>vetor de A para B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Diretriz</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Diretriz(c, n)</code></td>
+                            <td>diretriz n (1 ou 2) da cônica c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>equação</strong></td>
@@ -857,7 +920,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Homotetia</strong><br /><small
                                     >Dilation</small
@@ -868,6 +931,13 @@
                             </td>
                             <td>
                                 imagem de P pela homotetia de centro O e razão k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Homotetia(P, k)</code></td>
+                            <td>
+                                imagem de P pela homotetia de centro na origem e
+                                razão k
                             </td>
                         </tr>
                         <tr>
@@ -1132,7 +1202,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>Seção</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -1141,6 +1211,17 @@
                                 seção do sólido s pelo plano p: círculo
                                 (esfera), cônica (cilindro, cone) ou polígono
                                 (poliedro)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Seção(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                polígono cujos vértices são os pontos onde o
+                                plano p corta cada um dos segmentos [A1B1],
+                                [A2B2]… (indefinido se não o corta), como o
+                                GeoGebra corta uma pirâmide
                             </td>
                         </tr>
                         <tr>
@@ -1156,6 +1237,26 @@
                             <td>
                                 planificação de um poliedro, aberta conforme f
                                 (0: fechada, 1: plana)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>VérticePlanificação</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >VérticePlanificação(A, f, O, E, C, Q,
+                                    …)</code
+                                >
+                            </td>
+                            <td>
+                                vértice A de uma planificação aberta de f, como
+                                as do GeoGebra: rodado em torno da aresta [OE]
+                                da sua face (C um ponto dessa face, Q da face
+                                vizinha), e da mesma forma para cada face
+                                seguinte
                             </td>
                         </tr>
                     </tbody>
@@ -1262,6 +1363,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>ListaDeIteração</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ListaDeIteração(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                lista s, f(s), f(f(s))… de n + 1 valores, sendo
+                                f uma fórmula da variável z (números, complexos
+                                ou pontos)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>Elemento</strong><br /><small
                                     >Element</small
@@ -1295,6 +1411,47 @@
                                 diagrama de caixa da lista de números L, em
                                 torno da altura y, com altura 2s; uma fórmula
                                 lê-o como a sua mediana
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Integral</strong></td>
+                            <td class="syntax">
+                                <code>Integral(g, a, b)</code>
+                            </td>
+                            <td>
+                                integral da função g de a a b, com a região
+                                entre o seu gráfico e o eixo das abscissas; uma
+                                fórmula lê-a como o seu valor
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SomaInferior</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SomaInferior(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                soma inferior da função g de a a b em n
+                                retângulos, desenhados; uma fórmula lê-a como o
+                                seu valor
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SomaSuperior</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SomaSuperior(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                soma superior da função g de a a b em n
+                                retângulos, desenhados; uma fórmula lê-a como o
+                                seu valor
                             </td>
                         </tr>
                         <tr>
@@ -1441,6 +1598,12 @@
                 segmento à construção. Também funciona com polígonos regulares.
             </p>
             <pre><code>M = PontoMédio(Lado(p, 2))</code></pre>
+            <p>
+                Sozinho na sua linha, <code>c = Lado(p, k)</code> adiciona um
+                segmento: do vértice k − 1 ao vértice k, ou ao primeiro vértice
+                para o último lado, como os lados de um polígono regular cujo
+                número de lados é um controle deslizante no GeoGebra.
+            </p>
             <h2 id="faces">Faces dos poliedros</h2>
             <p>
                 <strong>Face</strong> · Uma ferramenta que espera um plano ou um

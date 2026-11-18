@@ -39,6 +39,11 @@
                     >); <code>n</code>, <code>t</code>: लिखी हुई संख्याएँ।
                 </li>
                 <li>
+                    जहाँ संख्या अपेक्षित हो, वहाँ रेखाखंड अपनी लंबाई और कोण अपना
+                    मान देता है, जैसे GeoGebra में: <code>वृत्त(O, s)</code>,
+                    <code>घूर्णन(O, P, α)</code>।
+                </li>
+                <li>
                     आइकन वही है जो <a href="menu-outils.html">पैलेट</a> में टूल
                     का है; <span class="badge d3">3D</span>: त्रिविम आकृतियों
                     वाले रूप।
@@ -139,12 +144,25 @@
                             <td>रेखाखण्ड s का मध्यबिन्दु</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>केन्द्र</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>केन्द्र(c)</code></td>
                             <td>वृत्त c का केन्द्र</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>केन्द्र(c)</code></td>
+                            <td>शांकव c (दीर्घवृत्त, अतिपरवलय) का केंद्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>नाभि</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>नाभि(c, n)</code></td>
+                            <td>
+                                शांकव c की नाभि n (1 या 2), GeoGebra के क्रम में
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -279,12 +297,41 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>नवबिंदुवृत्तकेंद्र</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>नवबिंदुवृत्तकेंद्र(A, B, C)</code>
+                            </td>
+                            <td>त्रिभुज ABC के नवबिंदु वृत्त का केंद्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>शीर्ष</strong><br /><small
                                     >Vertex</small
                                 >
                             </td>
                             <td class="syntax"><code>शीर्ष(p, k)</code></td>
                             <td>बहुभुज या बहुफलक का k-वाँ शीर्ष (1 से आरंभ)</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>शीर्ष(c, n)</code></td>
+                            <td>
+                                शांकव c का शीर्ष n (1 से 4), GeoGebra के क्रम
+                                में
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>दिशाबिंदु</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>दिशाबिंदु(d, P)</code></td>
+                            <td>
+                                रेखा d के इकाई दिशा सदिश से विस्थापित बिंदु P
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -334,6 +381,15 @@
                             </td>
                             <td class="syntax"><code>सदिश(A, B)</code></td>
                             <td>A से B तक का सदिश</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>नियता</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>नियता(c, n)</code></td>
+                            <td>शांकव c की नियता n (1 या 2)</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>समीकरण</strong></td>
@@ -853,7 +909,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i> <strong>आवर्धन</strong
                                 ><br /><small>Dilation</small>
                             </td>
@@ -861,6 +917,13 @@
                             <td>
                                 केन्द्र O और अनुपात k वाले आवर्धन से P का
                                 प्रतिबिम्ब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>आवर्धन(P, k)</code></td>
+                            <td>
+                                मूल बिंदु केंद्र और अनुपात k वाले समरूपण से P का
+                                प्रतिबिंब
                             </td>
                         </tr>
                         <tr>
@@ -1120,7 +1183,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i>
                                 <strong>अनुप्रस्थकाट</strong><br /><small
                                     >Section</small
@@ -1135,6 +1198,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>अनुप्रस्थकाट(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                बहुभुज जिसके शीर्ष वे बिंदु हैं जहाँ समतल p
+                                रेखाखंडों [A1B1], [A2B2]… में से प्रत्येक को
+                                काटता है (न काटे तो अपरिभाषित), जैसे GeoGebra
+                                पिरामिड को काटता है
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>जाल</strong
                                 ><br /><small>Net</small>
@@ -1143,6 +1217,22 @@
                             <td>
                                 बहुफलक का जाल, f तक खुला हुआ (0: मुड़ा हुआ, 1:
                                 समतल)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>जालशीर्ष</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>जालशीर्ष(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                f तक खोले गए जाल का शीर्ष A, GeoGebra के जालों
+                                की तरह: अपने फलक के किनारे [OE] के चारों ओर
+                                घुमाया गया (C इस फलक का बिंदु, Q पड़ोसी फलक का),
+                                फिर हर अगले फलक के लिए वैसे ही
                             </td>
                         </tr>
                     </tbody>
@@ -1248,6 +1338,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>चलनसूची</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>चलनसूची(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                n + 1 मानों की सूची s, f(s), f(f(s))…, जहाँ f चर
+                                z का सूत्र है (संख्याएँ, सम्मिश्र संख्याएँ या
+                                बिंदु)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>तत्व</strong><br /><small
                                     >Element</small
@@ -1286,6 +1391,49 @@
                                 संख्याओं की सूची L का बॉक्स प्लॉट, ऊँचाई y के
                                 आसपास, 2s ऊँचा; कोई सूत्र इसे इसकी माध्यिका के
                                 रूप में पढ़ता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>समाकल</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax"><code>समाकल(g, a, b)</code></td>
+                            <td>
+                                फलन g का a से b तक समाकल, उसके आलेख और x-अक्ष के
+                                बीच के क्षेत्र सहित; सूत्र इसे इसके मान के रूप
+                                में पढ़ता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>निम्नयोग</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>निम्नयोग(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                फलन g का a से b तक n आयतों पर निम्न योग, आयत
+                                खींचे जाते हैं; सूत्र इसे इसके मान के रूप में
+                                पढ़ता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>उच्चयोग</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>उच्चयोग(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                फलन g का a से b तक n आयतों पर उच्च योग, आयत
+                                खींचे जाते हैं; सूत्र इसे इसके मान के रूप में
+                                पढ़ता है
                             </td>
                         </tr>
                         <tr>
@@ -1425,6 +1573,12 @@
                 जोड़े। यह समबहुभुजों के लिए भी काम करता है।
             </p>
             <pre><code>M = मध्यबिन्दु(भुजा(p, 2))</code></pre>
+            <p>
+                अपनी पंक्ति में अकेले, <code>c = भुजा(p, k)</code> एक रेखाखंड
+                जोड़ता है: शीर्ष k − 1 से शीर्ष k तक, या अंतिम भुजा के लिए पहले
+                शीर्ष तक, जैसे GeoGebra में उस समबहुभुज की भुजाएँ जिसकी भुजाओं
+                की संख्या स्लाइडर हो।
+            </p>
             <h2 id="faces">बहुफलक के फलक</h2>
             <p>
                 <strong>फलक</strong> · समतल या बहुभुज की अपेक्षा करने वाला या

@@ -32,6 +32,8 @@ import { parabola_object } from "../../src/objects/parabola_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import { list_polygon_object } from "../../src/objects/list_polygon_object";
+import { integral_object } from "../../src/objects/integral_object";
 import type { region_object } from "../../src/objects/region_object";
 import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { rotation_object } from "../../src/objects/rotation_object";
@@ -3040,7 +3042,18 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
                 ),
             );
         expect(items("r")).toEqual([[[1, 0]], [[0, 1]], [[-1, 0]], [[0, -1]]]);
-        expect((c.getObj("q") as list_object).nature).toBe("polygon");
+        const q = c.getObj("q") as list_polygon_object;
+        expect(q).toBeInstanceOf(list_polygon_object);
+        expect(
+            q.vertices.map(({ coords }) =>
+                coords.slice(0, 2).map((v) => Math.round(v * 1e9) / 1e9 || 0),
+            ),
+        ).toEqual([
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+            [0, -1],
+        ]);
         expect(items("s")).toEqual([
             [
                 [1, 0],
@@ -4005,6 +4018,20 @@ ${command("Tangent", ["P", "c"], ["v", "w"])}
             expect(g.pointAt(a + 0.1)).toBe(null);
         };
         check(1);
+        // Each a line of the editor, the integral and the sums objects of
+        // their own.
+        const objects = figureObjects(c);
+        const lines = objects.map((object) =>
+            lineOf(object, figureIndex(c), objects),
+        );
+        expect(lines).not.toContain(null);
+        expect(lines).toEqual(
+            expect.arrayContaining([
+                "I = Integral(f, 0, x(B))",
+                "L = LowerSum(f, 0, 1, 4)",
+            ]),
+        );
+        expect(c.getObj("U")).toBeInstanceOf(integral_object);
         expect(value("n")).toBe(2);
         expect(value("k")).toBe(8);
         expectLine("u", [1, 0], [0, 1]);
@@ -4805,6 +4832,21 @@ r.setExpression(0);`);
             expectClose(at(name as string), coords as number[]),
         );
         expect((c.getObj("e") as expression_object).value).toBeCloseTo(k / 3);
+        // Each a line of the editor.
+        const objects = figureObjects(c);
+        const lines = objects.map((object) =>
+            lineOf(object, figureIndex(c), objects),
+        );
+        expect(lines).not.toContain(null);
+        expect(lines).toEqual(
+            expect.arrayContaining([
+                "G = Focus(eq1, 2)",
+                "X = Vertex(eq1, 3)",
+                "d = Directrix(eq1, 1)",
+                "O = Center(eq1)",
+                "e = eccentricity(eq1)",
+            ]),
+        );
         // d: x = 2 + 9/√5, on G's side.
         const d = c.getObj("d") as primitive_line_object;
         expect(d.P1.coords[0]).toBeCloseTo(2 + 9 / k);

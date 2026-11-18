@@ -34,6 +34,10 @@
                     >）；<code>n</code>、<code>t</code>：直接写出的数。
                 </li>
                 <li>
+                    需要数字的地方，线段取其长度，角取其值，与 GeoGebra
+                    相同：<code>圆(O, s)</code>、<code>旋转(O, P, α)</code>。
+                </li>
+                <li>
                     图标即<a href="menu-outils.html">工具面板</a
                     >中工具的图标；<span class="badge d3">3D</span
                     >：空间中的形式。
@@ -116,12 +120,26 @@
                             <td>线段 s 的中点</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>圆心</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>圆心(c)</code></td>
                             <td>圆 c 的圆心</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>圆心(c)</code></td>
+                            <td>圆锥曲线 c（椭圆、双曲线）的中心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>焦点</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>焦点(c, n)</code></td>
+                            <td>
+                                圆锥曲线 c 的第 n 个焦点（1 或 2），按 GeoGebra
+                                的顺序
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -224,10 +242,37 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>九点圆心</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>九点圆心(A, B, C)</code>
+                            </td>
+                            <td>三角形 ABC 的九点圆圆心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>顶点</strong><br /><small>Vertex</small>
                             </td>
                             <td class="syntax"><code>顶点(p, k)</code></td>
                             <td>多边形或多面体的第 k 个顶点（从 1 开始）</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>顶点(c, n)</code></td>
+                            <td>
+                                圆锥曲线 c 的第 n 个顶点（1 到 4），按 GeoGebra
+                                的顺序
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>方向点</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>方向点(d, P)</code></td>
+                            <td>点 P 沿直线 d 的单位方向向量平移后的点</td>
                         </tr>
                     </tbody>
                 </table>
@@ -275,6 +320,15 @@
                             </td>
                             <td class="syntax"><code>向量(A, B)</code></td>
                             <td>从 A 到 B 的向量</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>准线</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>准线(c, n)</code></td>
+                            <td>圆锥曲线 c 的第 n 条准线（1 或 2）</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>方程</strong></td>
@@ -720,12 +774,16 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i> <strong>位似</strong
                                 ><br /><small>Dilation</small>
                             </td>
                             <td class="syntax"><code>位似(O, P, k)</code></td>
                             <td>P 在以 O 为中心、比为 k 的位似下的像</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>位似(P, k)</code></td>
+                            <td>P 在以原点为中心、比为 k 的位似下的像</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -974,7 +1032,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>截面</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -985,6 +1043,16 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>截面(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                多边形，其各顶点为平面 p 与线段
+                                [A1B1]、[A2B2]…各自的交点（不相交时未定义），与
+                                GeoGebra 截棱锥的方式相同
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>展开图</strong
                                 ><br /><small>Net</small>
@@ -992,6 +1060,22 @@
                             <td class="syntax"><code>展开图(c, f)</code></td>
                             <td>
                                 多面体的展开图，展开程度为 f（0：折叠，1：展平）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>展开图顶点</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>展开图顶点(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                展开程度为 f 的展开图的顶点 A，与 GeoGebra
+                                的展开图相同：绕其所在面的棱 [OE] 旋转（C
+                                为该面上一点，Q
+                                为相邻面上一点），之后各面依此类推
                             </td>
                         </tr>
                     </tbody>
@@ -1081,6 +1165,20 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>迭代列表</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>迭代列表(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                由 n + 1 个值组成的列表 s, f(s), f(f(s))…，f
+                                为变量 z 的公式（数、复数或点）
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>元素</strong><br /><small
                                     >Element</small
@@ -1117,6 +1215,46 @@
                             <td>
                                 数字列表 L 的箱线图，以高度 y 为中心，高
                                 2s；公式读取它时取其中位数
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>积分</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax"><code>积分(g, a, b)</code></td>
+                            <td>
+                                函数 g 从 a 到 b 的积分，并画出其图像与 x
+                                轴之间的区域；公式读取它时取其值
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>下和</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>下和(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                函数 g 从 a 到 b 分为 n
+                                个矩形的下和，并画出矩形；公式读取它时取其值
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>上和</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>上和(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                函数 g 从 a 到 b 分为 n
+                                个矩形的上和，并画出矩形；公式读取它时取其值
                             </td>
                         </tr>
                         <tr>
@@ -1254,6 +1392,11 @@
                 >表示按顶点顺序从1开始计数的第k条边，不会向作图添加线段。正多边形也适用。
             </p>
             <pre><code>M = 中点(边(p, 2))</code></pre>
+            <p>
+                单独成行时，<code>c = 边(p, k)</code> 添加一条线段：从第 k − 1
+                个顶点到第 k 个顶点，最后一条边则到第一个顶点，与 GeoGebra
+                中边数为滑动条的正多边形的边相同。
+            </p>
             <h2 id="faces">多面体的面</h2>
             <p>
                 <strong>面</strong> ·

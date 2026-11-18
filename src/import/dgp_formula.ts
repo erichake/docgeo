@@ -1398,6 +1398,10 @@ class FormulaParser {
                 name: solid.name,
                 args: [args[0], args[1], args[3]],
             };
+        // eccentricity(c), of a conic, which it calls without arguments.
+        const conic = name === "eccentricity" && args.length === 1 && args[0];
+        if (conic && conic.kind === "identifier")
+            return { kind: "userCall", name: conic.name, args: [] };
         if (!(name in FORMULA_ARITY)) {
             this.called.add(name);
             return { kind: "userCall", name, args };

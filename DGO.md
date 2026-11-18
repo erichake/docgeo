@@ -561,8 +561,12 @@ pour une seule valeur (2026-11-17).
 | `Reg`   | région du plan où une formule de x et y est vraie (33)                      | `formule`                                                |
 | `Surf`  | surface z = f(x, y), f une formule de x et y (34)                           | `[formule, taille]`                                      |
 | `Box`   | boîte à moustaches d'une liste autour de y, de hauteur 2s (36)              | `[y, s, liste]`, trois formules                          |
+| `Itg`   | intégrale d'une fonction de a à b, sa région entre courbe et axe (37)       | `[courbe, a, b]`                                         |
+| `LSum`  | somme inférieure d'une fonction de a à b sur n intervalles (37)             | `[courbe, a, b, n]`                                      |
+| `USum`  | somme supérieure d'une fonction de a à b sur n intervalles (37)             | `[courbe, a, b, n]`                                      |
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)                |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)                 |
+| `ItL`   | s, f(s), f(f(s))… : `IterationList` de GeoGebra (38)                        | `[z, f, s, n]`, f formule de z                           |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                                      |
 | `Pts`   | liste de points `{A, (1, 2), …}` de GeoGebra                                | `[formule, …]` (29, 30)                                  |
 | `Fl`    | liste donnée par une formule, comme `Élément(c, 1)` d'une liste de listes   | `[formule]` (30)                                         |
@@ -956,6 +960,21 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     médiane, ses moustaches vont jusqu'aux valeurs extrêmes, terminées par
     des barres de même hauteur. Lu par une formule, l'objet vaut la
     médiane, comme dans GeoGebra.
+37. Ajoutés le 2026-11-17, comme `Integral(f, a, b)`, `LowerSum(f, a, b,
+n)` et `UpperSum(f, a, b, n)` de GeoGebra : a, b et n sont des nombres
+    ou des formules (comme le rayon de `C1`). L'intégrale se calcule par la
+    méthode de Simpson sur 1000 intervalles, sa région est tracée par 200 ;
+    chaque rectangle d'une somme a pour hauteur le plus petit ou le plus
+    grand de 17 échantillons de la fonction sur son intervalle. Lu par une
+    formule, l'objet vaut l'intégrale ou la somme. Dans une formule,
+    `eccentricity(c)` est l'excentricité de la conique c ; le point
+    `CnP` `"e"` (excentricité en abscisse), que l'import n'écrit plus, reste
+    lu.
+38. Ajouté le 2026-11-17, comme `IterationList(f, z, s, n)` de GeoGebra :
+    les n + 1 valeurs s, f(s), f(f(s))…, nombres, complexes ou points, f
+    étant une formule de la variable z (comme celle d'une boucle de `Seq`),
+    s et n des formules qui ne la lisent pas. Lue par son nom, la liste de
+    ces valeurs ; dessinée comme une liste de points.
 
 ### Macro-constructions
 
@@ -1358,10 +1377,10 @@ non définie).
 | `Tetr`, `TetP`, `TetZ`, `Octa`, `OctP`, `OctZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Dode`, `DodP`, `DodZ`, `Icos`, `IcoP`, `IcoZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Surf` (opacité 0,4)                                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Box`                                                                                     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Box`, `Itg`, `LSum`, `USum`                                                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |
-| `Lst`, `ELst`, `Itr`                                                                      | `#656148`, `#656148`, 2                   |
+| `Lst`, `ELst`, `Itr`, `ItL`                                                               | `#656148`, `#656148`, 2                   |
 | `Ex`                                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
 | `Txt`                                                                                     | `#000000`, `#000000`, 1                   |
 | `Img` (une épaisseur non nulle dessine son cadre)                                         | `#000000`, `#000000`, 0                   |

@@ -84,6 +84,7 @@ import {
     sequenceShape,
     type sequence_object,
 } from "../objects/sequence_object";
+import type { iteration_list_object } from "../objects/iteration_list_object";
 import { vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import { unreadable } from "../workbook";
 import {
@@ -574,6 +575,16 @@ export function lineOf(
             ].join(", ")})`;
         return `${name} = ${body}`;
     }
+    if (tag === "ItL") {
+        const { variable, formulas, countFormula } =
+            object as iteration_list_object;
+        return `${name} = ${commandName(findCommand("IterationList")!)}(${[
+            text(formulas[0]),
+            variable,
+            text(formulas[1]),
+            text(countFormula),
+        ].join(", ")})`;
+    }
     if (tag === "VecF")
         return `${name} = (${(parameters as number[]).map(formatNumber).join(", ")})`;
     if (tag === "Pt") {
@@ -658,11 +669,13 @@ export function resolve(
         ({ overload, args } = pointList(c, definition!.items));
     else if (findCommand(definition!.command)?.name === "Sequence")
         ({ overload, args } = sequence(c, definition!.args));
+    else if (findCommand(definition!.command)?.name === "IterationList")
+        ({ overload, args } = iterationList(c, definition!.args));
     else {
         const call = definition!;
         const command = findCommand(call.command);
         if (!command) throw new TextError("unknown_command", call.command);
-        if (command.reference)
+        if (command.reference && command.name !== "Side")
             throw new TextError("arguments", commandName(command));
         args = call.args.map((arg) => resolveArgument(c, arg, command.name));
         overload = overloadFor(command, args, c.space);
@@ -726,14 +739,35 @@ export function resolve(
             args[2] !== 2
         )
             throw new TextError("tangent_branch");
-        // A polygon's number of sides, a vertex's rank.
+        // A polygon's number of sides, but a slider's, a vertex's or a
+        // side's rank.
         const count = args[overload.params.indexOf("number")] as number;
         if (
-            (overload.tag === "RegP" || overload.tag === "Vtx") &&
+            (overload.tag === "RegP" ||
+                overload.tag === "Vtx" ||
+                command.name === "Side") &&
+            overload.params.includes("number") &&
             !(
                 Number.isInteger(count) &&
-                count >= (overload.tag === "Vtx" ? 1 : 3)
+                count >= (overload.tag === "RegP" ? 3 : 1)
             )
+        )
+            throw new TextError("arguments", commandName(command));
+        // A conic's focus or directrix, 1 or 2, or vertex, 1 to 4.
+        if (
+            overload.params[0] === "conic" &&
+            overload.params[1] === "number" &&
+            ![1, 2, ...(command.name === "Vertex" ? [3, 4] : [])].includes(
+                count,
+            )
+        )
+            throw new TextError("arguments", commandName(command));
+        // Its turns, four points each; a section's edges, two.
+        if (
+            (overload.tag === "NetV" && args.length % 4 !== 2) ||
+            (overload.tag === "PlS" &&
+                overload.variadic &&
+                args.length % 2 !== 1)
         )
             throw new TextError("arguments", commandName(command));
         if (overload.tag === "Img" && args.length > 3)
@@ -1806,6 +1840,37 @@ function sequence(
             ]),
         };
     }
+}
+
+// IterationList(f, z, s, n): s, f(s), f(f(s))…, f a formula of z (see
+// iteration_list_object.ts).
+function iterationList(
+    c: construction,
+    args: ArgText[],
+): { overload: Overload; args: Arg[] } {
+    const [expression, variable, start, count, extra] = args;
+    if (variable?.kind !== "name" || !count || extra)
+        throw new TextError(
+            "arguments",
+            commandName(findCommand("IterationList")!),
+        );
+    const [f, s, n] = [
+        formulaArg(c, item(argSource(expression)), [variable.name]),
+        ...[start, count].map((arg) => formulaArg(c, item(argSource(arg)))),
+    ];
+    return {
+        overload: {
+            params: [],
+            tag: "ItL",
+            encode: (_, index) => [
+                variable.name,
+                ...[f, s, n].map(({ source, refs }) =>
+                    formulaParameter(source, refs, index),
+                ),
+            ],
+        },
+        args: argObjects([f, s, n]),
+    };
 }
 
 // An item, a formula or coordinates, read as on a line of its own.

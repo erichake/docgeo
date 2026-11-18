@@ -28,7 +28,7 @@ export const CONIC_POINTS = [
 export type ConicPoint = (typeof CONIC_POINTS)[number];
 
 // In the conic a·x² + b·xy + c·y² + d·x + e·y + f = 0's plane.
-function conicPoint(
+export function conicPoint(
     [a, b, c, d, e, f]: readonly number[],
     which: ConicPoint,
 ): Vec2 | null {

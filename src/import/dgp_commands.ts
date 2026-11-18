@@ -49,7 +49,14 @@ import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
 import { createRegion } from "../objects/region_object";
 import { createBoxPlot } from "../objects/box_plot_object";
-import { createCurve, type CurveBound } from "../objects/curve_object";
+import { createIntegral } from "../objects/integral_object";
+import { createListPolygon } from "../objects/list_polygon_object";
+import { createIterationList } from "../objects/iteration_list_object";
+import {
+    createCurve,
+    type curve_object,
+    type CurveBound,
+} from "../objects/curve_object";
 import { createButton, type button_object } from "../objects/button_object";
 import { createEvent, runInits } from "../objects/event_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
@@ -3358,6 +3365,41 @@ const COMMANDS = new Map<string, CommandDefinition>([
             },
         },
     ],
+    // DocGeo's: GeoGebra's Integral(f, a, b), LowerSum(f, a, b, n) and
+    // UpperSum(f, a, b, n), of formulas.
+    ...(
+        [
+            ["Integral", "Itg"],
+            ["LowerSum", "LSum"],
+            ["UpperSum", "USum"],
+        ] as const
+    ).map(([command, tag]): [string, CommandDefinition] => [
+        command,
+        {
+            parameters: [
+                string,
+                object,
+                formula,
+                formula,
+                ...(tag === "Itg" ? [] : [formula]),
+            ],
+            result: "expression",
+            validate: (args, lineNumber, variables) =>
+                args
+                    .slice(2)
+                    .forEach((arg) =>
+                        validateRadius(arg, lineNumber, variables),
+                    ),
+            execute: (context, args) =>
+                createIntegral(
+                    context.construction,
+                    args[0] as string,
+                    tag,
+                    args[1] as curve_object,
+                    args.slice(2).map((arg) => radiusArgument(arg, context)),
+                ),
+        },
+    ]),
     [
         // DocGeo's: GeoGebra's BoxPlot(y, s, list), of three formulas.
         "BoxPlot",
@@ -3575,6 +3617,56 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     context.is3D,
                 );
             },
+        },
+    ],
+    [
+        // Not a DGPad command: GeoGebra's IterationList(f, z, s, n), its
+        // variable, start and count given as a Sequence's loop.
+        "IterationList",
+        {
+            parameters: [string, string, string],
+            result: "list",
+            validate: (args, lineNumber, variables) =>
+                validateReferences(
+                    sequenceParts(
+                        literalString(args[1]),
+                        literalString(args[2]),
+                        lineNumber,
+                    ).names,
+                    variables,
+                    lineNumber,
+                ),
+            execute: (context, args) => {
+                const {
+                    loops: [{ variable, from, to }],
+                    formulas: [formula],
+                    names,
+                } = sequenceParts(args[1] as string, args[2] as string, 0);
+                return createIterationList(
+                    context.construction,
+                    args[0] as string,
+                    variable,
+                    formula,
+                    from,
+                    to,
+                    formulaRefs(names, context.variables),
+                    context.is3D,
+                );
+            },
+        },
+    ],
+    [
+        // Not a DGPad command: GeoGebra's Polygon of a list of points.
+        "PolygonList",
+        {
+            parameters: [string, object],
+            result: "polygon",
+            execute: (context, args) =>
+                createListPolygon(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as list_object,
+                ),
         },
     ],
     [

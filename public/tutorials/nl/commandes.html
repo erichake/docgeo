@@ -39,6 +39,11 @@
                     <code>t</code>: geschreven getallen.
                 </li>
                 <li>
+                    Waar een getal verwacht wordt, staat een lijnstuk voor zijn
+                    lengte en een hoek voor zijn waarde, zoals in GeoGebra:
+                    <code>Cirkel(O, s)</code>, <code>Draaiing(O, P, α)</code>.
+                </li>
+                <li>
                     Het pictogram is dat van het gereedschap in het
                     <a href="menu-outils.html">palet</a>;
                     <span class="badge d3">3D</span>: vormen in de ruimte.
@@ -135,7 +140,7 @@
                             <td>midden van het lijnstuk s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i>
                                 <strong>Middelpunt</strong><br /><small
                                     >Center</small
@@ -143,6 +148,25 @@
                             </td>
                             <td class="syntax"><code>Middelpunt(c)</code></td>
                             <td>middelpunt van de cirkel c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Middelpunt(c)</code></td>
+                            <td>
+                                middelpunt van de kegelsnede c (ellips,
+                                hyperbool)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Brandpunt</strong><br /><small
+                                    >Focus</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Brandpunt(c, n)</code></td>
+                            <td>
+                                brandpunt n (1 of 2) van de kegelsnede c, in de
+                                volgorde van GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -282,6 +306,19 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>MiddelpuntNegenpuntscirkel</strong
+                                ><br /><small>NinePointCenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code>MiddelpuntNegenpuntscirkel(A, B, C)</code>
+                            </td>
+                            <td>
+                                middelpunt van de negenpuntscirkel van driehoek
+                                ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Hoekpunt</strong><br /><small
                                     >Vertex</small
                                 >
@@ -290,6 +327,27 @@
                             <td>
                                 k-de hoekpunt (vanaf 1) van een veelhoek of een
                                 veelvlak
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Hoekpunt(c, n)</code></td>
+                            <td>
+                                top n (1 tot 4) van de kegelsnede c, in de
+                                volgorde van GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Richtingpunt</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Richtingpunt(d, P)</code>
+                            </td>
+                            <td>
+                                punt P verschoven over de
+                                eenheidsrichtingsvector van rechte d
                             </td>
                         </tr>
                     </tbody>
@@ -341,6 +399,15 @@
                             </td>
                             <td class="syntax"><code>Vector(A, B)</code></td>
                             <td>vector van A naar B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Richtlijn</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Richtlijn(c, n)</code></td>
+                            <td>richtlijn n (1 of 2) van de kegelsnede c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>vergelijking</strong></td>
@@ -879,7 +946,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Vermenigvuldiging</strong><br /><small
                                     >Dilation</small
@@ -891,6 +958,15 @@
                             <td>
                                 beeld van P door de vermenigvuldiging met
                                 centrum O en factor k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Vermenigvuldiging(P, k)</code>
+                            </td>
+                            <td>
+                                beeld van P onder de vermenigvuldiging met de
+                                oorsprong als centrum en factor k
                             </td>
                         </tr>
                         <tr>
@@ -1169,7 +1245,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i>
                                 <strong>Doorsnede</strong><br /><small
                                     >Section</small
@@ -1183,6 +1259,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Doorsnede(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                veelhoek waarvan de hoekpunten de punten zijn
+                                waar het vlak p elk van de lijnstukken [A1B1],
+                                [A2B2]… snijdt (onbepaald als het er een mist),
+                                zoals GeoGebra een piramide snijdt
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Uitslag</strong
                                 ><br /><small>Net</small>
@@ -1191,6 +1278,25 @@
                             <td>
                                 uitslag van een veelvlak, opengevouwen volgens f
                                 (0: dicht, 1: plat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>HoekpuntUitslag</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >HoekpuntUitslag(A, f, O, E, C, Q, …)</code
+                                >
+                            </td>
+                            <td>
+                                hoekpunt A van een uitslag die met f is
+                                opengevouwen, zoals die van GeoGebra: gedraaid
+                                om de ribbe [OE] van zijn zijvlak (C een punt
+                                van dat zijvlak, Q van het buurvlak), en zo
+                                verder voor elk volgend zijvlak
                             </td>
                         </tr>
                     </tbody>
@@ -1299,6 +1405,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>IteratieLijst</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>IteratieLijst(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                lijst s, f(s), f(f(s))… van n + 1 waarden,
+                                waarbij f een formule is in de variabele z
+                                (getallen, complexe getallen of punten)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2"><strong>Element</strong></td>
                             <td class="syntax">
                                 <code>Element(L, n)</code>, <code>L(n)</code>
@@ -1331,6 +1452,51 @@
                             <td>
                                 boxplot van de getallenlijst L, rond hoogte y,
                                 2s hoog; een formule leest hem als zijn mediaan
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Integraal</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Integraal(g, a, b)</code>
+                            </td>
+                            <td>
+                                integraal van de functie g van a tot b, met het
+                                gebied tussen haar grafiek en de x-as; een
+                                formule leest haar als haar waarde
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Ondersom</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Ondersom(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                ondersom van de functie g van a tot b met n
+                                getekende rechthoeken; een formule leest haar
+                                als haar waarde
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Bovensom</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Bovensom(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                bovensom van de functie g van a tot b met n
+                                getekende rechthoeken; een formule leest haar
+                                als haar waarde
                             </td>
                         </tr>
                         <tr>
@@ -1480,6 +1646,13 @@
                 veelhoeken.
             </p>
             <pre><code>M = Midden(Zijde(p, 2))</code></pre>
+            <p>
+                Op een eigen regel voegt <code>c = Zijde(p, k)</code> een
+                lijnstuk toe: van hoekpunt k − 1 naar hoekpunt k, of naar het
+                eerste hoekpunt voor de laatste zijde, zoals de zijden van een
+                regelmatige veelhoek waarvan het aantal zijden in GeoGebra een
+                schuifknop is.
+            </p>
             <h2 id="faces">Zijvlakken van veelvlakken</h2>
             <p>
                 <strong>Zijvlak</strong> · Een gereedschap dat een vlak of een

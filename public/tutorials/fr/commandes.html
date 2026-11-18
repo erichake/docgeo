@@ -38,6 +38,11 @@
                     <code>t</code> : nombres écrits.
                 </li>
                 <li>
+                    Là où un nombre est attendu, un segment vaut sa longueur et
+                    un angle sa valeur, comme dans GeoGebra :
+                    <code>Cercle(O, s)</code>, <code>Rotation(O, P, α)</code>.
+                </li>
+                <li>
                     L’icône est celle de l’outil de la
                     <a href="menu-outils.html">palette</a> ;
                     <span class="badge d3">3D</span> : formes de l’espace.
@@ -132,12 +137,26 @@
                             <td>milieu du segment s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>Centre</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>Centre(c)</code></td>
                             <td>centre du cercle c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Centre(c)</code></td>
+                            <td>centre de la conique c (ellipse, hyperbole)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Foyer</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>Foyer(c, n)</code></td>
+                            <td>
+                                foyer n (1 ou 2) de la conique c, dans l’ordre
+                                de GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -274,6 +293,20 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>CentreCercleEuler</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>CentreCercleEuler(A, B, C)</code>
+                            </td>
+                            <td>
+                                centre du cercle d’Euler (cercle des neuf
+                                points) du triangle ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Sommet</strong><br /><small
                                     >Vertex</small
                                 >
@@ -282,6 +315,27 @@
                             <td>
                                 k-ième sommet (à partir de 1) d’un polygone ou
                                 d’un polyèdre
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Sommet(c, n)</code></td>
+                            <td>
+                                sommet n (1 à 4) de la conique c, dans l’ordre
+                                de GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>PointDirection</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>PointDirection(d, P)</code>
+                            </td>
+                            <td>
+                                point P déplacé du vecteur directeur unitaire de
+                                la droite d
                             </td>
                         </tr>
                     </tbody>
@@ -333,6 +387,17 @@
                             </td>
                             <td class="syntax"><code>Vecteur(A, B)</code></td>
                             <td>vecteur de A vers B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Directrice</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Directrice(c, n)</code>
+                            </td>
+                            <td>directrice n (1 ou 2) de la conique c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>équation</strong></td>
@@ -844,7 +909,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Homothétie</strong><br /><small
                                     >Dilation</small
@@ -856,6 +921,15 @@
                             <td>
                                 image de P par l’homothétie de centre O et de
                                 rapport k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Homothétie(P, k)</code>
+                            </td>
+                            <td>
+                                image de P par l’homothétie de centre l’origine
+                                et de rapport k
                             </td>
                         </tr>
                         <tr>
@@ -1127,7 +1201,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i>
                                 <strong>Section</strong>
                             </td>
@@ -1139,6 +1213,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Section(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                polygone dont chaque sommet est le point où le
+                                plan p coupe l’un des segments [A1B1], [A2B2]…
+                                (indéfini s’il le manque), comme GeoGebra coupe
+                                une pyramide
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Patron</strong
                                 ><br /><small>Net</small>
@@ -1147,6 +1232,22 @@
                             <td>
                                 patron d’un polyèdre, déplié de f (0 : plié, 1 :
                                 à plat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SommetPatron</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SommetPatron(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                sommet A d’un patron déplié de f, comme ceux de
+                                GeoGebra : tourné autour de l’arête [OE] de sa
+                                face (C un point de cette face, Q de la face
+                                voisine), puis de même pour chaque face suivante
                             </td>
                         </tr>
                     </tbody>
@@ -1249,6 +1350,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>ItérationListe</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ItérationListe(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                liste s, f(s), f(f(s))… de n + 1 valeurs, f
+                                étant une formule de la variable z (nombres,
+                                complexes ou points)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>Élément</strong><br /><small
                                     >Element</small
@@ -1286,6 +1402,51 @@
                                 boîte à moustaches de la liste de nombres L,
                                 autour de la hauteur y et de hauteur 2s ; une
                                 formule la lit comme sa médiane
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Intégrale</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Intégrale(g, a, b)</code>
+                            </td>
+                            <td>
+                                intégrale de la fonction g de a à b, avec la
+                                région entre sa courbe et l’axe des abscisses ;
+                                une formule la lit comme sa valeur
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SommeInférieure</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SommeInférieure(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                somme inférieure de la fonction g de a à b sur n
+                                rectangles, dessinés ; une formule la lit comme
+                                sa valeur
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SommeSupérieure</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SommeSupérieure(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                somme supérieure de la fonction g de a à b sur n
+                                rectangles, dessinés ; une formule la lit comme
+                                sa valeur
                             </td>
                         </tr>
                         <tr>
@@ -1430,6 +1591,12 @@
                 polygones réguliers.
             </p>
             <pre><code>M = Milieu(Côté(p, 2))</code></pre>
+            <p>
+                Seul sur sa ligne, <code>c = Côté(p, k)</code> ajoute un segment
+                : du sommet k − 1 au sommet k, ou au premier sommet pour le
+                dernier côté, comme les côtés d’un polygone régulier dont le
+                nombre de côtés est un curseur dans GeoGebra.
+            </p>
             <h2 id="faces">Faces des polyèdres</h2>
             <p>
                 <strong>Face</strong> · Un outil qui attend un plan ou un

@@ -38,6 +38,11 @@
                     >)؛ <code>n</code>، <code>t</code>: أعداد مكتوبة.
                 </li>
                 <li>
+                    حيث يُنتظر عدد، تُقرأ القطعة بطولها والزاوية بقيمتها، كما في
+                    GeoGebra: <code>دائرة(O, s)</code>،
+                    <code>دوران(O, P, α)</code>.
+                </li>
+                <li>
                     الأيقونة هي أيقونة الأداة في
                     <a href="menu-outils.html">لوحة الأدوات</a>؛
                     <span class="badge d3">3D</span>: صيغ الفضاء.
@@ -133,12 +138,26 @@
                             <td>منتصف القطعة المستقيمة s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>مركز</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>مركز(c)</code></td>
                             <td>مركز الدائرة c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>مركز(c)</code></td>
+                            <td>مركز القطع المخروطي c (قطع ناقص، قطع زائد)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>بؤرة</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>بؤرة(c, n)</code></td>
+                            <td>
+                                البؤرة n (1 أو 2) للقطع المخروطي c، بترتيب
+                                GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -259,11 +278,41 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>مركزدائرةالنقاطالتسع</strong
+                                ><br /><small>NinePointCenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code>مركزدائرةالنقاطالتسع(A, B, C)</code>
+                            </td>
+                            <td>مركز دائرة النقاط التسع للمثلث ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>رأس</strong><br /><small>Vertex</small>
                             </td>
                             <td class="syntax"><code>رأس(p, k)</code></td>
                             <td>
                                 الرأس رقم k (بدءًا من 1) لمضلع أو متعدد سطوح
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>رأس(c, n)</code></td>
+                            <td>
+                                الرأس n (من 1 إلى 4) للقطع المخروطي c، بترتيب
+                                GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>نقطةالاتجاه</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>نقطةالاتجاه(d, P)</code>
+                            </td>
+                            <td>
+                                النقطة P مُزاحة بمتجه الاتجاه الوحدوي للمستقيم d
                             </td>
                         </tr>
                     </tbody>
@@ -312,6 +361,15 @@
                             </td>
                             <td class="syntax"><code>متجه(A, B)</code></td>
                             <td>المتجه من A إلى B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>دليل</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>دليل(c, n)</code></td>
+                            <td>الدليل n (1 أو 2) للقطع المخروطي c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>معادلة</strong></td>
@@ -791,12 +849,18 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i> <strong>تحاكي</strong
                                 ><br /><small>Dilation</small>
                             </td>
                             <td class="syntax"><code>تحاكي(O, P, k)</code></td>
                             <td>صورة P بالتحاكي الذي مركزه O ونسبته k</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>تحاكي(P, k)</code></td>
+                            <td>
+                                صورة P بالتحاكي الذي مركزه نقطة الأصل ونسبته k
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -1067,7 +1131,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>مقطع</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -1075,6 +1139,16 @@
                             <td>
                                 مقطع المجسم s بالمستوى p: دائرة (كرة)، قطع
                                 مخروطي (أسطوانة، مخروط) أو مضلع (متعدد سطوح)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>مقطع(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                مضلع رؤوسه هي النقاط التي يقطع فيها المستوى p
+                                كلًّا من القطع [A1B1]، [A2B2]… (غير معرّف إن لم
+                                يقطعها)، كما يقطع GeoGebra هرمًا
                             </td>
                         </tr>
                         <tr>
@@ -1086,6 +1160,22 @@
                             <td>
                                 شبكة متعدد سطوح، مفتوحة بقدر f (0: مطوية، 1:
                                 مسطحة)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>رأسالشبكة</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>رأسالشبكة(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                الرأس A لشبكة مفتوحة بمقدار f، مثل شبكات
+                                GeoGebra: مُدار حول الحرف [OE] لوجهه (C نقطة من
+                                هذا الوجه، Q من الوجه المجاور)، ثم بالمثل لكل
+                                وجه تالٍ
                             </td>
                         </tr>
                     </tbody>
@@ -1188,6 +1278,20 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>قائمةالتكرار</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>قائمةالتكرار(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                القائمة s، f(s)، f(f(s))… من n + 1 قيمة، حيث f
+                                صيغة في المتغير z (أعداد أو أعداد مركبة أو نقاط)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>عنصر</strong><br /><small
                                     >Element</small
@@ -1224,6 +1328,46 @@
                             <td>
                                 مخطط الصندوق لقائمة الأعداد L، حول الارتفاع y
                                 وبارتفاع 2s؛ تقرؤه الصيغة على أنه وسيطه
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>تكامل</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax"><code>تكامل(g, a, b)</code></td>
+                            <td>
+                                تكامل الدالة g من a إلى b، مع المنطقة بين
+                                منحناها ومحور الفواصل؛ تقرؤه الصيغة بقيمته
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>مجموعسفلي</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مجموعسفلي(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                المجموع السفلي للدالة g من a إلى b على n
+                                مستطيلات مرسومة؛ تقرؤه الصيغة بقيمته
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>مجموععلوي</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مجموععلوي(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                المجموع العلوي للدالة g من a إلى b على n
+                                مستطيلات مرسومة؛ تقرؤه الصيغة بقيمته
                             </td>
                         </tr>
                         <tr>
@@ -1361,6 +1505,11 @@
                 ذلك أيضًا على المضلعات المنتظمة.
             </p>
             <pre><code>M = منتصف(ضلع(p, 2))</code></pre>
+            <p>
+                وحده في سطره، يضيف <code>c = ضلع(p, k)</code> قطعة مستقيمة: من
+                الرأس k − 1 إلى الرأس k، أو إلى الرأس الأول للضلع الأخير، مثل
+                أضلاع مضلع منتظم عدد أضلاعه منزلقة في GeoGebra.
+            </p>
             <h2 id="faces">أوجه متعددات السطوح</h2>
             <p>
                 <strong>وجه</strong> · تأخذ الأداة التي تنتظر مستوى أو مضلعًا،

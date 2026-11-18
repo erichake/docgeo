@@ -4,6 +4,7 @@ import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
 import { expression_object } from "../objects/expression_object";
 import { box_plot_object } from "../objects/box_plot_object";
+import { integral_object } from "../objects/integral_object";
 import { surface_object } from "../objects/surface_object";
 import { list_object } from "../objects/list_object";
 import { point_list_object } from "../objects/point_list_object";
@@ -18,6 +19,7 @@ import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { vector_object } from "../objects/vector_object";
+import { vertex_object } from "../objects/vertex_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
 import { plane_object } from "../objects/plane_object";
 import { revolution_object } from "../objects/revolution_object";
@@ -58,6 +60,7 @@ export type Param =
     | "segment"
     | "vector"
     | "circle"
+    | "conic"
     | "polygon"
     // A polygon or a polyhedron.
     | "faceted"
@@ -187,10 +190,11 @@ export function kindOf(object: construction_object): Kind {
         object instanceof list_object
     )
         return "curve";
-    // A box plot reads as its median.
+    // A box plot reads as its median, an integral as its value.
     if (
         object instanceof expression_object ||
-        object instanceof box_plot_object
+        object instanceof box_plot_object ||
+        object instanceof integral_object
     )
         return "number";
     if (object instanceof angle_object) return "angle";
@@ -225,7 +229,13 @@ export function accepts(arg: Arg, param: Param): boolean {
             return false;
         case "any":
             return true;
+        // A segment as its length, an angle as its value, as in GeoGebra.
         case "real":
+            return (
+                kind === "number" ||
+                kind === "angle" ||
+                arg instanceof segment_object
+            );
         case "expression":
             return kind === "number";
         case "pointOn":
@@ -438,7 +448,8 @@ function ofSegment(tag: string): Overload {
         tag,
         encode: ([segment], index) => {
             const { P1, P2, reference } = segment as two_points_line_object;
-            return reference
+            // Itself when its ends are its part, or written in its line.
+            return reference || P1.embedded || P2.embedded
                 ? [index(segment as construction_object)]
                 : [index(P1), index(P2)];
         },
@@ -577,6 +588,25 @@ function withReal(tag: string, params: Param[]): Overload {
     };
 }
 
+// A function's curve, then numbers.
+function ofGraph(tag: string, count: number): Overload {
+    return {
+        params: ["graph", ...Array<Param>(count).fill("real")],
+        tag,
+        encode: ([f, ...values], index) => [
+            index(f as construction_object),
+            ...values.map((value) => realParameter(value, index)),
+        ],
+        decode: (parameters, at) => {
+            const [f, ...values] = parameters as unknown[];
+            return [
+                at(f as DgoRef),
+                ...values.map((value) => realArgument(value, at)),
+            ];
+        },
+    };
+}
+
 // Around the origin, an axis, or the axis through a point parallel to a
 // line, as GeoGebra's Rotate(obj, a), Rotate(obj, a, d) and
 // Rotate(obj, a, A, d): its center, the object, the angle and its axis.
@@ -652,6 +682,25 @@ const center = (n: number): Overload => ({
     },
 });
 
+// A conic's center, or its n-th focus or vertex, in GeoGebra's order (see
+// conic_point_object.ts).
+function conicPoint(prefix: "C" | "F" | "V"): Overload {
+    const center = prefix === "C";
+    return {
+        params: center ? ["conic"] : ["conic", "number"],
+        tag: "CnP",
+        encode: ([conic, n], index) => [
+            index(conic as construction_object),
+            center ? prefix : `${prefix}${n}`,
+        ],
+        decode: (parameters, at) => {
+            const [conic, which] = parameters as [DgoRef, string];
+            if (which[0] !== prefix) return null;
+            return center ? [at(conic)] : [at(conic), Number(which.slice(1))];
+        },
+    };
+}
+
 // The tangent tool's only form, kept out of the commands: `Tangent(P, c)`
 // would begin `Tangent(P, c, n)`. A circle or a conic gets its first tangent,
 // which the line changes.
@@ -670,6 +719,36 @@ export const COMMANDS: Command[] = [
         name: "Side",
         reference: true,
         overloads: [
+            // On a line of its own, the segment from its vertex k - 1 to
+            // its vertex k, the first when k is its number of sides, as
+            // GeoGebra's sides of a polygon of a slider's n (see
+            // vertex_object.ts).
+            {
+                params: ["polygon", "number"],
+                tag: "Seg",
+                encode: ([polygon, k], index) => {
+                    const owner = index(polygon as construction_object);
+                    return [
+                        ["Vtx", [owner, (k as number) - 1]],
+                        ["Vtx", [owner, k, 1]],
+                    ];
+                },
+                decode: (parameters, at) => {
+                    const [start, end] = parameters as unknown[];
+                    if (!Array.isArray(end) || end[0] !== "Vtx") return null;
+                    const [polygon, k, wrap] = end[1] as number[];
+                    if (!wrap) return null;
+                    const owner = at(polygon) as polygon_object;
+                    const first = at(start as DgoRef);
+                    return first === owner.vertices[k - 1] ||
+                        (first instanceof vertex_object &&
+                            first.polygon === owner &&
+                            first.rank === k - 1 &&
+                            !first.wrap)
+                        ? [owner, k]
+                        : null;
+                },
+            },
             { params: ["polygon", "number"], tag: "", encode: () => null },
         ],
     },
@@ -742,6 +821,32 @@ export const COMMANDS: Command[] = [
     {
         name: "Midpoint",
         overloads: [objects("Mid", ["point", "point"]), ofSegment("Mid")],
+    },
+    // The n-th directrix of a conic, through a point of it and another one
+    // unit further (see conic_point_object.ts): before Line, which would
+    // write those points.
+    {
+        name: "Directrix",
+        overloads: [
+            {
+                params: ["conic", "number"],
+                tag: "Line",
+                encode: ([conic, n], index) =>
+                    ["D", "E"].map((point) => [
+                        "CnP",
+                        [index(conic as construction_object), `${point}${n}`],
+                    ]),
+                decode: (parameters, at) => {
+                    const [d, e] = parameters as [string, [DgoRef, string]][];
+                    const n = d?.[0] === "CnP" && /^D\d$/.test(d[1][1]);
+                    return n &&
+                        JSON.stringify(e) ===
+                            JSON.stringify(["CnP", [d[1][0], `E${d[1][1][1]}`]])
+                        ? [at(d[1][0]), Number(d[1][1][1])]
+                        : null;
+                },
+            },
+        ],
     },
     {
         name: "Line",
@@ -863,11 +968,18 @@ export const COMMANDS: Command[] = [
             objects("Semi", ["plane", "point", "point"], [1, 2, 0]),
         ],
     },
-    { name: "Center", overloads: [objects("Ctr", ["circle"])] },
+    {
+        name: "Center",
+        overloads: [objects("Ctr", ["circle"]), conicPoint("C")],
+    },
+    { name: "Focus", overloads: [conicPoint("F")] },
+    // P moved by the unit vector of a line's direction.
+    { name: "DirectionPoint", overloads: [objects("DirP", ["line", "point"])] },
     { name: "Incenter", overloads: [center(1)] },
     { name: "Centroid", overloads: [center(2)] },
     { name: "Circumcenter", overloads: [center(3)] },
     { name: "Orthocenter", overloads: [center(4)] },
+    { name: "NinePointCenter", overloads: [center(5)] },
     // Of rank k, from 1.
     {
         name: "Vertex",
@@ -885,6 +997,7 @@ export const COMMANDS: Command[] = [
                     return wrap ? null : [at(polygon), rank + 1];
                 },
             },
+            conicPoint("V"),
             // GeoGebra's other order, written as the first.
             {
                 params: ["number", "faceted"],
@@ -1075,7 +1188,25 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Dilation",
-        overloads: [withReal("Dil", ["point", "transformable"])],
+        overloads: [
+            withReal("Dil", ["point", "transformable"]),
+            // Of center the origin, as GeoGebra's Dilate(obj, k).
+            {
+                params: ["transformable", "real"],
+                tag: "Dil",
+                encode: ([source, k], index) => [
+                    null,
+                    index(source as construction_object),
+                    realParameter(k, index),
+                ],
+                decode: (parameters, at) => {
+                    const [center, source, k] = parameters as unknown[];
+                    return center === null && isIndex(source)
+                        ? [at(source), realArgument(k, at)]
+                        : null;
+                },
+            },
+        ],
     },
     {
         name: "Translation",
@@ -1231,10 +1362,47 @@ export const COMMANDS: Command[] = [
             objects("SphC", ["plane", "sphere"], [1, 0]),
             objects("CyS", ["plane", "revolution"], [1, 0]),
             objects("PlS", ["plane", "polyhedron"]),
+            // By the segments A1B1, A2B2…, its vertices in their order, as
+            // GeoGebra's section of a pyramid.
+            {
+                params: ["plane", ...Array<Param>(6).fill("point")],
+                variadic: true,
+                tag: "PlS",
+                encode: (args, index) =>
+                    args.map((arg) => index(arg as construction_object)),
+                decode: (parameters, at) =>
+                    (parameters as DgoRef[]).length > 2
+                        ? (parameters as DgoRef[]).map(at)
+                        : null,
+            },
         ],
     },
     // Unfolded by f, from 0 (folded) to 1 (flat).
     { name: "Net", overloads: [withReal("Net", ["polyhedron"])] },
+    // GeoGebra's: a vertex A of a net unfolded by f, turned around the edge
+    // OE of its face (C a point of it) towards the parent face (Q one of
+    // its), then around those of each ancestor (see net_vertex_object.ts).
+    {
+        name: "NetVertex",
+        overloads: [false, true].map((turned): Overload => ({
+            params: turned
+                ? ["point", "real", "point", "point", "point", "point"]
+                : ["point", "real"],
+            variadic: turned,
+            tag: "NetV",
+            encode: ([vertex, f, ...turns], index) => [
+                index(vertex as construction_object),
+                realParameter(f, index),
+                ...turns.map((point) => index(point as construction_object)),
+            ],
+            decode: (parameters, at) => {
+                const [vertex, f, ...turns] = parameters as DgoRef[];
+                return !turns.length === !turned
+                    ? [at(vertex), realArgument(f, at), ...turns.map(at)]
+                    : null;
+            },
+        })),
+    },
     {
         name: "Locus",
         // Of a point on a path, or of a slider from its min to its max.
@@ -1256,6 +1424,17 @@ export const COMMANDS: Command[] = [
             tag: "Seq",
             encode: () => null,
         })),
+    },
+    // s, f(s), f(f(s))…: see iterationList in figure.ts.
+    {
+        name: "IterationList",
+        overloads: [
+            {
+                params: ["readable", "number", "real", "real"],
+                tag: "ItL",
+                encode: () => null,
+            },
+        ],
     },
     // The point of rank n of a list, from 1, as GeoGebra's L(n): a formula
     // reading the list, the rank of a point list's formula once the line
@@ -1351,6 +1530,10 @@ export const COMMANDS: Command[] = [
             },
         ],
     },
+    // From a to b; on n intervals.
+    { name: "Integral", overloads: [ofGraph("Itg", 2)] },
+    { name: "LowerSum", overloads: [ofGraph("LSum", 3)] },
+    { name: "UpperSum", overloads: [ofGraph("USum", 3)] },
     {
         name: "BoxPlot",
         overloads: [
@@ -1511,6 +1694,7 @@ export const FUNCTIONS: Command[] = [
     ...["mean", "median", "q1", "q3", "sd", "sampleSD"].map((name) =>
         formulaFunction(name, ["real"]),
     ),
+    formulaFunction("eccentricity", ["conic"]),
 ];
 
 export const commandName = (command: Command): string =>

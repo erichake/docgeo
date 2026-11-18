@@ -34,6 +34,10 @@
                     >）；<code>n</code>、<code>t</code>：直接寫出的數。
                 </li>
                 <li>
+                    需要數字的地方，線段取其長度，角取其值，與 GeoGebra
+                    相同：<code>圓(O, s)</code>、<code>旋轉(O, P, α)</code>。
+                </li>
+                <li>
                     圖示即<a href="menu-outils.html">工具面板</a
                     >中工具的圖示；<span class="badge d3">3D</span
                     >：空間中的形式。
@@ -116,12 +120,26 @@
                             <td>線段 s 的中點</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>圓心</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>圓心(c)</code></td>
                             <td>圓 c 的圓心</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>圓心(c)</code></td>
+                            <td>圓錐曲線 c（橢圓、雙曲線）的中心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>焦點</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>焦點(c, n)</code></td>
+                            <td>
+                                圓錐曲線 c 的第 n 個焦點（1 或 2），按 GeoGebra
+                                的順序
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -224,10 +242,37 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>九點圓心</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>九點圓心(A, B, C)</code>
+                            </td>
+                            <td>三角形 ABC 的九點圓圓心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>頂點</strong><br /><small>Vertex</small>
                             </td>
                             <td class="syntax"><code>頂點(p, k)</code></td>
                             <td>多邊形或多面體的第 k 個頂點（從 1 開始）</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>頂點(c, n)</code></td>
+                            <td>
+                                圓錐曲線 c 的第 n 個頂點（1 到 4），按 GeoGebra
+                                的順序
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>方向點</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>方向點(d, P)</code></td>
+                            <td>點 P 沿直線 d 的單位方向向量平移後的點</td>
                         </tr>
                     </tbody>
                 </table>
@@ -275,6 +320,15 @@
                             </td>
                             <td class="syntax"><code>向量(A, B)</code></td>
                             <td>從 A 到 B 的向量</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>準線</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>準線(c, n)</code></td>
+                            <td>圓錐曲線 c 的第 n 條準線（1 或 2）</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>方程式</strong></td>
@@ -720,12 +774,16 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i> <strong>位似</strong
                                 ><br /><small>Dilation</small>
                             </td>
                             <td class="syntax"><code>位似(O, P, k)</code></td>
                             <td>P 在以 O 為中心、比為 k 的位似下的像</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>位似(P, k)</code></td>
+                            <td>P 在以原點為中心、比為 k 的位似下的像</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -974,7 +1032,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>截面</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -985,6 +1043,16 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>截面(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                多邊形，其各頂點為平面 p 與線段
+                                [A1B1]、[A2B2]…各自的交點（不相交時未定義），與
+                                GeoGebra 截稜錐的方式相同
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>展開圖</strong
                                 ><br /><small>Net</small>
@@ -992,6 +1060,22 @@
                             <td class="syntax"><code>展開圖(c, f)</code></td>
                             <td>
                                 多面體的展開圖，展開程度為 f（0：摺疊，1：攤平）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>展開圖頂點</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>展開圖頂點(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                展開程度為 f 的展開圖的頂點 A，與 GeoGebra
+                                的展開圖相同：繞其所在面的稜 [OE] 旋轉（C
+                                為該面上一點，Q
+                                為相鄰面上一點），之後各面依此類推
                             </td>
                         </tr>
                     </tbody>
@@ -1081,6 +1165,20 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>迭代列表</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>迭代列表(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                由 n + 1 個值組成的列表 s, f(s), f(f(s))…，f
+                                為變數 z 的公式（數、複數或點）
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>元素</strong><br /><small
                                     >Element</small
@@ -1117,6 +1215,46 @@
                             <td>
                                 數字列表 L 的箱線圖，以高度 y 為中心，高
                                 2s；公式讀取它時取其中位數
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>積分</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax"><code>積分(g, a, b)</code></td>
+                            <td>
+                                函數 g 從 a 到 b 的積分，並畫出其圖形與 x
+                                軸之間的區域；公式讀取它時取其值
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>下和</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>下和(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                函數 g 從 a 到 b 分為 n
+                                個矩形的下和，並畫出矩形；公式讀取它時取其值
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>上和</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>上和(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                函數 g 從 a 到 b 分為 n
+                                個矩形的上和，並畫出矩形；公式讀取它時取其值
                             </td>
                         </tr>
                         <tr>
@@ -1254,6 +1392,11 @@
                 >表示按頂點順序從1開始計數的第k條邊，不會向作圖加入線段。正多邊形也適用。
             </p>
             <pre><code>M = 中點(邊(p, 2))</code></pre>
+            <p>
+                單獨成行時，<code>c = 邊(p, k)</code> 新增一條線段：從第 k − 1
+                個頂點到第 k 個頂點，最後一條邊則到第一個頂點，與 GeoGebra
+                中邊數為滑桿的正多邊形的邊相同。
+            </p>
             <h2 id="faces">多面體的面</h2>
             <p>
                 <strong>面</strong> ·

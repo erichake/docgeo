@@ -350,6 +350,31 @@ de `src/import/dgp_commands.ts`.
   (`Box`), qu'une formule lit comme sa médiane ; dans une formule,
   `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont
   la moyenne, la médiane, les quartiles et les écarts types d'une liste.
+- **Objets de GeoGebra sans ligne jusqu'ici** (2026-11-17, voir
+  `GGB_IMPORT.md`, item 90) : `DirectionPoint(d, P)` (`PointDirection`,
+  `DirP`), P déplacé du vecteur directeur unitaire de d ;
+  `Center(c)`, `Focus(c, n)` (`Foyer`), `Vertex(c, n)` d'une conique
+  (`CnP`, dans l'ordre de GeoGebra) et `Directrix(c, n)` (`Directrice`),
+  une droite par deux points intégrés de la conique (`D` n, `E` n) ;
+  dans une formule, `eccentricity(c)` ; `NinePointCenter(A, B, C)`
+  (`CentreCercleEuler`, `TC` 5) ; `NetVertex(A, f, O, E, C, Q, …)`
+  (`SommetPatron`, `NetV`), un sommet du patron de GeoGebra, tourné
+  autour de l'arête OE de chaque face de sa suite (C de la face, Q de sa
+  mère), quatre points par face ; `Integral(f, a, b)` (`Intégrale`),
+  `LowerSum(f, a, b, n)` et `UpperSum(f, a, b, n)` (`SommeInférieure`,
+  `SommeSupérieure`) : des objets du moteur (`Itg`, `LSum`, `USum`), lus
+  par une formule comme leur valeur, dessinés comme dans GeoGebra.
+  `IterationList(f(z), z, s, n)` (`ItérationListe`, `ItL`) : s, f(s),
+  f(f(s))…, z une variable comme celle de `Séquence`. `Section(p, A1, B1,
+  A2, B2, …)` : la section du plan p par les segments [A1B1], [A2B2]…, un
+  sommet par segment (indéfini s'il le manque), comme GeoGebra coupe une
+  pyramide. `Dilation(objet, k)` : de centre l'origine, comme
+  `Rotation(objet, a)`. `c = Côté(poly1, 3)`, seul sur sa ligne : le
+  segment du sommet 2 au sommet 3 du polygone, ou au premier quand il en
+  a 3 (côtés d'un polygone régulier d'un curseur, comme dans GeoGebra) ;
+  en argument, `Côté` reste le côté virtuel. Là où un nombre est attendu,
+  un segment vaut sa longueur et un angle sa valeur, comme dans
+  GeoGebra : `Cercle(A, s)`, `Rotation(A, B, α)`.
 - **Coordonnées polaires** (2026-10-17, comme dans GeoGebra) :
   `P = (3; 60°)`, rayon et angle séparés par un point-virgule, est un point
   défini par une formule (`Fp`, `[(3)*cos(60°), (3)*sin(60°)]`), que la
@@ -3040,6 +3065,30 @@ l'est dans la vue sous le pointeur (`vw` n'est appliqué que s'il est
 écrit). L'origine et l'unité de chaque vue restent hors des étapes
 d'annulation (`history[…].views`). `widen` recale chaque vue. Manuel à
 faire (Fichier, onglet « Figure »).
+
+### Lignes des objets importés de GeoGebra — 2026-11-17
+
+Pour qu'aucun objet d'une figure GeoGebra ne s'affiche `nom = …` (voir
+`GGB_IMPORT.md`, « Mesure »), l'éditeur écrit et relit `DirectionPoint`,
+les points d'une conique, `Directrix`, `NinePointCenter`, `NetVertex`,
+`Integral`, `LowerSum`, `UpperSum` et `eccentricity` (section « Langage
+textuel ») ; un paramètre `real` accepte un segment ou un angle. Un rang
+hors limites (`Focus(c, 3)`, `Vertex(c, 5)`, `NetVertex` dont les points
+ne vont pas par quatre) est refusé (`arguments`), comme
+`RegularPolygon(A, B, n)` ne l'est plus pour un curseur n.
+`tests/browser/editor.test.ts`. Moteur +2,0 Ko (`integral_object.ts`,
+`eccentricity`, `PolygonList`), éditeur +1,6 Ko, noms des 12 langues
+compris. Manuel dans les 12 langues : ces commandes dans
+`commandes.html`, `eccentricity` dans `formules.html`, un segment ou un
+angle comme nombre.
+
+Puis `IterationList`, `Section` par des segments, `Dilation(objet, k)` et
+`Côté(p, k)` sur sa ligne (le milieu ou la médiatrice d'un tel côté
+s'écrivent `Milieu(c)`), et un rang de côté ou de sommet à partir de 1
+(`Côté(p, 2)` était refusé) : plus aucune ligne `= …` dans le corpus.
+Moteur +0,8 Ko (`iteration_list_object.ts`), éditeur +1,4 Ko. Manuel
+aussi : `ItérationListe`, la section par des segments, l'homothétie de
+centre l'origine, `Côté` sur sa ligne.
 
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 

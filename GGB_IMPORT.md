@@ -90,19 +90,17 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 275 / 459,
-60 %, depuis que les figures avec des lignes `= …` comptent comme des
-échecs, voir « Mesure » ; objectif réaliste ~75 %, voir « Périmètre »).
+Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 331 / 459,
+72 %, les figures avec des lignes `= …` comptant comme des échecs, voir
+« Mesure » ; objectif réaliste ~75 %, voir « Périmètre »).
 Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) et pa6q3mgr
 (légendes LaTeX écrites telles quelles, item 83) restent fausses.
 
-**Premier levier : les lignes `= …`** (56 figures sans autre cause, 200
-lignes, classées par `roots.py`) : `net_vertex_object` (50),
-`list_object` (33), `conic_point_object` (33), `direction_point_object`
-(31), échecs d'écriture de `two_points_line_object` (28) et
-`angle_object` (10)… Chaque classe demande sa ligne dans l'éditeur
-(écriture et lecture), ou une traduction vers un objet qui en a une.
+**Lignes `= …`** : plus aucune dans le corpus (item 91). Restent des
+expressions cachées à script que la mesure ne voit pas (listes calculées
+par programme, `defineList`) : à remplacer de même par des objets que
+l'éditeur écrit.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
 `python3 tools/ggb_corpus/roots.py` avant de choisir, l'ordre évolue) :
@@ -265,6 +263,8 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 328 / 457 (72 %)   | 358,5 Ko | item 87 : tétraèdre, octaèdre, dodécaèdre, icosaèdre (+1)                     |
 | 2026-11-17 | 329 / 459 (72 %)   | 358,5 Ko | item 89 : statistiques, `BoxPlot`, noms de commandes sans casse (+2)          |
 | 2026-11-17 | 275 / 459 (60 %)   | 360,8 Ko | item 89 : `BoxPlot` natif, fonctions statistiques ; lignes `= …` = échecs (−54) |
+| 2026-11-17 | 328 / 459 (71 %)   | 362,8 Ko | item 90 : lignes `= …` (points de direction et de conique, intégrales, patrons, listes) (+53) |
+| 2026-11-17 | 331 / 459 (72 %)   | 363,6 Ko | item 91 : `IterationList` natif, section par des arêtes, homothétie sans centre ; plus de ligne `= …` (+3) |
 
 ## À faire, par rapport gain / coût
 
@@ -1773,3 +1773,38 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       de conique, points de direction, et des échecs d'écriture de
       l'éditeur sur des droites et des angles). Moteur 358,5 → 360,8 Ko
       (+2,3 Ko), importeur GeoGebra 102,4 → 103,3 Ko.
+- [x] **90. Lignes `= …` (chantier du 2026-11-17)** : chaque classe
+      d'objet sans ligne apprend la sienne, ou l'import passe par un objet
+      qui en a une. Les « échecs d'écriture » des droites et des angles
+      venaient de points imbriqués sans ligne. Dans l'ordre :
+      `DirectionPoint(d, P)` dans l'éditeur (`DirP`, +23) et la bissectrice
+      d'un angle importée `Parallel(B, AngleBisector(A, B, C))` ; points
+      d'une conique `Center(c)`, `Focus(c, n)`, `Vertex(c, n)`,
+      `Directrix(c, n)` (une droite par deux `CnP` intégrés), et
+      `Eccentricity` traduit en `eccentricity(c)`, fonction de formule du
+      moteur, au lieu de l'abscisse d'un point caché (+10) ; `Integral`,
+      `LowerSum`, `UpperSum`, objets du moteur (`integral_object`, `.dgo`
+      `Itg`, `LSum`, `USum`, note 37 de `DGO.md`), au lieu d'expressions
+      cachées à script et d'une `List` de formules (+7) ;
+      `NinePointCenter(A, B, C)` (`TriangleCenter` 5), et un segment ou un
+      angle accepté là où l'éditeur attend un nombre, comme dans GeoGebra
+      (`Ellipse(F, G, j)`, `Rotation(O, A, α)` d'un polyèdre) (+7) ;
+      `NetVertex(A, f, O, E, C, Q, …)` pour les sommets d'un patron (+4) ;
+      les listes de points en `Sequence`, le polygone d'une liste en
+      `Polygon(L)` (commande DGP `PolygonList`), celui d'une liste écrite
+      `{(…), …}` en polygone de points intégrés (+2, dont Sa2y6MrH, qui
+      reste fausse). **275 → 328 / 459**, aucune figure perdue, aucun
+      écart nouveau ; lignes `= …` 200 → 3. Moteur 360,8 → 362,8 Ko
+      (+2,0 Ko), éditeur +1,6 Ko, importeur GeoGebra 103,3 → 102,9 Ko.
+- [x] **91. Dernières lignes `= …`** : `IterationList(f, z, s, n)`,
+      objet du moteur (`iteration_list_object`, `.dgo` `ItL`, note 38 de
+      `DGO.md`) et commande de l'éditeur (`ItérationListe`… noms de
+      GeoGebra), au lieu d'une expression cachée à script et d'une `List` ;
+      la section d'une pyramide par ses arêtes écrite `Section(p, A1, B1,
+      …)` ; `Dilation(objet, k)` de centre l'origine. Hors corpus, les
+      côtés d'un polygone régulier d'un curseur s'écrivent `Côté(p, k)`
+      (septPersonnes de `tests/ggb`, qui plantait l'outil d'éditabilité).
+      **328 → 331 / 459** (sJ4zUfbe, dgghxcgd, pa6q3mgr, qui reste fausse
+      pour ses légendes), aucune figure perdue, aucun écart nouveau ; plus
+      aucune ligne `= …`. Moteur 362,8 → 363,6 Ko (+0,8 Ko), éditeur
+      +1,4 Ko, importeur GeoGebra 102,9 → 102,8 Ko.

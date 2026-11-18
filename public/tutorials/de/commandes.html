@@ -39,6 +39,11 @@
                     <code>t</code>: ausgeschriebene Zahlen.
                 </li>
                 <li>
+                    Wo eine Zahl erwartet wird, steht eine Strecke für ihre
+                    Länge und ein Winkel für seinen Wert, wie in GeoGebra:
+                    <code>Kreis(O, s)</code>, <code>Drehung(O, P, α)</code>.
+                </li>
+                <li>
                     Das Symbol ist das des Werkzeugs in der
                     <a href="menu-outils.html">Palette</a>;
                     <span class="badge d3">3D</span>: Formen im Raum.
@@ -126,7 +131,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="2">
+                            <td rowspan="3">
                                 <i data-t="Midpoint"></i>
                                 <strong>Mittelpunkt</strong><br /><small
                                     >Midpoint</small
@@ -140,6 +145,27 @@
                         <tr>
                             <td class="syntax"><code>Mittelpunkt(s)</code></td>
                             <td>Mittelpunkt der Strecke s</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Mittelpunkt(c)</code></td>
+                            <td>
+                                Mittelpunkt des Kegelschnitts c (Ellipse,
+                                Hyperbel)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Brennpunkt</strong><br /><small
+                                    >Focus</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Brennpunkt(c, n)</code>
+                            </td>
+                            <td>
+                                Brennpunkt n (1 oder 2) des Kegelschnitts c, in
+                                der Reihenfolge von GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -287,12 +313,46 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>Neunpunktkreismittelpunkt</strong
+                                ><br /><small>NinePointCenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Neunpunktkreismittelpunkt(A, B, C)</code>
+                            </td>
+                            <td>
+                                Mittelpunkt des Feuerbachkreises
+                                (Neunpunktkreises) des Dreiecks ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Ecke</strong><br /><small>Vertex</small>
                             </td>
                             <td class="syntax"><code>Ecke(p, k)</code></td>
                             <td>
                                 k-te Ecke (ab 1) eines Vielecks oder eines
                                 Polyeders
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Ecke(c, n)</code></td>
+                            <td>
+                                Scheitelpunkt n (1 bis 4) des Kegelschnitts c,
+                                in der Reihenfolge von GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Richtungspunkt</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Richtungspunkt(d, P)</code>
+                            </td>
+                            <td>
+                                Punkt P, verschoben um den
+                                Einheitsrichtungsvektor der Geraden d
                             </td>
                         </tr>
                     </tbody>
@@ -341,6 +401,15 @@
                             </td>
                             <td class="syntax"><code>Vektor(A, B)</code></td>
                             <td>Vektor von A nach B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Leitlinie</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Leitlinie(c, n)</code></td>
+                            <td>Leitlinie n (1 oder 2) des Kegelschnitts c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>Gleichung</strong></td>
@@ -874,7 +943,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Streckung</strong><br /><small
                                     >Dilation</small
@@ -886,6 +955,13 @@
                             <td>
                                 Bild von P bei der zentrischen Streckung mit
                                 Zentrum O und Faktor k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Streckung(P, k)</code></td>
+                            <td>
+                                Bild von P bei der zentrischen Streckung mit
+                                Zentrum im Ursprung und Faktor k
                             </td>
                         </tr>
                         <tr>
@@ -1164,7 +1240,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>Schnitt</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -1176,6 +1252,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Schnitt(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                Vieleck, dessen Ecken die Punkte sind, in denen
+                                die Ebene p die Strecken [A1B1], [A2B2]…
+                                schneidet (undefiniert, wenn sie eine verfehlt),
+                                so wie GeoGebra eine Pyramide schneidet
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Netz</strong
                                 ><br /><small>Net</small>
@@ -1184,6 +1271,23 @@
                             <td>
                                 Netz eines Polyeders, um f aufgeklappt (0:
                                 gefaltet, 1: flach)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Netzecke</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Netzecke(A, f, O, E, C, Q, …)</code>
+                            </td>
+                            <td>
+                                Ecke A eines um f aufgeklappten Netzes, wie in
+                                GeoGebra: gedreht um die Kante [OE] ihrer Fläche
+                                (C ein Punkt dieser Fläche, Q der
+                                Nachbarfläche), dann ebenso für jede folgende
+                                Fläche
                             </td>
                         </tr>
                     </tbody>
@@ -1292,6 +1396,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>Iterationsliste</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Iterationsliste(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                Liste s, f(s), f(f(s))… aus n + 1 Werten, wobei
+                                f eine Formel in der Variablen z ist (Zahlen,
+                                komplexe Zahlen oder Punkte)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2"><strong>Element</strong></td>
                             <td class="syntax">
                                 <code>Element(L, n)</code>, <code>L(n)</code>
@@ -1324,6 +1443,47 @@
                             <td>
                                 Boxplot der Zahlenliste L, um die Höhe y, 2s
                                 hoch; eine Formel liest ihn als seinen Median
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Integral</strong></td>
+                            <td class="syntax">
+                                <code>Integral(g, a, b)</code>
+                            </td>
+                            <td>
+                                Integral der Funktion g von a bis b, mit der
+                                Fläche zwischen ihrem Graphen und der x-Achse;
+                                eine Formel liest es als seinen Wert
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Untersumme</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Untersumme(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                Untersumme der Funktion g von a bis b mit n
+                                gezeichneten Rechtecken; eine Formel liest sie
+                                als ihren Wert
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Obersumme</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Obersumme(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                Obersumme der Funktion g von a bis b mit n
+                                gezeichneten Rechtecken; eine Formel liest sie
+                                als ihren Wert
                             </td>
                         </tr>
                         <tr>
@@ -1471,6 +1631,12 @@
                 Vielecke.
             </p>
             <pre><code>M = Mittelpunkt(Seite(p, 2))</code></pre>
+            <p>
+                In einer eigenen Zeile fügt <code>c = Seite(p, k)</code> eine
+                Strecke hinzu: von Ecke k − 1 zu Ecke k, bei der letzten Seite
+                zur ersten Ecke, wie die Seiten eines regelmäßigen Vielecks,
+                dessen Seitenzahl in GeoGebra ein Schieberegler ist.
+            </p>
             <h2 id="faces">Seitenflächen von Polyedern</h2>
             <p>
                 <strong>Seitenfläche</strong> · Ein Werkzeug, das eine Ebene

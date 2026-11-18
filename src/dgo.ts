@@ -51,6 +51,8 @@ import { partOf } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
 import { createRegion } from "./objects/region_object";
 import { createBoxPlot } from "./objects/box_plot_object";
+import { createIntegral } from "./objects/integral_object";
+import { createIterationList } from "./objects/iteration_list_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createSurface, surface_object } from "./objects/surface_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
@@ -329,8 +331,12 @@ export const LOOKS: Record<string, Look> = {
     Cur: CURVE,
     Reg: POLYGON,
     Box: POLYGON,
+    Itg: POLYGON,
+    LSum: POLYGON,
+    USum: POLYGON,
     Lst: LIST,
     Seq: LIST,
+    ItL: LIST,
     Pts: LIST,
     Fl: LIST,
     ELst: LIST,
@@ -2748,6 +2754,21 @@ const BUILDERS: Record<string, Builder> = {
                 return { node, source, variables: [], refs, vec3 };
             }),
         ),
+    ...Object.fromEntries(
+        (["Itg", "LSum", "USum"] as const).map((tag) => [
+            tag,
+            ((parameters, reader) => {
+                const [f, ...bounds] = list(parameters, tag === "Itg" ? 3 : 4);
+                return createIntegral(
+                    reader.c,
+                    reader.name,
+                    tag,
+                    reader.at(f, curve_object),
+                    bounds.map((bound) => radius(bound, reader)),
+                );
+            }) as Builder,
+        ]),
+    ),
     Lst: (parameters, reader) => {
         check(Array.isArray(parameters));
         const [nature, count, ...formulas] = list(
@@ -2802,6 +2823,24 @@ const BUILDERS: Record<string, Builder> = {
             nature as ListNature,
             parsed,
             formulas.map(read),
+            refs,
+            reader.vec3,
+        );
+    },
+    ItL: (parameters, reader) => {
+        const [variable, formula, start, count] = list(parameters, 4);
+        check(typeof variable === "string" && SEQUENCE_VARIABLE.test(variable));
+        const refs = new Map<string, construction_object>();
+        const [s, n] = [start, count].map((value) =>
+            listFormula(reader, value, refs, []),
+        );
+        return createIterationList(
+            reader.c,
+            reader.name,
+            variable as string,
+            listFormula(reader, formula, refs, [variable as string]),
+            s,
+            n,
             refs,
             reader.vec3,
         );

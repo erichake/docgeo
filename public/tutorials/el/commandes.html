@@ -38,6 +38,11 @@
                     >)· <code>n</code>, <code>t</code>: γραμμένοι αριθμοί.
                 </li>
                 <li>
+                    Όπου αναμένεται αριθμός, ένα ευθύγραμμο τμήμα δίνει το μήκος
+                    του και μια γωνία την τιμή της, όπως στο GeoGebra:
+                    <code>Κύκλος(O, s)</code>, <code>Στροφή(O, P, α)</code>.
+                </li>
+                <li>
                     Το εικονίδιο είναι αυτό του εργαλείου της
                     <a href="menu-outils.html">παλέτας</a>·
                     <span class="badge d3">3D</span>: μορφές του χώρου.
@@ -139,12 +144,28 @@
                             <td>μέσο του τμήματος s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>Κέντρο</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>Κέντρο(c)</code></td>
                             <td>κέντρο του κύκλου c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κέντρο(c)</code></td>
+                            <td>
+                                κέντρο της κωνικής τομής c (έλλειψη, υπερβολή)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Εστία</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>Εστία(c, n)</code></td>
+                            <td>
+                                εστία n (1 ή 2) της κωνικής τομής c, με τη σειρά
+                                του GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -274,6 +295,19 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>ΚέντροΚύκλουΕννέαΣημείων</strong
+                                ><br /><small>NinePointCenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code>ΚέντροΚύκλουΕννέαΣημείων(A, B, C)</code>
+                            </td>
+                            <td>
+                                κέντρο του κύκλου των εννέα σημείων του τριγώνου
+                                ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Κορυφή</strong><br /><small
                                     >Vertex</small
                                 >
@@ -281,6 +315,27 @@
                             <td class="syntax"><code>Κορυφή(p, k)</code></td>
                             <td>
                                 k-οστή κορυφή (από το 1) πολυγώνου ή πολυέδρου
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κορυφή(c, n)</code></td>
+                            <td>
+                                κορυφή n (1 έως 4) της κωνικής τομής c, με τη
+                                σειρά του GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>ΣημείοΚατεύθυνσης</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΣημείοΚατεύθυνσης(d, P)</code>
+                            </td>
+                            <td>
+                                το σημείο P μετατοπισμένο κατά το μοναδιαίο
+                                διάνυσμα κατεύθυνσης της ευθείας d
                             </td>
                         </tr>
                     </tbody>
@@ -329,6 +384,17 @@
                             </td>
                             <td class="syntax"><code>Διάνυσμα(A, B)</code></td>
                             <td>διάνυσμα από το A στο B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Διευθετούσα</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Διευθετούσα(c, n)</code>
+                            </td>
+                            <td>διευθετούσα n (1 ή 2) της κωνικής τομής c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>εξίσωση</strong></td>
@@ -855,7 +921,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Ομοιοθεσία</strong><br /><small
                                     >Dilation</small
@@ -866,6 +932,15 @@
                             </td>
                             <td>
                                 εικόνα του P με ομοιοθεσία κέντρου O και λόγου k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Ομοιοθεσία(P, k)</code>
+                            </td>
+                            <td>
+                                εικόνα του P με την ομοιοθεσία κέντρου την αρχή
+                                των αξόνων και λόγου k
                             </td>
                         </tr>
                         <tr>
@@ -1156,7 +1231,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>Διατομή</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -1168,6 +1243,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Διατομή(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                πολύγωνο του οποίου οι κορυφές είναι τα σημεία
+                                όπου το επίπεδο p τέμνει καθένα από τα τμήματα
+                                [A1B1], [A2B2]… (απροσδιόριστη αν δεν το
+                                τέμνει), όπως το GeoGebra τέμνει μια πυραμίδα
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Ανάπτυγμα</strong
                                 ><br /><small>Net</small>
@@ -1176,6 +1262,26 @@
                             <td>
                                 ανάπτυγμα πολυέδρου, ανοιγμένο κατά f (0:
                                 κλειστό, 1: επίπεδο)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>ΚορυφήΑναπτύγματος</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >ΚορυφήΑναπτύγματος(A, f, O, E, C, Q,
+                                    …)</code
+                                >
+                            </td>
+                            <td>
+                                κορυφή A ενός αναπτύγματος ανοιγμένου κατά f,
+                                όπως του GeoGebra: στραμμένη γύρω από την ακμή
+                                [OE] της έδρας της (C σημείο αυτής της έδρας, Q
+                                της γειτονικής), και ομοίως για κάθε επόμενη
+                                έδρα
                             </td>
                         </tr>
                     </tbody>
@@ -1285,6 +1391,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>ΛίσταΕπανάληψης</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΛίσταΕπανάληψης(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                λίστα s, f(s), f(f(s))… με n + 1 τιμές, όπου f
+                                τύπος της μεταβλητής z (αριθμοί, μιγαδικοί ή
+                                σημεία)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>Στοιχείο</strong><br /><small
                                     >Element</small
@@ -1323,6 +1444,52 @@
                                 θηκόγραμμα της λίστας αριθμών L, γύρω από το
                                 ύψος y, ύψους 2s· ένας τύπος το διαβάζει ως τη
                                 διάμεσό του
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Ολοκλήρωμα</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Ολοκλήρωμα(g, a, b)</code>
+                            </td>
+                            <td>
+                                ολοκλήρωμα της συνάρτησης g από a έως b, με την
+                                περιοχή ανάμεσα στη γραφική της παράσταση και
+                                τον άξονα x· ένας τύπος το διαβάζει ως την τιμή
+                                του
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>ΚάτωΆθροισμα</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΚάτωΆθροισμα(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                κάτω άθροισμα της συνάρτησης g από a έως b σε n
+                                ορθογώνια, σχεδιασμένα· ένας τύπος το διαβάζει
+                                ως την τιμή του
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>ΆνωΆθροισμα</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΆνωΆθροισμα(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                άνω άθροισμα της συνάρτησης g από a έως b σε n
+                                ορθογώνια, σχεδιασμένα· ένας τύπος το διαβάζει
+                                ως την τιμή του
                             </td>
                         </tr>
                         <tr>
@@ -1473,6 +1640,12 @@
                 τμήμα στην κατασκευή. Ισχύει και για κανονικά πολύγωνα.
             </p>
             <pre><code>M = Μέσο(Πλευρά(p, 2))</code></pre>
+            <p>
+                Μόνη στη γραμμή της, η <code>c = Πλευρά(p, k)</code> προσθέτει
+                ένα ευθύγραμμο τμήμα: από την κορυφή k − 1 στην κορυφή k, ή στην
+                πρώτη κορυφή για την τελευταία πλευρά, όπως οι πλευρές ενός
+                κανονικού πολυγώνου με πλήθος πλευρών δρομέα στο GeoGebra.
+            </p>
             <h2 id="faces">Έδρες πολυέδρων</h2>
             <p>
                 <strong>Έδρα</strong> · Ένα εργαλείο που περιμένει επίπεδο ή

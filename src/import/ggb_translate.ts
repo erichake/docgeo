@@ -403,13 +403,8 @@ const COLOR_NAMES = new Map(
         .split(" ")
         .map((entry) => [entry.slice(0, -6), entry.slice(-6)]),
 );
-// Numerical analysis: a derivative's step, the intervals of an integral's
-// Simpson rule and of its drawn region, and the samples an interval's
-// extremum is sought among for a lower or upper sum.
+// Numerical analysis: a derivative's step.
 const DERIVATIVE_STEP = 1e-4;
-const SIMPSON_INTERVALS = 1000;
-const REGION_INTERVALS = 200;
-const EXTREMUM_SAMPLES = 16;
 // The samples among which a function's roots are sought.
 const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
@@ -3156,45 +3151,65 @@ export function translateGgb(
             .filter((part) => part !== "lb:true" && part !== "sn:true")
             .join(";");
 
-    // The region GeoGebra shades for a number, bounded by a list's points.
-    const region = (label: string, count: string, item: string): void => {
-        const element = elements.get(label);
-        if (element)
-            define(
-                auxiliary(),
-                "list",
-                "List",
-                [literal("polygon"), literal(count), literal(item)],
-                shapeStyle(element),
-            );
+    // A variable for a formula, none of the figure's names.
+    const freeVariable = () =>
+        ["k", "j", "m", "p", "q", "t", "z"].find(
+            (name) => !elements.has(name) && !objects.has(name),
+        )!;
+
+    // A list's points as a Sequence of its items, its variable none of the
+    // figure's names; or the polygon on them.
+    const pointSequence = (
+        label: string,
+        list: ListFormula,
+        style?: string,
+        polygon = false,
+    ): boolean => {
+        const k = freeVariable();
+        const item = list.item(k);
+        if (!item) return false;
+        const points = polygon ? auxiliary() : label;
+        define(
+            points,
+            "list",
+            "Sequence",
+            [
+                "point",
+                JSON.stringify([[k, "1", list.count]]),
+                JSON.stringify([item]),
+            ].map(literal),
+            polygon ? undefined : style,
+        );
+        return (
+            !polygon ||
+            define(label, "polygon", "PolygonList", [ref(points)], style)
+        );
     };
 
-    // Lower and upper sums, each rectangle's height being the least or
-    // greatest of the function's samples on its interval.
-    const riemannSum =
-        (extremum: "min" | "max"): Handler =>
-        ([f, a, b, n, extra], [label]) => {
-            const fn = functionOf(f);
-            const values = [a, b, n].map((value) =>
-                formula(value ?? "", VALUE_KINDS),
-            );
-            if (extra !== undefined || !fn || values.includes(null))
+    // GeoGebra's integral of a function, or its lower or upper sum, drawn
+    // by the engine, its value a number (see integral_object.ts).
+    const integral =
+        (command: string, count: number): Handler =>
+        ([f, ...bounds], [label]) => {
+            const element = elements.get(label);
+            const values = bounds.map((bound) => formula(bound, VALUE_KINDS));
+            const body = functions.has(f) || functionBody(f);
+            if (
+                !element ||
+                !body ||
+                values.length !== count ||
+                values.includes(null)
+            )
                 return false;
-            const [p, q, m] = values.map((value) => hiddenExpression(value!));
-            const w = `(${q}-${p})/${m}`;
-            const heights = hiddenExpression(
-                `var $t=[],$e,$j;for(var $n=0;$n<${m};$n++){$e=${fn}(${p}+$n*${w});for($j=1;$j<=${EXTREMUM_SAMPLES};$j++){$e=${extremum}($e,${fn}(${p}+($n+$j/${EXTREMUM_SAMPLES})*${w}))};$t.push($e)};$t`,
-            );
-            hiddenExpression(
-                `var $s=0;for(var $n=0;$n<${m};$n++){$s+=${heights}[$n]};$s*${w}`,
+            const curve = functions.has(f) ? f : auxiliary();
+            if (body !== true) defineFunction(curve, body);
+            return define(
                 label,
+                "expression",
+                command,
+                [ref(curve), ...(values as string[]).map(literal)],
+                shapeStyle(element),
             );
-            region(
-                label,
-                `4*${m}`,
-                `[${p}+(floor(k/4)+(k%4>1))*${w},(k%4==1||k%4==2)*${heights}[floor(k/4)]]`,
-            );
-            return true;
         };
 
     // A list as a whole: a formula that reads it, its items written out.
@@ -4266,14 +4281,12 @@ export function translateGgb(
                 });
                 return HANDLERS.Line([d, e], [label]);
             }),
-        // The abscissa of a hidden point.
-        Eccentricity: ([conic], [label]) => {
-            const point = auxiliary();
-            return (
-                conicPoints(["e"])([conic], [point]) &&
-                !!hiddenExpression(`x(${objects.get(point)!.variable})`, label)
-            );
-        },
+        Eccentricity: ([conic], [label]) =>
+            is(conic, ["quadric"]) &&
+            !!hiddenExpression(
+                `eccentricity(${objects.get(conic)!.variable})`,
+                label,
+            ),
         // A polygon's center of mass, not its vertices': the sum of
         // (P(i) + P(i+1))·(P(i) × P(i+1)) over 3 times the shoelace sum.
         Centroid: ([polygon, extra], [label]) => {
@@ -4348,14 +4361,13 @@ export function translateGgb(
             // Of an angle ABC: a line along DGPad's half-line.
             if (inputs.length !== 2) {
                 const ray = auxiliary();
-                const tip = auxiliary();
+                lineStarts.set(outputs[0], inputs[1]);
                 return (
                     onePoint("AngleBisector", 3)(inputs, [ray]) &&
-                    define(tip, "point", "DirectionPoint", [
+                    define(outputs[0], "line", "Parallel", [
                         ref(ray),
                         ref(inputs[1]),
-                    ]) &&
-                    HANDLERS.Line([inputs[1], tip], outputs)
+                    ])
                 );
             }
             const directions = inputs.map(lineDirection);
@@ -4595,7 +4607,11 @@ export function translateGgb(
             // Polygon({A, B, C}), of a list of its points.
             const listed = /^\{(.*)\}$/.exec(inputs.join());
             const items = listed && splitArguments(listed[1]);
-            if (items && items.length > 2 && points(...items)) inputs = items;
+            const written = items?.map((item) => formula(item, POINT_KINDS));
+            if (items && items.length > 2)
+                if (points(...items)) inputs = items;
+                else if (!written!.includes(null))
+                    inputs = written!.map((item) => formulaPoint(item!));
             const [label, ...sides] = outputs;
             const [a, b, count, plane] = inputs;
             const onPlane = plane !== undefined && isDirection(plane);
@@ -4665,14 +4681,12 @@ export function translateGgb(
                 return true;
             }
             // A list's points, in turn.
-            const list = inputs.length === 1 && listFormula(inputs[0]);
-            const item = list && list.item("k+1");
-            if (item)
-                return define(label, "list", "List", [
-                    literal("polygon"),
-                    literal(list.count),
-                    literal(item),
+            if (inputs.length === 1 && objects.get(inputs[0])?.kind === "list")
+                return define(label, "polygon", "PolygonList", [
+                    ref(inputs[0]),
                 ]);
+            const list = inputs.length === 1 && listFormula(inputs[0]);
+            if (list) return pointSequence(label, list, undefined, true);
             if (inputs.length < 3 || !points(...inputs)) return false;
             polygons.set(label, inputs);
             definePolygon(label, inputs);
@@ -5254,58 +5268,38 @@ export function translateGgb(
             sequences.set(label, [expression, variable, from, to, step]);
             return true;
         },
-        // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times,
-        // computed by a hidden Expression's script. IterationList(f, s, n)
-        // is IterationList(f(x), x, {s}, n).
+        // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times
+        // (see iteration_list_object.ts). IterationList(f, s, n) is
+        // IterationList(f(z), z, {s}, n), z none of the figure's names.
         IterationList: (inputs, [label]) => {
+            const fresh = freeVariable();
             const [expression, variable, start, count, extra] =
                 inputs.length === 3
-                    ? [`${inputs[0]}(x)`, "x", ...inputs.slice(1)]
+                    ? [`${inputs[0]}(${fresh})`, fresh, ...inputs.slice(1)]
                     : inputs;
             const s = formula(start.replace(/^\{(.*)\}$/, "$1"), VALUE_KINDS);
             const n = formula(count ?? "", VALUE_KINDS);
             const f = formula(
                 expression,
                 VALUE_KINDS,
-                new Map([[variable, "$t[$n]"]]),
+                new Map([[variable, variable]]),
             );
             if (extra !== undefined || s === null || n === null || f === null)
                 return false;
-            const terms = auxiliary();
-            define(
-                terms,
-                "expression",
-                "Expression",
-                [
-                    "",
-                    "",
-                    "",
-                    `var $t=[${s}];for(var $n=0;$n<${n};$n++){$t.push(${f})};$t`,
-                    "0",
-                    "0",
-                ].map(literal),
-                "h:2",
-            );
-            const list = {
-                count: `(${n})+1`,
-                item: (k: string) =>
-                    `${objects.get(terms)!.variable}[(${k})-1]`,
-            };
-            lists.set(label, list);
             const element = elements.get(label);
             const size = element && attribute(element, "pointSize", "val");
-            return define(
+            define(
                 label,
                 "list",
-                "List",
-                [
-                    literal("point"),
-                    literal(list.count),
-                    literal(list.item("k+1")),
-                ],
+                "IterationList",
+                [JSON.stringify([[variable, s, n]]), JSON.stringify([f])].map(
+                    literal,
+                ),
                 element &&
                     `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
             );
+            lists.set(label, named(objects.get(label)!.variable, 1));
+            return true;
         },
         // An input box of a number or of a function, at its top left corner.
         Textfield: ([linked, extra], [label]) => {
@@ -5534,30 +5528,9 @@ export function translateGgb(
             const fn = extra === undefined && functionOf(f);
             return !!fn && defineFunction(label, derivative(fn, "x"));
         },
-        // By Simpson's rule, drawn as the region between the graph and the
-        // x-axis.
-        Integral: ([f, a, b, extra], [label]) => {
-            const fn = functionOf(f);
-            const bounds = [a, b].map((bound) =>
-                formula(bound ?? "", VALUE_KINDS),
-            );
-            if (extra !== undefined || !fn || bounds.includes(null))
-                return false;
-            const [p, q] = bounds.map((bound) => hiddenExpression(bound!));
-            hiddenExpression(
-                `var $h=(${q}-${p})/${SIMPSON_INTERVALS},$s=${fn}(${p})+${fn}(${q});for(var $n=1;$n<${SIMPSON_INTERVALS};$n++){$s+=(2+2*($n%2))*${fn}(${p}+$n*$h)};$s*$h/3`,
-                label,
-            );
-            const x = `${p}+(k-1)*(${q}-${p})/${REGION_INTERVALS}`;
-            region(
-                label,
-                String(REGION_INTERVALS + 3),
-                `k==0||k==count-1?[k?${q}:${p},0]:[${x},${fn}(${x})]`,
-            );
-            return true;
-        },
-        LowerSum: riemannSum("min"),
-        UpperSum: riemannSum("max"),
+        Integral: integral("Integral", 2),
+        LowerSum: integral("LowerSum", 3),
+        UpperSum: integral("UpperSum", 3),
         Random: savedValue((inputs) => `Random(${inputs})`),
         RandomBetween: savedValue((inputs) => `Random(${inputs})`),
         RandomUniform: savedValue((inputs) => `RandomUniform(${inputs})`),
@@ -5780,17 +5753,11 @@ export function translateGgb(
                 dropdown(label, element, items);
             return true;
         }
-        const item = list.item("k+1");
         const size = attribute(element, "pointSize", "val");
-        return (
-            item !== null &&
-            define(
-                label,
-                "list",
-                "List",
-                [literal("point"), literal(list.count), literal(item)],
-                `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
-            )
+        return pointSequence(
+            label,
+            list,
+            `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
         );
     };
 

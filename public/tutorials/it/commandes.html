@@ -38,6 +38,12 @@
                     >); <code>n</code>, <code>t</code>: numeri scritti.
                 </li>
                 <li>
+                    Dove è atteso un numero, un segmento vale la sua lunghezza e
+                    un angolo il suo valore, come in GeoGebra:
+                    <code>Circonferenza(O, s)</code>,
+                    <code>Rotazione(O, P, α)</code>.
+                </li>
+                <li>
                     L’icona è quella dello strumento della
                     <a href="menu-outils.html">tavolozza</a>;
                     <span class="badge d3">3D</span>: forme dello spazio.
@@ -139,12 +145,26 @@
                             <td>punto medio del segmento s</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Center"></i> <strong>Centro</strong
                                 ><br /><small>Center</small>
                             </td>
                             <td class="syntax"><code>Centro(c)</code></td>
                             <td>centro della circonferenza c</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Centro(c)</code></td>
+                            <td>centro della conica c (ellisse, iperbole)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Fuoco</strong><br /><small>Focus</small>
+                            </td>
+                            <td class="syntax"><code>Fuoco(c, n)</code></td>
+                            <td>
+                                fuoco n (1 o 2) della conica c, nell’ordine di
+                                GeoGebra
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="7">
@@ -284,6 +304,20 @@
                         </tr>
                         <tr>
                             <td rowspan="1">
+                                <strong>CentroNovePunti</strong><br /><small
+                                    >NinePointCenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>CentroNovePunti(A, B, C)</code>
+                            </td>
+                            <td>
+                                centro della circonferenza dei nove punti del
+                                triangolo ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <strong>Vertice</strong><br /><small
                                     >Vertex</small
                                 >
@@ -292,6 +326,27 @@
                             <td>
                                 k-esimo vertice (a partire da 1) di un poligono
                                 o di un poliedro
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Vertice(c, n)</code></td>
+                            <td>
+                                vertice n (da 1 a 4) della conica c, nell’ordine
+                                di GeoGebra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>PuntoDirezione</strong><br /><small
+                                    >DirectionPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>PuntoDirezione(d, P)</code>
+                            </td>
+                            <td>
+                                punto P spostato del versore direttore della
+                                retta d
                             </td>
                         </tr>
                     </tbody>
@@ -342,6 +397,17 @@
                             </td>
                             <td class="syntax"><code>Vettore(A, B)</code></td>
                             <td>vettore da A a B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Direttrice</strong><br /><small
+                                    >Directrix</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Direttrice(c, n)</code>
+                            </td>
+                            <td>direttrice n (1 o 2) della conica c</td>
                         </tr>
                         <tr>
                             <td rowspan="1"><strong>equazione</strong></td>
@@ -878,7 +944,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Dilation"></i>
                                 <strong>Omotetia</strong><br /><small
                                     >Dilation</small
@@ -890,6 +956,13 @@
                             <td>
                                 immagine di P nell’omotetia di centro O e
                                 rapporto k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Omotetia(P, k)</code></td>
+                            <td>
+                                immagine di P nell’omotetia di centro l’origine
+                                e rapporto k
                             </td>
                         </tr>
                         <tr>
@@ -1164,7 +1237,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Section"></i> <strong>Sezione</strong
                                 ><br /><small>Section</small>
                             </td>
@@ -1176,6 +1249,17 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="syntax">
+                                <code>Sezione(p, A1, B1, A2, B2, …)</code>
+                            </td>
+                            <td>
+                                poligono i cui vertici sono i punti in cui il
+                                piano p taglia ciascuno dei segmenti [A1B1],
+                                [A2B2]… (indefinito se lo manca), come GeoGebra
+                                taglia una piramide
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="1">
                                 <i data-t="Net"></i> <strong>Sviluppo</strong
                                 ><br /><small>Net</small>
@@ -1184,6 +1268,25 @@
                             <td>
                                 sviluppo di un poliedro, aperto secondo f (0:
                                 piegato, 1: piatto)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>VerticeSviluppo</strong><br /><small
+                                    >NetVertex</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >VerticeSviluppo(A, f, O, E, C, Q, …)</code
+                                >
+                            </td>
+                            <td>
+                                vertice A di uno sviluppo aperto di f, come
+                                quelli di GeoGebra: ruotato attorno allo spigolo
+                                [OE] della sua faccia (C un punto di questa
+                                faccia, Q della faccia vicina), poi allo stesso
+                                modo per ogni faccia successiva
                             </td>
                         </tr>
                     </tbody>
@@ -1293,6 +1396,21 @@
                             </td>
                         </tr>
                         <tr>
+                            <td rowspan="1">
+                                <strong>IterazioneLista</strong><br /><small
+                                    >IterationList</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>IterazioneLista(f, z, s, n)</code>
+                            </td>
+                            <td>
+                                lista s, f(s), f(f(s))… di n + 1 valori, dove f
+                                è una formula della variabile z (numeri, numeri
+                                complessi o punti)
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2">
                                 <strong>Elemento</strong><br /><small
                                     >Element</small
@@ -1326,6 +1444,51 @@
                                 box plot della lista di numeri L, attorno
                                 all’altezza y, alto 2s; una formula lo legge
                                 come la sua mediana
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Integrale</strong><br /><small
+                                    >Integral</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Integrale(g, a, b)</code>
+                            </td>
+                            <td>
+                                integrale della funzione g da a a b, con la
+                                regione tra il suo grafico e l’asse delle
+                                ascisse; una formula lo legge come il suo valore
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SommaInferiore</strong><br /><small
+                                    >LowerSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SommaInferiore(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                somma inferiore della funzione g da a a b su n
+                                rettangoli, disegnati; una formula la legge come
+                                il suo valore
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>SommaSuperiore</strong><br /><small
+                                    >UpperSum</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SommaSuperiore(g, a, b, n)</code>
+                            </td>
+                            <td>
+                                somma superiore della funzione g da a a b su n
+                                rettangoli, disegnati; una formula la legge come
+                                il suo valore
                             </td>
                         </tr>
                         <tr>
@@ -1477,6 +1640,12 @@
                 regolari.
             </p>
             <pre><code>M = PuntoMedio(Lato(p, 2))</code></pre>
+            <p>
+                Da solo sulla sua riga, <code>c = Lato(p, k)</code> aggiunge un
+                segmento: dal vertice k − 1 al vertice k, o al primo vertice per
+                l’ultimo lato, come i lati di un poligono regolare il cui numero
+                di lati è un cursore in GeoGebra.
+            </p>
             <h2 id="faces">Facce dei poliedri</h2>
             <p>
                 <strong>Faccia</strong> · Uno strumento che attende un piano o
