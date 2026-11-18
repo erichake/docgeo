@@ -130,11 +130,14 @@ function stateValue(object: Stated, vec3: boolean, view: BuiltView): Value {
             ? json(object.alpha)
             : object.alpha.map(json);
     if (object instanceof point_object) {
+        const { FRAME2D, is2D } = object.C.GRID;
         const coords = !object.pinned
             ? object.coords
-            : object.C.GRID.FRAME2D
+            : FRAME2D
               ? [...object.pinned, 0]
-              : object.pinnedIn(view);
+              : is2D
+                ? object.pinnedIn(view)
+                : object.coords;
         return (vec3 ? coords : coords.slice(0, 2)).map(json);
     }
     return json(object.value as number);

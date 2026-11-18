@@ -4,11 +4,11 @@ import { isFreePoint } from "./magnets";
 
 // DGPad's pushpin: see EDITOR.md.
 
-// A free point of a plane figure: in DGPad's 3D ones, every free point is
+// A free point, but not of DGPad's 3D figures, where every free point is
 // already pinned to the screen plane.
 export const pinnable = (
     object: construction_object | null | undefined,
-): object is point_object => isFreePoint(object) && object.C.GRID.is2D;
+): object is point_object => isFreePoint(object) && !object.C.GRID.FRAME2D;
 
 export function togglePin(point: point_object): void {
     if (point.pinned) {

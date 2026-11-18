@@ -10,9 +10,17 @@ import type { preferences, Preferences } from "./preferences";
 import {
     projectPoint,
     unprojectPointToZPlane,
+    viewDirection,
     type ProjectionFrame,
 } from "./projection";
-import { vAdd, vDot, vScale, type Vec2, type Vec3 } from "./vec";
+import {
+    vAdd,
+    vDot,
+    vNormalize,
+    vScale,
+    type Vec2,
+    type Vec3,
+} from "./vec";
 
 // Zoom bounds, in pixels per unit: beyond them, graduations would outgrow
 // the precision of their labels.
@@ -611,6 +619,21 @@ export class construction {
 
     get projectionFrame(): ProjectionFrame {
         return this.GRID.projectionFrame;
+    }
+
+    // The projection of the camera's current angles: the grid's is only
+    // updated after geometry, where pinned and formula points read it.
+    get cameraFrame(): ProjectionFrame {
+        const { PHI, THETA } = this.GRID;
+        const frame = {
+            ...this.projectionFrame,
+            cosPhi: Math.cos(PHI),
+            sinPhi: Math.sin(PHI),
+            cosTheta: Math.cos(THETA),
+            sinTheta: Math.sin(THETA),
+        };
+        frame.dir = vNormalize(viewDirection(frame)) ?? frame.dir;
+        return frame;
     }
 
     // The screen plane's unit vectors towards the right and the top of the

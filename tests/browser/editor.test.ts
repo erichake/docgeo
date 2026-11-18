@@ -2406,7 +2406,6 @@ describe("Editor", () => {
         );
         const [A, M] = ["A", "M"].map((name) => c.getObj(name)!);
         expect([A, M].map(pinnable)).toEqual([true, false]);
-        expect(pinnable(studio(true).scene.getObj("A"))).toBe(false);
         const point = A as point_object;
         togglePin(point);
         c.GRID.ORG = [440, 260];
@@ -2424,6 +2423,41 @@ describe("Editor", () => {
         expect((await describeDgo(c)).st?.some((style) => style.fl)).toBe(
             false,
         );
+    });
+
+    it("pins a point of space to the window through pans, zooms and turns", async () => {
+        const { scene: c } = studio(true);
+        type(c, "A = (1, 2, 3)");
+        c.flush();
+        const point = c.getObj("A") as point_object;
+        expect(pinnable(point)).toBe(true);
+        const screen = c.pt3D(point.coords);
+        togglePin(point);
+        c.flush();
+        expectClose(point.coords, [1, 2, 3]);
+        const turn = (phi: number, theta: number, perspective = false) => {
+            c.GRID.PHI += phi;
+            c.GRID.THETA += theta;
+            c.GRID.PERSPECTIVE = perspective;
+            c.GRID.ORG = [c.GRID.ORG[0] + 30, c.GRID.ORG[1] - 20];
+            c.GRID.UNIT = c.GRID.UNIT.map((u) => u * 1.3) as never;
+            c.invalidateProjection();
+            c.flush();
+        };
+        turn(0.4, -0.3);
+        expectClose(c.pt3D(point.coords), screen);
+        turn(-1, 0.5, true);
+        expectClose(c.pt3D(point.coords), screen);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        other.flush();
+        const read = other.getObj("A") as point_object;
+        expectClose(read.coords, point.coords);
+        expectClose(other.pt3D(read.coords), screen);
+        togglePin(point);
+        const kept = point.coords;
+        turn(0.3, 0.2);
+        expectClose(point.coords, kept);
     });
 
     it("finds the objects that keep a figure off the plane z = 0", () => {

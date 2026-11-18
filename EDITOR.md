@@ -950,13 +950,20 @@ nommer.
 Décidé le 2026-10-12, l'outil punaise de DGPad (`FloatingObjectConstructor`,
 style `fl`) : un point libre épinglé garde sa place dans la fenêtre, et non
 ses coordonnées, quand on zoome ou déplace la vue ; il se glisse toujours.
-Dans une figure plane, un point libre a dans la zone contextuelle, avant
-les aimants comme dans DGPad, un bouton bascule « Épingler à l'écran »,
-bleu quand le point l'est. Contrairement aux autres actions, la zone et
-l'anneau restent ouverts après la bascule, pour montrer le nouvel état.
-Son survol dit ce que fera le clic. Pas de bouton dans les figures 3D de
-DGPad, où tous les points libres sont déjà épinglés au plan de l'écran,
-ni dans les autres figures 3D, où DGPad en fait l'origine du repère.
+Un point libre a dans la zone contextuelle, avant les aimants comme dans
+DGPad, un bouton bascule « Épingler à l'écran », bleu quand le point l'est,
+et la même case dans le panneau de propriétés (section Point).
+Contrairement aux autres actions, la zone et l'anneau restent ouverts après
+la bascule, pour montrer le nouvel état. Son survol dit ce que fera le
+clic. Pas de bouton dans les figures 3D de DGPad, où tous les points libres
+sont déjà épinglés au plan de l'écran.
+
+Décidé le 2026-11-18 : dans une vue 3D, un point épinglé garde aussi sa
+place dans la fenêtre quand on fait pivoter le repère. Il reste dans le
+plan parallèle à l'écran où il a été épinglé (sa distance au plan de
+l'écran passant par l'origine est gardée), et ses coordonnées en sont
+recalculées. Le `.dgo` garde ses coordonnées et le drapeau `fl`, comme en
+plan.
 
 Une ligne de texte modifiée déplace aussi un point épinglé. Chaque étape
 d'annulation garde l'origine et l'unité de sa vue : elle est relue dans

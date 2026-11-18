@@ -4,6 +4,7 @@ import type { ScriptValue } from "../import/dgp_formula";
 import type { PrefKey } from "../preferences";
 import {
     vAdd,
+    vCross,
     vDot,
     vIsFinite,
     vNorm,
@@ -12,7 +13,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { projectPoint } from "../projection";
+import { projectPoint, projectPointOnPlane } from "../projection";
 import { isOccluded } from "./hidden_line";
 import {
     construction_object,
@@ -120,9 +121,12 @@ export class point_object extends construction_object {
     // DGPad's "i" style (and GeoGebra's grid capturing): a dragged point
     // snaps its x and y onto multiples of these steps.
     increment: [number, number] = [0, 0];
-    // DGPad's "fl" style (pushpin), in a plane figure: the window position
-    // the point keeps, rather than its coordinates, through zooms and pans.
+    // DGPad's "fl" style (pushpin): the window position the point keeps,
+    // rather than its coordinates, through zooms, pans and turns.
     pinned: Vec2 | null = null;
+    // In a 3D view, a pinned point's distance from the plane of the screen
+    // through the origin, which it stays parallel to.
+    private depth = 0;
     // The magnet currently holding this point, if any — see
     // MAGNET_HYSTERESIS.
     private activeMagnet: magnet_target | null = null;
@@ -175,10 +179,14 @@ export class point_object extends construction_object {
     }
 
     computeGeometry(): void {
-        if (this.pinned)
-            this.coords = this.C.GRID.FRAME2D
+        if (this.pinned) {
+            const { FRAME2D, is2D } = this.C.GRID;
+            this.coords = FRAME2D
                 ? this.C.screenPlanePoint(this.pinned)
-                : this.pinnedIn(this.C.GRID);
+                : is2D
+                  ? this.pinnedIn(this.C.GRID)
+                  : this.pinnedInSpace(this.pinned);
+        }
         this.defined = vIsFinite(this.COORDS);
     }
 
@@ -189,6 +197,18 @@ export class point_object extends construction_object {
             (ORG[1] - this.pinned![1]) / UNIT[1],
             0,
         ];
+    }
+
+    private pinnedInSpace(pinned: Vec2): Vec3 {
+        const basis = this.C.screenPlaneBasis;
+        return (
+            projectPointOnPlane(
+                pinned,
+                vScale(vCross(...basis), this.depth),
+                basis,
+                this.C.cameraFrame,
+            ) ?? this.COORDS
+        );
     }
 
     scriptValue(vec3: boolean): ScriptValue | null {
@@ -205,16 +225,7 @@ export class point_object extends construction_object {
         if (!this.defined) return null;
         const { ORG, UNIT, FRAME2D } = this.C.GRID;
         if (FRAME2D && this.flat) return this.C.screenPlaneCoords(this.coords);
-        // From the camera's angles rather than the projection frame, which is
-        // only updated after geometry, where a formula point reads it.
-        const { PHI, THETA } = this.C.GRID;
-        const screen = projectPoint(this.coords, {
-            ...this.C.projectionFrame,
-            cosPhi: Math.cos(PHI),
-            sinPhi: Math.sin(PHI),
-            cosTheta: Math.cos(THETA),
-            sinTheta: Math.sin(THETA),
-        });
+        const screen = projectPoint(this.coords, this.C.cameraFrame);
         if (!vIsFinite(screen)) return null;
         const [u0, v0] = FRAME2D ?? [0, 0];
         return [
@@ -231,10 +242,13 @@ export class point_object extends construction_object {
     // In a DGPad 3D figure, the point is in the screen plane, its coordinates
     // being its plane ones (see GRID.FRAME2D), which `pinned` then holds.
     pin(): void {
-        const { ORG, UNIT, FRAME2D } = this.C.GRID;
+        const { ORG, UNIT, FRAME2D, is2D } = this.C.GRID;
         this.pinned = FRAME2D
             ? [this.x, this.y]
-            : [ORG[0] + this.x * UNIT[0], ORG[1] - this.y * UNIT[1]];
+            : is2D
+              ? [ORG[0] + this.x * UNIT[0], ORG[1] - this.y * UNIT[1]]
+              : projectPoint(this.coords, this.C.cameraFrame);
+        this.depth = vDot(this.coords, vCross(...this.C.screenPlaneBasis));
         this.readsView = true;
     }
 
