@@ -36,6 +36,7 @@ import {
     SLIDER_LOOK,
 } from "./figure";
 import { message, type MessageKey } from "./messages";
+import { pinnable, togglePin } from "./pin";
 import { scrubNumber, type Scrub } from "./scrub";
 import {
     formatCall,
@@ -958,6 +959,15 @@ export function propertiesPanel(options: {
                 (object) => object.trace,
                 (object, value) => {
                     object.trace = value;
+                },
+            );
+            check(
+                point,
+                "pin",
+                points.filter(pinnable),
+                (object) => !!object.pinned,
+                (object, value) => {
+                    if (!!object.pinned !== value) togglePin(object);
                 },
             );
             const moveable = points.filter(({ moveable }) => moveable);
