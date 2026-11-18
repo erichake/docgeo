@@ -1,8 +1,22 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ScriptValue } from "../import/dgp_formula";
-import { vAdd, vDot, vNorm, vNormalize, vScale, vSub, type Vec2 } from "../vec";
-import { computeAngleArc, formatDegrees } from "./angle_arc";
+import {
+    vAdd,
+    vCross,
+    vDot,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
+import {
+    computeAngleArc,
+    formatDegrees,
+    type AngleArcGeometry,
+} from "./angle_arc";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 
@@ -35,9 +49,9 @@ export class angle_object extends construction_object {
     private origin: Vec2 = [0, 0];
     private legA: Vec2 = [0, 0];
     private legC: Vec2 = [0, 0];
-    private dirA: Vec2 = [0, 0];
-    private dirC: Vec2 = [0, 0];
     private sweep: 0 | 1 = 0;
+    private screenRadius = 0;
+    private spaceArc = "";
     private labelRotationDeg = 0;
     private labelOffset = 0;
     private labelAnchor: "start" | "end" = "start";
@@ -103,25 +117,84 @@ export class angle_object extends construction_object {
         const dirC = vNormalize(vSub(this.B.screen, origin));
         if (!dirA || !dirC) return;
 
-        const labelRadius = this.arcRadius + LABEL_MARGIN + this.fontSize / 2;
-        const arc = computeAngleArc(
-            origin,
-            dirA,
-            dirC,
-            this.arcRadius,
-            labelRadius,
-            this.value > Math.PI,
-        );
         this.origin = origin;
-        this.legA = arc.legA;
-        this.legC = arc.legC;
-        this.dirA = dirA;
-        this.dirC = dirC;
-        this.sweep = arc.sweep;
+        const radii = this.C.space ? this.spaceRadii(origin) : null;
+        if (radii) this.projectInSpace(origin, ...radii);
+        else {
+            const labelRadius =
+                this.arcRadius + LABEL_MARGIN + this.fontSize / 2;
+            const arc = computeAngleArc(
+                origin,
+                dirA,
+                dirC,
+                this.arcRadius,
+                labelRadius,
+                this.value > Math.PI,
+            );
+            this.legA = arc.legA;
+            this.legC = arc.legC;
+            this.sweep = arc.sweep;
+            this.screenRadius = this.arcRadius;
+            this.spaceArc = "";
+            this.setLabel(arc);
+        }
+        this.projectionDefined = true;
+    }
+
+    private setLabel(arc: AngleArcGeometry): void {
         this.labelRotationDeg = arc.labelRotationDeg;
         this.labelOffset = arc.labelOffset;
         this.labelAnchor = arc.labelAnchor;
-        this.projectionDefined = true;
+    }
+
+    // In space, the screen vectors of two orthogonal radii of the angle's
+    // plane, along OA and towards OC's side (the other for a reflex angle),
+    // scaled so that the arc's widest radius is arcRadius: the arc is seen in
+    // perspective. None when the legs are aligned, the plane being unknown.
+    private spaceRadii(origin: Vec2): [Vec2, Vec2] | null {
+        const o = this.O.coords;
+        const oa = vSub(this.A.coords, o);
+        const oc = vSub(this.B.coords, o);
+        const normal = vCross(oa, oc);
+        if (vNorm(normal) < 1e-9 * vNorm(oa) * vNorm(oc)) return null;
+        const side = vNormalize(vCross(normal, oa))!;
+        const radius = (d: Vec3) => vSub(this.C.pt3D(vAdd(o, d)), origin);
+        const u = radius(vNormalize(oa)!);
+        const w = radius(vScale(side, this.value > Math.PI ? -1 : 1));
+        const sum = vDot(u, u) + vDot(w, w);
+        const det = u[0] * w[1] - u[1] * w[0];
+        const widest = Math.sqrt(
+            (sum + Math.sqrt(Math.max(0, sum * sum - 4 * det * det))) / 2,
+        );
+        if (!(widest > 0)) return null;
+        const k = this.arcRadius / widest;
+        return [vScale(u, k), vScale(w, k)];
+    }
+
+    private projectInSpace(origin: Vec2, u: Vec2, w: Vec2): void {
+        const at = (t: number) =>
+            vAdd(origin, vAdd(vScale(u, Math.cos(t)), vScale(w, Math.sin(t))));
+        const count = Math.max(4, Math.ceil(this.value * 12));
+        const points = Array.from({ length: count + 1 }, (_, k) =>
+            at((this.value * k) / count),
+        );
+        this.legA = points[0];
+        this.legC = points[count];
+        this.spaceArc = points
+            .map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`)
+            .join(" ");
+        const middle = vSub(at(this.value / 2), origin);
+        this.screenRadius = vNorm(middle);
+        const direction = vNormalize(middle) ?? [1, 0];
+        this.setLabel(
+            computeAngleArc(
+                origin,
+                direction,
+                direction,
+                this.screenRadius,
+                this.screenRadius + LABEL_MARGIN + this.fontSize / 2,
+            ),
+        );
     }
 
     // Centered past its arc on its bisector, where its value is written.
@@ -130,7 +203,7 @@ export class angle_object extends construction_object {
         const turn = (this.labelRotationDeg * Math.PI) / 180;
         const r =
             Math.sign(this.labelOffset) *
-            (this.arcRadius + LABEL_MARGIN + this.fontSize * 0.6);
+            (this.screenRadius + LABEL_MARGIN + this.fontSize * 0.6);
         const width =
             0.6 * this.fontSize * [...(this.caption ?? this.name)].length;
         return [
@@ -149,7 +222,9 @@ export class angle_object extends construction_object {
             this.rightAngleMark !== "none" &&
             Math.abs(this.value - Math.PI / 2) < RIGHT_ANGLE_TOLERANCE;
         const mark = right && this.rightAngleMark !== "dot";
-        const arc = `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 ${+(this.value > Math.PI)} ${this.sweep} ${this.legC[0]} ${this.legC[1]}`;
+        const arc =
+            this.spaceArc ||
+            `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 ${+(this.value > Math.PI)} ${this.sweep} ${this.legC[0]} ${this.legC[1]}`;
         const [fill, outline] = mark
             ? this.rightAnglePaths()
             : [`M${this.origin[0]} ${this.origin[1]} L${arc.slice(1)} Z`, arc];
@@ -167,8 +242,11 @@ export class angle_object extends construction_object {
             const [x, y] = vAdd(
                 this.origin,
                 vScale(
-                    vNormalize(vAdd(this.dirA, this.dirC))!,
-                    this.arcRadius / 1.7,
+                    vAdd(
+                        vSub(this.legA, this.origin),
+                        vSub(this.legC, this.origin),
+                    ),
+                    Math.SQRT1_2 / 1.7,
                 ),
             );
             this.dot.att("cx", x).att("cy", y);
@@ -189,15 +267,16 @@ export class angle_object extends construction_object {
     }
 
     // The filled area and the outline of a right angle's mark, drawn from
-    // the legs' screen directions so that a 3D right angle keeps its mark in
+    // the arc's legs on screen so that a 3D right angle keeps its mark in
     // the plane of the angle.
     private rightAnglePaths(): [string, string] {
         const side =
             this.rightAngleMark === "dgpad"
                 ? this.arcRadius
                 : this.arcRadius * Math.SQRT1_2;
-        const u = vScale(this.dirA, side);
-        const v = vScale(this.dirC, side);
+        const k = side / this.arcRadius;
+        const u = vScale(vSub(this.legA, this.origin), k);
+        const v = vScale(vSub(this.legC, this.origin), k);
         const path = (...points: Vec2[]) =>
             points
                 .map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`)
