@@ -20,6 +20,7 @@ import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { lighting, pathData, shade } from "./polygon_object";
 import { solid_object } from "./solid_object";
+import { polylineSplit } from "./hidden_line";
 import { convexHull } from "./sphere_object";
 
 // Rim points of its silhouette, generators of its shading.
@@ -30,7 +31,10 @@ let gradients = 0;
 // GeoGebra's limited cylinder of axis AB and radius r, or its cone of base
 // centered at A and apex B: radius r at A, r or 0 at B. Drawn as its
 // silhouette, lit along its generators; it hides what lies behind it, as
-// its faces would (see hidden_line.ts).
+// its faces would (see hidden_line.ts). As a sphere, its part behind the
+// floor is drawn by the floor, beneath its own fill: the convex hull of
+// its points on the camera's side and of the floor's section shows the
+// rest (see sphere_object).
 export class revolution_object extends solid_object {
     A: point_object;
     B: point_object;
@@ -45,6 +49,9 @@ export class revolution_object extends solid_object {
     R1 = 0;
     U: Vec3 = [1, 0, 0];
     V: Vec3 = [0, 1, 0];
+    nearPart: Vec2[] = [];
+    // The outline, with the near part as a hole (even-odd rule).
+    farPath = "";
     readonly fill = `url(#revolution-gradient-${++gradients})`;
     private path!: DOMElement;
     private gradient!: DOMElement;
@@ -127,6 +134,34 @@ export class revolution_object extends solid_object {
         if (!points.every(vIsFinite)) return;
         this.outline = convexHull(points);
         this.projectionDefined = true;
+        // Positive on the camera's side of the floor.
+        const side = viewDirection(this.C.projectionFrame)[2] < 0 ? 1 : -1;
+        const rims = Array.from({ length: SAMPLES }, (_, k) => {
+            const t = (2 * Math.PI * k) / SAMPLES;
+            return [this.rim(false, t), this.rim(true, t)];
+        });
+        const near = (p: Vec3) => side * p[2] >= 0;
+        if (!this.C.GRID.SHOWFLOOR || rims.flat().every(near)) {
+            this.nearPart = this.outline;
+            this.farPath = "";
+            return;
+        }
+        // Its points on that side, and where its generators and its rims
+        // cross the floor.
+        const kept: Vec3[] = [];
+        const cross = (p: Vec3, q: Vec3) => {
+            if (near(p) !== near(q))
+                kept.push(vAdd(p, vScale(vSub(q, p), p[2] / (p[2] - q[2]))));
+        };
+        rims.forEach(([p, q], k) => {
+            kept.push(...[p, q].filter(near));
+            const [next, top] = rims[(k + 1) % SAMPLES];
+            cross(p, q);
+            cross(p, next);
+            cross(q, top);
+        });
+        this.nearPart = convexHull(kept.map((p) => this.C.pt3D(p)));
+        this.farPath = `${pathData(this.outline)} ${pathData(this.nearPart)}`;
     }
 
     // Its side, extended beyond its disks, is where F = d² - r² vanishes, d
@@ -286,38 +321,33 @@ export class revolution_object extends solid_object {
         if (this.size > 0) this.renderEdges();
         // Seen through, its far side too, as GeoGebra draws it.
         this.path.stl("fill-opacity", 1 - (1 - (this.opacity ?? 0)) ** 2);
-        this.path.att("d", pathData(this.outline));
+        this.path.att("d", pathData(this.nearPart));
     }
 
-    // The rims of its disks, dashed where it hides them, and the
-    // generators of its outline, between a rim and the other or the apex.
+    // The rims of its disks and the generators of its outline, between a
+    // rim and the other or the apex, dashed where it, a face or the floor
+    // hides them.
     private renderEdges(): void {
         const paths = ["", ""];
+        const add = (points: Vec3[]) =>
+            polylineSplit(this.C, points).forEach(
+                (path, hidden) => (paths[hidden] += path),
+            );
         const at = ([x, y]: Vec2) => `${x} ${y}`;
-        (this.cone ? [false] : [false, true]).forEach((top) => {
-            let previous: number | null = null;
-            for (let k = 0; k <= SAMPLES; k++) {
-                const point = this.rim(top, (2 * Math.PI * k) / SAMPLES);
-                const hidden = +this.hides(point);
-                const screen = at(this.C.pt3D(point));
-                if (previous === null) paths[hidden] += ` M${screen}`;
-                else if (previous === hidden) paths[hidden] += ` L${screen}`;
-                else {
-                    paths[previous] += ` L${screen}`;
-                    paths[hidden] += ` M${screen}`;
-                }
-                previous = hidden;
-            }
-        });
-        const tops = new Set(
-            Array.from({ length: SAMPLES }, (_, k) =>
-                at(this.C.pt3D(this.rim(true, (2 * Math.PI * k) / SAMPLES))),
+        const rims = [false, true].map((top) =>
+            Array.from({ length: SAMPLES + 1 }, (_, k) =>
+                this.rim(top, (2 * Math.PI * k) / SAMPLES),
             ),
         );
+        rims.slice(0, this.cone ? 1 : 2).forEach(add);
+        const points = new Map(
+            rims.flat().map((point) => [at(this.C.pt3D(point)), point]),
+        );
+        const tops = new Set(rims[1].map((point) => at(this.C.pt3D(point))));
         this.outline.forEach((p, i) => {
             const q = this.outline[(i + 1) % this.outline.length];
             if (tops.has(at(p)) !== tops.has(at(q)))
-                paths[0] += ` M${at(p)} L${at(q)}`;
+                add([points.get(at(p))!, points.get(at(q))!]);
         });
         this.edges.att("d", paths[0]);
         this.hiddenEdges.att("d", paths[1]);

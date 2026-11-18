@@ -25,6 +25,7 @@ import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
 import { pathData, polygon_object } from "./polygon_object";
+import type { revolution_object } from "./revolution_object";
 import type { sphere_object } from "./sphere_object";
 
 // The floor is two-sided: a blue "sky" tone seen from above (z>0 looking
@@ -456,6 +457,21 @@ export class grid_object extends construction_object {
                     d: sphere.farPath,
                     fill: sphere.fill,
                     opacity: sphere.opacity,
+                })),
+            // Cylinders and cones, the solids with a far path.
+            ...(this.C.OBJS.solids as revolution_object[])
+                .filter(
+                    (solid) =>
+                        solid.isVisible &&
+                        solid.view === this.view &&
+                        solid.projectionDefined &&
+                        solid.farPath,
+                )
+                .map((solid) => ({
+                    d: solid.farPath,
+                    fill: solid.fill,
+                    // Seen through, as its near part.
+                    opacity: 1 - (1 - (solid.opacity ?? 0)) ** 2,
                 })),
         ];
         while (this.underlayPaths.length < pieces.length) {
