@@ -25,6 +25,7 @@ import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
 import { pathData, polygon_object } from "./polygon_object";
+import type { primitive_circle_object } from "./primitive_circle_object";
 import type { revolution_object } from "./revolution_object";
 import type { sphere_object } from "./sphere_object";
 
@@ -458,6 +459,19 @@ export class grid_object extends construction_object {
                     fill: sphere.fill,
                     opacity: sphere.opacity,
                 })),
+            ...(this.C.OBJS.V as primitive_circle_object[])
+                .filter(
+                    (circle) =>
+                        circle.familytype === "circle" &&
+                        circle.isVisible &&
+                        circle.view === this.view &&
+                        circle.behindFloor.length >= 3,
+                )
+                .map((circle) => ({
+                    d: pathData(circle.behindFloor),
+                    fill: circle.fill_color,
+                    opacity: circle.opacity,
+                })),
             // Cylinders and cones, the solids with a far path.
             ...(this.C.OBJS.solids as revolution_object[])
                 .filter(
@@ -482,13 +496,15 @@ export class grid_object extends construction_object {
             this.underlayPaths.push(path);
             this.underlay.add(path);
         }
+        // Only as many as now, whatever the figure went through.
+        this.underlayPaths
+            .splice(pieces.length)
+            .forEach((path) => path.dispose());
         this.underlayPaths.forEach((path, index) => {
             const piece = pieces[index];
-            path.stl("display", piece ? "block" : "none");
-            if (piece)
-                path.att("d", piece.d)
-                    .stl("fill", piece.fill)
-                    .stl("fill-opacity", piece.opacity ?? 0);
+            path.att("d", piece.d)
+                .stl("fill", piece.fill)
+                .stl("fill-opacity", piece.opacity ?? 0);
         });
     }
 

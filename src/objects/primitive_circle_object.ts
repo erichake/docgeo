@@ -16,7 +16,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
-import { polylineSplit } from "./hidden_line";
+import { clipHalfSpace, polylineSplit, veiled } from "./hidden_line";
 import { pointsDrag } from "./drag_points";
 
 // GeoGebra's DrawConic: up left of an ellipse's center, by its frame, for
@@ -71,6 +71,14 @@ export class primitive_circle_object extends construction_object {
     // In space, its stroke: solid, and dashed where a face hides it.
     edge!: DOMElement;
     hiddenEdge!: DOMElement;
+    // In space, filled, its part behind the floor, drawn by the floor
+    // beneath its own fill, as a polygon's (see polygon_object), and its
+    // other part, drawn instead of its path.
+    behindFloor: Vec2[] = [];
+    private nearPart: Vec2[] = [];
+    private nearFill!: DOMElement;
+    // An arc, a sector, draws itself.
+    protected readonly veilable: boolean = true;
 
     constructor(c: construction, name: string | null | undefined) {
         super(c, name, "circle");
@@ -224,6 +232,7 @@ export class primitive_circle_object extends construction_object {
         this.screenU = u;
         this.screenV = v;
         this.projectionDefined = true;
+        this.splitByFloor();
     }
 
     nameAt(): Vec2 | null {
@@ -279,6 +288,36 @@ export class primitive_circle_object extends construction_object {
         this.path.att("transform", transform);
         this.hitArea.att("transform", transform);
         this.drawStroke(() => this.strokePoints(0, 2 * Math.PI));
+        const split = this.behindFloor.length >= 3;
+        this.path.stl("display", split ? "none" : "block");
+        this.nearFill.att(
+            "d",
+            split && this.nearPart.length >= 3
+                ? `M${this.nearPart.map((point) => point.join(" ")).join(" L")} Z`
+                : "",
+        );
+    }
+
+    private splitByFloor(): void {
+        const floor = this.C.GRID.floorOccluder;
+        this.behindFloor = [];
+        this.nearPart = [];
+        if (
+            !this.veilable ||
+            !this.C.space ||
+            !(this.opacity ?? 0) ||
+            !veiled(this, floor)
+        )
+            return;
+        const behind = floor.behind();
+        const rim = this.strokePoints(0, 2 * Math.PI);
+        if (rim.every((point) => behind(point) < 0)) return;
+        [this.behindFloor, this.nearPart] = [
+            behind,
+            (point: Vec3) => -behind(point),
+        ].map((side) =>
+            clipHalfSpace(rim, side).map((point) => this.C.pt3D(point)),
+        );
     }
 
     // Its path, and the edges drawing its stroke in space.
@@ -305,7 +344,13 @@ export class primitive_circle_object extends construction_object {
                 .stl("pointer-events", "none");
         t.edge = edge(t.strokeDashArray);
         t.hiddenEdge = edge(`${t.size * 3} ${t.size * 2}`);
-        return dom.add(t.hitArea, t.path, t.edge, t.hiddenEdge);
+        t.nearFill = t.svg
+            .shape("path")
+            .stl("fill", t.fill_color)
+            .stl("fill-opacity", t.opacity ?? 0)
+            .stl("stroke", "none")
+            .stl("pointer-events", "none");
+        return dom.add(t.hitArea, t.path, t.nearFill, t.edge, t.hiddenEdge);
     }
 
     static createSVG(_this: construction_object): DOMElement {

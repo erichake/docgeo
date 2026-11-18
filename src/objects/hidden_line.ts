@@ -562,6 +562,37 @@ function signedArea(polygon: Vec2[]): number {
     );
 }
 
+// Whether the floor veils what of `object` lies behind it: not itself, nor
+// a DGPad 3D figure's 2D object, in the screen's plane (see GRID.FRAME2D).
+// Undefined while the floor itself is being added.
+export const veiled = (
+    object: construction_object,
+    floor: polygon_object | undefined,
+): floor is polygon_object =>
+    floor !== undefined &&
+    object !== floor &&
+    floor.isVisible &&
+    !(object.C.GRID.FRAME2D && object.flat);
+
+// The part of the convex polygon `vertices` where `side` is non-negative.
+export function clipHalfSpace(
+    vertices: readonly Vec3[],
+    side: (point: Vec3) => number,
+): Vec3[] {
+    const kept: Vec3[] = [];
+    vertices.forEach((current, index) => {
+        const previous =
+            vertices[(index + vertices.length - 1) % vertices.length];
+        const [a, b] = [side(previous), side(current)];
+        if (a >= 0 !== b >= 0)
+            kept.push(
+                vAdd(previous, vScale(vSub(current, previous), a / (a - b))),
+            );
+        if (b >= 0) kept.push(current);
+    });
+    return kept;
+}
+
 // Overlaps thinner than this (square pixels), e.g. along the edge two
 // faces share, don't order them.
 const MIN_OVERLAP = 0.5;

@@ -19,6 +19,8 @@ import {
 import { construction_object, type DgoContext } from "./construction_object";
 import { formatNumber } from "./expression_object";
 import {
+    clipHalfSpace,
+    veiled,
     hiddenIntervals,
     intervalsToPath,
     edgeStroke,
@@ -26,25 +28,6 @@ import {
 } from "./hidden_line";
 import { pointsDrag } from "./drag_points";
 import { point_object } from "./point_object";
-
-// The part of the convex polygon `vertices` where `side` is non-negative.
-function clipHalfSpace(
-    vertices: readonly Vec3[],
-    side: (point: Vec3) => number,
-): Vec3[] {
-    const kept: Vec3[] = [];
-    vertices.forEach((current, index) => {
-        const previous =
-            vertices[(index + vertices.length - 1) % vertices.length];
-        const [a, b] = [side(previous), side(current)];
-        if (a >= 0 !== b >= 0)
-            kept.push(
-                vAdd(previous, vScale(vSub(current, previous), a / (a - b))),
-            );
-        if (b >= 0) kept.push(current);
-    });
-    return kept;
-}
 
 // Light direction in eye coordinates (right, down, into the screen): from
 // above, slightly to the left and behind the viewer.
@@ -124,8 +107,8 @@ export class polygon_object extends construction_object {
     // by that plane, beneath its own fill (see renderUnderlay), keyed by
     // plane; the face itself only fills the part in front of every plane.
     farParts = new Map<polygon_object, Vec2[]>();
-    // A plane's part behind the floor, drawn by the floor beneath its own
-    // fill, so that the floor veils it as GeoGebra's does.
+    // Its part behind the floor, drawn by the floor beneath its own fill,
+    // so that the floor veils it as GeoGebra's does.
     behindFloor: Vec2[] = [];
     private nearPart: Vec2[] = [];
     // Fill color lit like GeoGebra's surfaces, so that faces and planes of
@@ -351,7 +334,7 @@ export class polygon_object extends construction_object {
         let near = this.points.map((p) => p.coords);
         const floor = this.C.GRID.floorOccluder;
         this.behindFloor = [];
-        if (this.plane && floor.isVisible) {
+        if (veiled(this, floor)) {
             const behind = floor.behind();
             this.behindFloor = clipHalfSpace(near, behind).map((p) =>
                 this.C.pt3D(p),
@@ -380,7 +363,7 @@ export class polygon_object extends construction_object {
 
     // Positive beyond this plane, seen from the camera. What lies in it, like
     // a section of a solid by it, is in front of it whatever its rounding.
-    private behind(): (point: Vec3) => number {
+    behind(): (point: Vec3) => number {
         const [a, b, c] = this.points.map((p) => p.coords);
         const normal = vNormalize(vCross(vSub(b, a), vSub(c, a))) ?? [0, 0, 0];
         const { dir, focal } = this.C.projectionFrame;

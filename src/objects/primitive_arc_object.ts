@@ -17,6 +17,7 @@ export abstract class primitive_arc_object extends primitive_circle_object {
     largeArcFlag: 0 | 1 = 0;
     sweepFlag: 0 | 1 = 0;
     sector: boolean;
+    protected readonly veilable = false;
 
     constructor(
         c: construction,
