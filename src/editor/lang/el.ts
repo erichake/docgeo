@@ -485,6 +485,7 @@ const el: Texts = {
         designate_ray: "Επιλέξτε μια ημιευθεία",
         designate_arc: "Επιλέξτε ένα τόξο",
         designate_conic: "Επιλέξτε μια κωνική τομή",
+        designate_focal: "Επιλέξτε μια κωνική τομή",
         designate_angle: "Επιλέξτε μια γωνία",
         macro_unknown:
             "Πολλά ονόματα πριν από το = ονομάζουν μόνο τα τελικά μιας μακροεντολής",

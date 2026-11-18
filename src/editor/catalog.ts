@@ -22,6 +22,7 @@ import { vector_object } from "../objects/vector_object";
 import { vertex_object } from "../objects/vertex_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
 import { plane_object } from "../objects/plane_object";
+import { cylinder_section_object } from "../objects/cylinder_section_object";
 import { revolution_object } from "../objects/revolution_object";
 import { straightImage } from "../objects/transformed_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
@@ -61,6 +62,8 @@ export type Param =
     | "vector"
     | "circle"
     | "conic"
+    // A conic, or a cylinder's or a cone's section: what has foci.
+    | "focal"
     | "polygon"
     // A polygon or a polyhedron.
     | "faceted"
@@ -267,6 +270,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof polyhedron_object;
         case "revolution":
             return arg instanceof revolution_object;
+        case "focal":
+            return kind === "conic" || arg instanceof cylinder_section_object;
         case "solid":
             return (
                 kind === "sphere" ||
@@ -687,7 +692,7 @@ const center = (n: number): Overload => ({
 function conicPoint(prefix: "C" | "F" | "V"): Overload {
     const center = prefix === "C";
     return {
-        params: center ? ["conic"] : ["conic", "number"],
+        params: center ? ["focal"] : ["focal", "number"],
         tag: "CnP",
         encode: ([conic, n], index) => [
             index(conic as construction_object),
@@ -829,7 +834,7 @@ export const COMMANDS: Command[] = [
         name: "Directrix",
         overloads: [
             {
-                params: ["conic", "number"],
+                params: ["focal", "number"],
                 tag: "Line",
                 encode: ([conic, n], index) =>
                     ["D", "E"].map((point) => [

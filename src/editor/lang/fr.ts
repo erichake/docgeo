@@ -476,6 +476,7 @@ const fr: Texts = {
         designate_ray: "Désignez une demi-droite",
         designate_arc: "Désignez un arc",
         designate_conic: "Désignez une conique",
+        designate_focal: "Désignez une conique",
         designate_angle: "Désignez un angle",
         macro_unknown:
             "Plusieurs noms avant = ne nomment que les finaux d'une macro",

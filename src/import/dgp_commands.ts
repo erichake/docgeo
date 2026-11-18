@@ -67,6 +67,7 @@ import {
     CONIC_POINTS,
     createConicPoint,
     type ConicPoint,
+    type FocalConic,
 } from "../objects/conic_point_object";
 import {
     createExpression,
@@ -213,6 +214,8 @@ type ParameterKind =
     | "line"
     | "circle"
     | "quadric"
+    // A conic or a section, which has foci.
+    | "conic"
     | "intersectable"
     | "pointSupport"
     | "coordinate"
@@ -283,6 +286,7 @@ const pointOn: Parameter = { kind: "pointOn" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const quadric: Parameter = { kind: "quadric" };
+const conic: Parameter = { kind: "conic" };
 const intersectable: Parameter = { kind: "intersectable" };
 const pointSupport: Parameter = { kind: "pointSupport" };
 const coordinate: Parameter = { kind: "coordinate" };
@@ -3066,7 +3070,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "ConicPoint",
         {
-            parameters: [string, quadric, string],
+            parameters: [string, conic, string],
             result: "point",
             execute: (context, args) => {
                 if (!CONIC_POINTS.includes(args[2] as ConicPoint))
@@ -3074,7 +3078,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 return createConicPoint(
                     context.construction,
                     args[0] as string,
-                    args[1] as primitive_quadric_object,
+                    args[1] as FocalConic,
                     args[2] as ConicPoint,
                 );
             },
@@ -3957,6 +3961,8 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
         actual === expected ||
         (actual === "pointOn" && expected === "point") ||
         (actual === "expression" && expected === "listSource") ||
+        (expected === "conic" &&
+            (actual === "quadric" || actual === "section")) ||
         (expected === "intersectable" &&
             (actual === "line" ||
                 actual === "circle" ||

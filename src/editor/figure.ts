@@ -755,7 +755,7 @@ export function resolve(
             throw new TextError("arguments", commandName(command));
         // A conic's focus or directrix, 1 or 2, or vertex, 1 to 4.
         if (
-            overload.params[0] === "conic" &&
+            overload.params[0] === "focal" &&
             overload.params[1] === "number" &&
             ![1, 2, ...(command.name === "Vertex" ? [3, 4] : [])].includes(
                 count,

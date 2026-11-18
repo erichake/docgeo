@@ -8,6 +8,10 @@ import {
 import { readZipBlob, readZipEntry } from "./import/ggb_zip";
 import { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
+import {
+    conic_point_object,
+    type ConicPoint,
+} from "./objects/conic_point_object";
 import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
 import { intersection_object } from "./objects/intersection_object";
 import { image_object } from "./objects/image_object";
@@ -237,6 +241,18 @@ function settleTargets(
             if (alpha === null) return;
             object.alpha = alpha;
             object.computeGeometry();
+        } else if (object instanceof conic_point_object) {
+            // Its twin across the center: F1 and F2, V1 and V2, V3 and V4.
+            const which = object.WHICH;
+            const n = Number(which.slice(1));
+            if (!n) return;
+            const distance = vNorm(vSub(object.coords, coords));
+            object.WHICH = `${which[0]}${n % 2 ? n + 1 : n - 1}` as ConicPoint;
+            object.computeGeometry();
+            if (vNorm(vSub(object.coords, coords)) >= distance) {
+                object.WHICH = which;
+                object.computeGeometry();
+            }
         } else if (
             object instanceof intersection_object ||
             object instanceof cylinder_intersection_object

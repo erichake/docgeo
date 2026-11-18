@@ -452,6 +452,7 @@ const zh: Texts = {
         designate_ray: "选择一条射线",
         designate_arc: "选择一段弧",
         designate_conic: "选择一条圆锥曲线",
+        designate_focal: "选择一条圆锥曲线",
         designate_angle: "选择一个角",
         macro_unknown: "= 前的多个名称只能命名宏的最终对象",
         macro_names: "此宏有%个最终对象：请全部命名，不需要的写 _",

@@ -55,7 +55,10 @@ import { createIntegral } from "./objects/integral_object";
 import { createIterationList } from "./objects/iteration_list_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createSurface, surface_object } from "./objects/surface_object";
-import { createCylinderSection } from "./objects/cylinder_section_object";
+import {
+    createCylinderSection,
+    cylinder_section_object,
+} from "./objects/cylinder_section_object";
 import { createDirectionPoint } from "./objects/direction_point_object";
 import {
     CONIC_POINTS,
@@ -2208,7 +2211,7 @@ const BUILDERS: Record<string, Builder> = {
         return createConicPoint(
             c,
             name,
-            at(conic, primitive_quadric_object),
+            at(conic, primitive_quadric_object, cylinder_section_object),
             which as ConicPoint,
         );
     },

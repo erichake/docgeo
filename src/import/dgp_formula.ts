@@ -2166,11 +2166,11 @@ function evalCall(
             if (typeof a === "number") return a;
             return a.length === 2 ? [a[0], -a[1]] : null;
         }
-        // A complex number's modulus.
+        // A complex number's modulus, a vector's length in space.
         case "mod": {
             const [a] = args;
             if (typeof a === "number") return Math.abs(a);
-            return a.length === 2 ? Math.hypot(a[0], a[1]) : null;
+            return a.length === 2 || a.length === 3 ? Math.hypot(...a) : null;
         }
         // The angle from OA to OC, counterclockwise, within [0, 2π).
         case "Angle360": {

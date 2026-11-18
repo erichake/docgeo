@@ -4857,6 +4857,46 @@ r.setExpression(0);`);
         );
     });
 
+    it("finds the foci of a cone's section in GeoGebra's order (Dandelin)", async () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="numeric" label="r"><value val="1.4"/></element>
+<expression label="O" exp="(0, 0, r)" type="point"/>
+<element type="point3d" label="O"><coords x="0" y="0" z="1.4" w="1"/></element>
+<element type="point3d" label="A"><coords x="-3.3506826035236568" y="-0.3964474906598632" z="5" w="1"/></element>
+<command name="Dilate"><input a0="O" a1="abs(A - O)" a2="A"/><output a0="O'"/></command>
+<element type="point3d" label="O'"/>
+<command name="Cone"><input a0="O'" a1="A" a2="(r * abs(A - O))"/><output a0="f" a1="f_1" a2="f_2"/></command>
+<element type="quadriclimited" label="f"/>
+<command name="IntersectPath"><input a0="xOyPlane" a1="f"/><output a0="g"/></command>
+<element type="conic3dpart" label="g"/>
+<command name="Focus"><input a0="g"/><output a0="B" a1="C"/></command>
+<element type="point3d" label="B"><coords x="0.03601309612053605" y="0.004261012837463302" z="0" w="1"/></element>
+<element type="point3d" label="C"><coords x="4.0848079630909035" y="0.4833080474682394" z="0" w="1"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const at = (name: string) => (c.getObj(name) as point_object).coords;
+        // abs of a vector in space, its length.
+        expectClose(
+            at("O'"),
+            [13.181547509965695, 1.559619949631786, -12.762359331192162],
+        );
+        // Relevé dans GeoGebra, which keeps its axes' previous orientation:
+        // its first focus is DocGeo's second.
+        expectClose(at("B"), [0.03601309612053605, 0.004261012837463302, 0]);
+        expectClose(at("C"), [4.0848079630909035, 0.4833080474682394, 0]);
+        const objects = figureObjects(c);
+        expect(
+            objects.map((object) => lineOf(object, figureIndex(c), objects)),
+        ).toEqual(
+            expect.arrayContaining(["B = Focus(g, 2)", "C = Focus(g, 1)"]),
+        );
+    });
+
     it("shows the object of If's branch whose condition holds", async () => {
         const c = createConstruction();
         const unsupported = importGgb(

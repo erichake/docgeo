@@ -467,6 +467,7 @@ export default {
     designate_ray: "Designate a ray",
     designate_arc: "Designate an arc",
     designate_conic: "Designate a conic",
+    designate_focal: "Designate a conic",
     designate_angle: "Designate an angle",
     macro_unknown: "Several names before = only name a macro's finals",
     macro_names: "This macro has % finals: name them all, _ for one not wanted",

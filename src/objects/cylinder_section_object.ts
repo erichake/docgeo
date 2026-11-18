@@ -3,14 +3,17 @@ import type { DOMElement } from "../dom";
 import {
     GEOMETRY_EPSILON,
     vAdd,
+    vCross,
     vDot,
     vIsFinite,
     vNorm,
+    vNormalize,
     vScale,
     vSub,
     type Vec2,
     type Vec3,
 } from "../vec";
+import type { ConicCoeffs } from "./conic_algebra";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { polygon_object } from "./polygon_object";
 import type { revolution_object } from "./revolution_object";
@@ -28,6 +31,15 @@ export class cylinder_section_object extends construction_object {
     PLANE: polygon_object;
     // Each kept arc, sampled.
     arcs: Vec3[][] = [];
+    // The whole conic where the plane cuts the extended surface, whose foci
+    // or vertices GeoGebra gives: a·x² + b·xy + c·y² + d·x + e·y + f = 0
+    // along the plane's AXES from its ORIGIN.
+    COEFFS: ConicCoeffs | null = null;
+    private ORIGIN: Vec3 = [0, 0, 0];
+    private AXES: [Vec3, Vec3] = [
+        [1, 0, 0],
+        [0, 1, 0],
+    ];
     projectionDefined = true;
     private screens: Vec2[][] = [];
     path!: DOMElement;
@@ -54,6 +66,16 @@ export class cylinder_section_object extends construction_object {
         if (!solid.defined || !plane.spans) return;
         const { A, B, U: u, V: v, R0, R1 } = solid;
         const { CENTER: p, NORMAL: normal } = plane;
+        // The first axis along x, or y for a plane nearly orthogonal to it.
+        const x: Vec3 = Math.abs(normal[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+        const e1 = vNormalize(vSub(x, vScale(normal, vDot(x, normal))))!;
+        const e2 = vCross(normal, e1);
+        this.ORIGIN = p;
+        this.AXES = [e1, e2];
+        const [a, d, f] = solid.quadratic(p, e1);
+        const [c, e] = solid.quadratic(p, e2);
+        const b = solid.quadratic(p, vAdd(e1, e2))[0] - a - c;
+        this.COEFFS = [a, b, c, d, e, f];
         // s = (e0 - R0·rho·x) / (d0 - (R0 - R1)·rho·x), x = cos(t - phi):
         // 0 at x0, 1 at x1, infinite for a cone, whose s reaches 1 only at
         // its apex.
@@ -101,6 +123,11 @@ export class cylinder_section_object extends construction_object {
             });
         });
         this.defined = true;
+    }
+
+    fromPlane([x, y]: readonly number[]): Vec3 {
+        const [u, v] = this.AXES;
+        return vAdd(this.ORIGIN, vAdd(vScale(u, x), vScale(v, y)));
     }
 
     project(): void {

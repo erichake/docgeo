@@ -90,7 +90,7 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-17 : 331 / 459,
+Point de reprise d'une nouvelle conversation (état au 2026-11-18 : 332 / 460,
 72 %, les figures avec des lignes `= …` comptant comme des échecs, voir
 « Mesure » ; objectif réaliste ~75 %, voir « Périmètre »).
 Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
@@ -265,6 +265,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 275 / 459 (60 %)   | 360,8 Ko | item 89 : `BoxPlot` natif, fonctions statistiques ; lignes `= …` = échecs (−54) |
 | 2026-11-17 | 328 / 459 (71 %)   | 362,8 Ko | item 90 : lignes `= …` (points de direction et de conique, intégrales, patrons, listes) (+53) |
 | 2026-11-17 | 331 / 459 (72 %)   | 363,6 Ko | item 91 : `IterationList` natif, section par des arêtes, homothétie sans centre ; plus de ligne `= …` (+3) |
+| 2026-11-18 | 332 / 460 (72 %)   | 364,0 Ko | item 92 : foyers et sommets d'une section de cône ou de cylindre, `abs` d'un vecteur de l'espace (+1) |
 
 ## À faire, par rapport gain / coût
 
@@ -1808,3 +1809,19 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       pour ses légendes), aucune figure perdue, aucun écart nouveau ; plus
       aucune ligne `= …`. Moteur 362,8 → 363,6 Ko (+0,8 Ko), éditeur
       +1,4 Ko, importeur GeoGebra 102,9 → 102,8 Ko.
+- [x] **92. dandelin01 (signalée hors corpus, ajoutée au corpus) :
+      foyers d'une section de cône** : la section d'un cylindre ou d'un
+      cône par un plan (`cylinder_section_object`) calcule l'équation de
+      la conique entière où le plan coupe la surface prolongée, dans un
+      repère de son plan (premier axe : x projeté, ou y), comme GeoGebra,
+      dont `Focus`, `Vertex`, `Center` et `Directrix` donnent les points de
+      cette conique et pas seulement de l'arc. `ConicPoint` (`CnP`) prend
+      donc une section : `Foyer(g, 1)` dans l'éditeur (paramètre `focal`),
+      sans balise `.dgo` nouvelle. GeoGebra garde l'orientation précédente
+      des axes d'une conique : l'import échange F1 et F2 (V1 et V2, V3 et
+      V4) quand la position enregistrée est celle de l'autre point
+      (`settleTargets`). Aussi : `abs` d'un vecteur de l'espace, traduit
+      en `mod`, donne sa longueur (indéfini jusqu'ici). `Eccentricity`
+      d'une section reste non traduite (une formule ne lit pas une
+      section). **+1 figure** (dandelin01), **332 / 460**, aucune perdue,
+      aucun écart. Moteur +0,4 Ko, importeur GeoGebra 102,8 → 103,0 Ko.

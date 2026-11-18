@@ -480,6 +480,7 @@ const nl: Texts = {
         designate_ray: "Selecteer een halfrechte",
         designate_arc: "Selecteer een boog",
         designate_conic: "Selecteer een kegelsnede",
+        designate_focal: "Selecteer een kegelsnede",
         designate_angle: "Selecteer een hoek",
         macro_unknown:
             "Meerdere namen voor = benoemen alleen de eindobjecten van een macro",

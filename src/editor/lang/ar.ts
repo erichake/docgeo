@@ -462,6 +462,7 @@ const ar: Texts = {
         designate_ray: "حدّد نصف مستقيم",
         designate_arc: "حدّد قوسًا",
         designate_conic: "حدّد قطعًا مخروطيًا",
+        designate_focal: "حدّد قطعًا مخروطيًا",
         designate_angle: "حدّد زاوية",
         macro_unknown: "عدة أسماء قبل = لا تسمي إلا نهائيات ماكرو",
         macro_names: "لهذا الماكرو % نهائيات: سمِّها كلها، و_ لما لا تريده",

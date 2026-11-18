@@ -3799,19 +3799,26 @@ export function translateGgb(
     };
 
     // A conic's center, foci, vertices, directrices' points or eccentricity,
-    // in GeoGebra's order (see conic_point_object.ts).
+    // in GeoGebra's order (see conic_point_object.ts), of a cylinder's or a
+    // cone's section too.
     const conicPoints =
         (names: string[]): Handler =>
         ([conic], outputs) =>
-            is(conic, ["quadric"]) &&
-            outputs.every(
-                (label, index) =>
-                    !label ||
-                    define(label, "point", "ConicPoint", [
+            is(conic, ["quadric", "section"]) &&
+            outputs.every((label, index) => {
+                if (!label) return true;
+                if (
+                    !define(label, "point", "ConicPoint", [
                         ref(conic),
                         literal(names[index]),
-                    ]),
-            );
+                    ])
+                )
+                    return false;
+                // GeoGebra keeps its axes' previous orientation, which
+                // may swap two of them (see settleTargets).
+                target(label);
+                return true;
+            });
     const onePoint =
         (command: string, arity: number, kind: Kind = "line"): Handler =>
         (inputs, [label]) =>
@@ -4271,7 +4278,7 @@ export function translateGgb(
         Vertex: conicPoints(["V1", "V2", "V3", "V4"]),
         // Through a point of each and one unit further along it.
         Directrix: ([conic], outputs) =>
-            is(conic, ["quadric"]) &&
+            is(conic, ["quadric", "section"]) &&
             outputs.every((label, index) => {
                 if (!label) return true;
                 const [d, e] = ["D", "E"].map((name) => {

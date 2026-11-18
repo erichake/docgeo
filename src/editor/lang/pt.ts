@@ -476,6 +476,7 @@ const pt: Texts = {
         designate_ray: "Selecione uma semirreta",
         designate_arc: "Selecione um arco",
         designate_conic: "Selecione uma cônica",
+        designate_focal: "Selecione uma cônica",
         designate_angle: "Selecione um ângulo",
         macro_unknown:
             "Vários nomes antes de = só nomeiam os finais de uma macro",

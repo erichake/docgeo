@@ -475,6 +475,7 @@ const hi: Texts = {
         designate_ray: "एक किरण चुनें",
         designate_arc: "एक चाप चुनें",
         designate_conic: "एक शांकव चुनें",
+        designate_focal: "एक शांकव चुनें",
         designate_angle: "एक कोण चुनें",
         macro_unknown:
             "= से पहले कई नाम केवल मैक्रो की अंतिम वस्तुओं के होते हैं",

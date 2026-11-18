@@ -488,6 +488,7 @@ const de: Texts = {
         designate_ray: "Wählen Sie eine Halbgerade",
         designate_arc: "Wählen Sie einen Bogen",
         designate_conic: "Wählen Sie einen Kegelschnitt",
+        designate_focal: "Wählen Sie einen Kegelschnitt",
         designate_angle: "Wählen Sie einen Winkel",
         macro_unknown:
             "Mehrere Namen vor = benennen nur die Endobjekte eines Makros",

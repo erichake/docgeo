@@ -1,8 +1,14 @@
 import type { construction } from "../construction";
-import { geometryTolerance, type Vec2 } from "../vec";
-import type { DgoContext } from "./construction_object";
+import { geometryTolerance, type Vec2, type Vec3 } from "../vec";
+import type { ConicCoeffs } from "./conic_algebra";
+import type { construction_object, DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
-import type { primitive_quadric_object } from "./primitive_quadric_object";
+
+// A conic, or a cylinder's or a cone's section.
+export type FocalConic = construction_object & {
+    COEFFS: ConicCoeffs | null;
+    fromPlane(at: readonly number[]): Vec3;
+};
 
 // GeoGebra's center (C), foci (F1, F2), vertices (V1 to V4), points of its
 // directrices (D1, D2, then E1, E2 one unit further along them) and, as its
@@ -114,13 +120,13 @@ export function conicPoint(
 
 export class conic_point_object extends point_object {
     moveable = false;
-    CONIC: primitive_quadric_object;
+    CONIC: FocalConic;
     WHICH: ConicPoint;
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        conic: primitive_quadric_object,
+        conic: FocalConic,
         which: ConicPoint,
     ) {
         super(c, name, [0, 0, 0]);
@@ -151,7 +157,7 @@ export class conic_point_object extends point_object {
 export function createConicPoint(
     c: construction,
     name: string | null | undefined,
-    conic: primitive_quadric_object,
+    conic: FocalConic,
     which: ConicPoint,
 ): conic_point_object {
     return c.add(new conic_point_object(c, name, conic, which));

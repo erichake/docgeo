@@ -452,6 +452,7 @@ const zh_TW: Texts = {
         designate_ray: "選取一條射線",
         designate_arc: "選取一段弧",
         designate_conic: "選取一條二次曲線",
+        designate_focal: "選取一條二次曲線",
         designate_angle: "選取一個角",
         macro_unknown: "= 前的多個名稱只能命名巨集的最終物件",
         macro_names: "此巨集有%個最終物件：請全部命名，不需要的寫 _",
