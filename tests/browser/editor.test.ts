@@ -114,6 +114,7 @@ import type { free_vector_object } from "../../src/objects/free_vector_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import type { list_object } from "../../src/objects/list_object";
 import type { text_object } from "../../src/objects/text_object";
+import { importDgp } from "../../src/dgp_importer";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
@@ -1266,6 +1267,28 @@ describe("Editor", () => {
             (plane.getObj("V") as point_object).coords.slice(0, 2),
             [3, 0],
         );
+    });
+
+    it("writes DGPad's free texts, expressions whose value is hidden, as texts", () => {
+        const { scene: c } = studio();
+        importDgp(
+            c,
+            `E1=Expression("E1","Côté \\"a\\" : 2.25 cm","","","3","0","0");
+E2=Expression("E2","Lu","","","1","0","0");
+E3=Expression("E3","Valeur : ","","","2","0","0");
+E4=Expression("E4","Total","","","E2+1","0","0");
+STL(E1,"c:#0000b2;p:-1;f:16");
+STL(E2,"p:-1");
+STL(E3,"p:2");
+STL(E4,"p:-1");`,
+        );
+        expect(lines(c)).toEqual([
+            'E1 = "Côté \\"a\\" : 2.25 cm"',
+            "E2 = 1",
+            "E3 = 2",
+            "E4 = E2+1",
+        ]);
+        expect(c.getObj("E1")!.precision).toBe(2);
     });
 
     it("writes GeoGebra's equations, read back as the same objects", () => {

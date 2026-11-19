@@ -4146,6 +4146,84 @@ function convertLegacyPoint3D(calls: DgpCall[]): DgpCall[] {
 // DGPad reads a slider's bounds only when it needs them: they may name an
 // object the file declares later, which is then moved before the slider,
 // with the declarations it names in turn.
+// DGPad's free text: an expression's text, shown before its value, of a
+// constant that nothing reads, hidden by its precision -1. A text expression
+// instead, whose text the editor writes; its precision keeps the decimals of
+// the numbers it rounds (see expression_object's rounded).
+function textExpressions(calls: DgpCall[]): DgpCall[] {
+    const styles = new Map(
+        calls.flatMap((call) =>
+            call.name === "STL" && call.arguments[0].type === "reference"
+                ? [[call.arguments[0].name, call]]
+                : [],
+        ),
+    );
+    const read = new Set(
+        calls.flatMap((call) =>
+            call.arguments
+                .filter(
+                    (_, index) =>
+                        !(call.name === "STL" && index === 0) &&
+                        !(call.name.startsWith("Expression") && index < 2),
+                )
+                .flatMap(referencedNames),
+        ),
+    );
+    const texts = new Map<DgpCall, DgpCall>();
+    calls.forEach((call) => {
+        const style = call.variable && styles.get(call.variable);
+        if (
+            !style ||
+            !["Expression", "ExpressionOn"].includes(call.name) ||
+            read.has(call.variable!)
+        )
+            return;
+        const [text, min, max, source] = call.arguments
+            .slice(1, 5)
+            .map(literalString);
+        if (
+            !text ||
+            min ||
+            max ||
+            !/^-?\d+(\.\d+)?$/.test(source) ||
+            properties(literalString(style.arguments[1])).get("p") !== "-1"
+        )
+            return;
+        const decimals = Math.max(
+            0,
+            ...(text.match(/\.\d+/g) ?? []).map((part) => part.length - 1),
+        );
+        texts.set(call, {
+            ...call,
+            arguments: call.arguments.map((argument, index) =>
+                index === 1
+                    ? { type: "literal", value: "" }
+                    : index === 4
+                      ? {
+                            type: "literal",
+                            value: `"${text.replace(/[\\"]/g, "\\$&")}"`,
+                        }
+                      : argument,
+            ),
+        });
+        if (decimals)
+            texts.set(style, {
+                ...style,
+                arguments: [
+                    style.arguments[0],
+                    {
+                        type: "literal",
+                        value: literalString(style.arguments[1]).replace(
+                            /(^|;)p:-1(?=;|$)/,
+                            `$1p:${decimals}`,
+                        ),
+                    },
+                ],
+            });
+    });
+    return calls.map((call) => texts.get(call) ?? call);
+}
+
 function orderSliderBounds(calls: DgpCall[]): DgpCall[] {
     const declarations = new Map(
         calls.flatMap((call) => (call.variable ? [[call.variable, call]] : [])),
@@ -4420,7 +4498,9 @@ function executeCalls(
         orderStyleTargets(
             orderSliderBounds(
                 attachButtonPrograms(
-                    compileBlocklyPrograms(convertLegacyPoint3D(calls)),
+                    textExpressions(
+                        compileBlocklyPrograms(convertLegacyPoint3D(calls)),
+                    ),
                 ),
             ),
         ),
