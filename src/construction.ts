@@ -13,14 +13,8 @@ import {
     viewDirection,
     type ProjectionFrame,
 } from "./projection";
-import {
-    vAdd,
-    vDot,
-    vNormalize,
-    vScale,
-    type Vec2,
-    type Vec3,
-} from "./vec";
+import { hideSheet, showSheet, type Archive } from "./sheet";
+import { vAdd, vDot, vNormalize, vScale, type Vec2, type Vec3 } from "./vec";
 
 // Zoom bounds, in pixels per unit: beyond them, graduations would outgrow
 // the precision of their labels.
@@ -44,6 +38,14 @@ export interface DgpadLike {
     mountObject?: (object: construction_object) => void;
     // After the border of two views was moved.
     viewsChanged?: () => void;
+    // The editor's: a sheet view shows the whole DocCells, and what the
+    // user does in it (see sheet.ts).
+    editor?: boolean;
+    saveFigure?: () => void;
+    sheetChanged?: () => void;
+    sheetRenamed?: (from: string, to: string) => void;
+    // A cell's formula that closes a cycle with the figure.
+    sheetCycle?: (ref: string) => void;
 }
 
 // Left, top, width and height of a view, in fractions of the window's.
@@ -69,6 +71,8 @@ export interface FigureView {
     width: number;
     height: number;
     measured: { pass: number; width: number; height: number };
+    // A sheet view, which shows the figure's workbook (see sheet.ts).
+    sheet?: boolean;
 }
 
 export class construction {
@@ -109,6 +113,8 @@ export class construction {
     fixedSize: Vec2 | null = null;
     // The figure's macro-constructions, applied or not (see DGO.md).
     macros: Macro[] = [];
+    // The DocCells archive of its sheet view's workbook, as read.
+    workbook: Archive | null = null;
     animations: animations;
     // The objects each gesture was made on since the last update, an
     // animation dragging them, as in DGPad.
@@ -118,6 +124,8 @@ export class construction {
         up: new Set(),
     };
     private updateFrame: number | null = null;
+    // Shown, rather than computed only (see workbook.ts).
+    private revealed = false;
     private batchedObjects: construction_object[] | null = null;
     // The object each view of a layer shows.
     private viewObjects = new WeakMap<Element, construction_object>();
@@ -264,6 +272,7 @@ export class construction {
             this.dividers[index - 1]?.stl("left", `${x * 100}%`);
             x += width;
         });
+        if (this.revealed) showSheet(this);
     }
 
     // Measured at once rather than by their observers, a 3D view keeping
@@ -535,6 +544,7 @@ export class construction {
         });
         this.views.forEach(({ svg }) => svg.dispose());
         this.dividers.forEach((divider) => divider.dispose());
+        hideSheet(this);
         $("body").off("keydown", this.keydownListener);
         VIEW_EVENTS.forEach((type, n) =>
             $(document.documentElement).off(type, this.viewListeners[n], true),
@@ -802,10 +812,13 @@ export class construction {
     // Its traces start once it's shown, not with the moves of its opening.
     reveal(): void {
         this.traceEpoch++;
-        this.views.forEach(({ svg, traceLayer }) => {
+        this.views.forEach(({ svg, traceLayer, sheet }) => {
             traceLayer.findAll("path").forEach((path) => path.att("d", ""));
-            svg.stl("visibility", "");
+            // Under the sheet's frame (see sheet.ts).
+            svg.stl("visibility", sheet ? "hidden" : "");
         });
+        this.revealed = true;
+        showSheet(this);
     }
 
     private bindSceneEvents(element: DOMElement): void {

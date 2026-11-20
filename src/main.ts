@@ -12,6 +12,8 @@ import { leavePage, openFigureFile, showTabs, writeWorkbook } from "./workbook";
 class docgeo {
     prefs: preferences;
     scene: construction;
+    // Cmd-S in a sheet view (see sheet.ts).
+    saveFigure = () => void (figureName && saveFigure(figureName));
 
     constructor() {
         this.document();

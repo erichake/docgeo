@@ -2,6 +2,7 @@ import { construction, type DgpadLike } from "./construction";
 import { describeDgo, readDgo, type Region } from "./dgo";
 import { $ } from "./dom";
 import { DIR, t } from "./i18n";
+import { showSheet } from "./sheet";
 
 // index.html?fit=…&url=…: the figure in a web page's iframe, the region the
 // editor framed scaled to fit the window (see EMBED.md, "Page web").
@@ -85,6 +86,7 @@ export async function fitFigure(app: Fitted, value: string): Promise<void> {
                 .stl("width", `${rw * w * scale}px`)
                 .stl("height", `${rh * h * scale}px`),
         );
+        showSheet(app.scene);
     };
     const build = (): void => {
         app.scene.dispose();

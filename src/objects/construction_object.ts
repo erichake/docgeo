@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
 import type { ScriptValue } from "../import/dgp_formula";
+import { provide, reading } from "../sheet";
 import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
@@ -304,12 +305,16 @@ export class construction_object {
     }
 
     private computeAll(): void {
+        const outer = reading.object;
+        reading.object = this;
         this.embeds?.forEach((point) => {
             point.computeGeometry();
             point.project();
         });
         this.computeGeometry();
         this.virtualParts?.forEach((part) => part.computeGeometry());
+        reading.object = outer;
+        provide(this.C, [this]);
         this.project();
         this.virtualParts?.forEach((part) => part.project());
         if (this.hasView) this.draw();

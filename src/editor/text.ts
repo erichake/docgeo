@@ -425,7 +425,18 @@ export const formatName = (name: string): string =>
 
 // "'Page 1'!c", as a formula reads an object of another page.
 export const externalSource = (page: string, name: string): string =>
-    `${/^[\p{L}_][\p{L}\p{N}_]*$/u.test(page) ? page : `'${page.replace(/[\\']/g, "\\$&")}'`}!${formatName(name)}`;
+    `${/^[\p{L}_][\p{L}\p{N}_]*$/u.test(page) ? page : `'${page.replace(/[\\']/g, "\\$&")}'`}!${cellsSource(name)}`;
+
+// Cells of a sheet ("B2:B21") as they are, those of another page's sheet
+// after its name ("Feuille1!B3"), else an object's name (see TABLEUR.md).
+function cellsSource(name: string): string {
+    const [sheet, cells] = name.split("!");
+    return cells
+        ? `${formatName(sheet)}!${cells}`
+        : /^[A-Z]+\d+(:[A-Z]+\d+)?$/i.test(name)
+          ? name
+          : formatName(name);
+}
 
 // A formula point's definition: its coordinates between brackets, unless
 // they are numbers only, which a free point's are.

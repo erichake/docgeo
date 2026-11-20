@@ -239,6 +239,27 @@ cadre entoure exactement la région enregistrée.
 | `No point or expression named …` | nom inconnu passé à `value`, `lock` ou `setHidden`            |
 | `Invalid state`                  | état refusé par `setState`                                    |
 
+## Vue tableur
+
+La figure montrée (la page `p` d'un classeur, `DGO.md`) peut avoir une vue
+tableur, ou n'être qu'un onglet tableur (`TABLEUR.md`). DocGeo montre alors
+DocCells dans une iframe de même origine, à l'adresse
+`../doccells/index.html?embed&mode=student&lang=…`, relative à sa page : le
+dossier `doccells/` doit être posé à côté de celui de DocGeo. Sans lui, la
+vue affiche « ⚠ DocCells » et le reste de la figure fonctionne, ses
+références aux cellules lues dans les valeurs enregistrées.
+
+- L'élève peut saisir dans les cellules. Ces saisies ne font pas partie de
+  l'état (`getState`, `setState`) et n'émettent pas `change`.
+- `save` enregistre les cellules telles que l'élève les a laissées.
+- `reset` et `setState` rendent les cellules de la figure de base ; `rebase`
+  fait des cellules courantes celles de la figure de base.
+- `value` d'un objet qui lit des cellules donne la valeur que DocCells
+  calcule une fois le classeur chargé, et, avant, celle que donnent les
+  dernières valeurs enregistrées dans le `.dgo`.
+- En page web (`?fit`, ci-après), la vue tableur occupe sa part de la région,
+  sans mise à l'échelle.
+
 ## Affichage réduit
 
 L'hôte peut réduire l'iframe par une transformation CSS

@@ -5,6 +5,7 @@ import { grid_object } from "./objects/grid_object";
 import { paintByDepth } from "./objects/hidden_line";
 import { point_object } from "./objects/point_object";
 import { polygon_object } from "./objects/polygon_object";
+import { provide, reading } from "./sheet";
 
 export class objects_collector {
     // All construction objects, in construction order :
@@ -139,6 +140,7 @@ export class objects_collector {
                 updated.add(object);
                 c.view = object.view;
                 if (object.geometryDirty) {
+                    reading.object = object;
                     object.embeds?.forEach((point) => point.computeGeometry());
                     object.computeGeometry();
                     object.virtualParts?.forEach((part) =>
@@ -147,7 +149,10 @@ export class objects_collector {
                     object.geometryDirty = false;
                 }
             });
+            // The cells that read them, and the objects that read these.
+            provide(c, marked);
         }
+        reading.object = null;
         const objects = [...updated].sort((a, b) => a.sequence - b.sequence);
         // The grid (its projectionFrame's cached rotation trig) and points
         // (their screen position) project first, within this same step: a

@@ -4,6 +4,7 @@ import {
     type BackgroundFit,
 } from "./background";
 import type { construction, FigureView } from "./construction";
+import { sheetArchive } from "./sheet";
 import {
     formulaIdentifiers,
     parseFormula,
@@ -216,6 +217,8 @@ export interface DgoFigure {
     o: Json[][];
     // The macro-constructions, applied or not.
     mac?: Settings[];
+    // The DocCells workbook of its sheet view (see TABLEUR.md).
+    wb?: Settings;
 }
 
 // ************************** DEFAULTS ****************************
@@ -956,17 +959,23 @@ export async function describeDgo(
     };
     const several = c.views.length > 1;
     const view = (
-        { grid, rect }: FigureView,
+        { grid, rect, sheet }: FigureView,
         [dx, dy]: Vec2,
         size: Settings,
     ): Settings => ({
-        o: [grid.ORG[0] - dx, grid.ORG[1] - dy],
-        u: grid.UNIT[0],
-        ...(grid.UNIT[1] !== grid.UNIT[0] && { uy: grid.UNIT[1] }),
-        ...size,
-        ...(several && { cw: rect[2] }),
-        ...describe(VIEW, grid),
-        ...(grid.backgroundImage && { bgi: keys.get(grid.backgroundImage)! }),
+        ...(sheet
+            ? { t: "s", ...size, ...(several && { cw: rect[2] }) }
+            : {
+                  o: [grid.ORG[0] - dx, grid.ORG[1] - dy],
+                  u: grid.UNIT[0],
+                  ...(grid.UNIT[1] !== grid.UNIT[0] && { uy: grid.UNIT[1] }),
+                  ...size,
+                  ...(several && { cw: rect[2] }),
+                  ...describe(VIEW, grid),
+                  ...(grid.backgroundImage && {
+                      bgi: keys.get(grid.backgroundImage)!,
+                  }),
+              }),
     });
     const [first, ...others] = c.views;
     const figure: DgoFigure = {
@@ -994,6 +1003,7 @@ export async function describeDgo(
         );
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
+    if (c.views.some(({ sheet }) => sheet)) figure.wb = sheetArchive(c);
     return figure;
 }
 
@@ -1191,6 +1201,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         img: images = {},
         o: entries,
         mac: macros = [],
+        wb,
     } = figure;
     check(isRecord(view) && isFlag(deg) && isFlag(sop) && isColor(bg));
     check(Array.isArray(styles) && styles.every(isRecord));
@@ -1221,12 +1232,19 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     // Each view's column of the window, then its coordinate system, its
     // origin from its top left corner.
     const grids = [view, ...views].map((settings, index) => {
-        const { cw: share = 1 } = settings;
+        const { cw: share = 1, t } = settings;
         check(isNumber(share) && share > 0);
         if (index) c.addView(share);
         else c.views[0].share = share;
         const grid = c.views[index].grid;
         apply(VIEW, grid, settings);
+        // A sheet view, with the figure's workbook, has no other settings.
+        if (t !== undefined) {
+            check(t === "s" && !c.workbook && isRecord(wb));
+            c.workbook = wb;
+            c.views[index].sheet = true;
+            return grid;
+        }
         grid.backgroundImage = imageOf(settings.bgi ?? null);
         const { o: origin, u: unit, uy = unit } = settings;
         check(isPair(origin) && isNumber(unit) && unit > 0);
@@ -1256,7 +1274,13 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
               ]
             : [0, 0];
     const [windowWidth, windowHeight] = c.windowSize;
+    // New objects in the first view which isn't a sheet's, if any.
+    c.view = c.active = Math.max(
+        0,
+        c.views.findIndex(({ sheet }) => !sheet),
+    );
     grids.forEach((grid, index) => {
+        if (c.views[index].sheet) return;
         const [x, y] = [view, ...views][index].o as Vec2;
         const [, , w, h] = c.views[index].rect;
         grid.ORG =
@@ -1516,7 +1540,8 @@ export function readEntries(
                 check(
                     Number.isInteger(view) &&
                         (view as number) >= 0 &&
-                        (view as number) < c.views.length,
+                        (view as number) < c.views.length &&
+                        !c.views[view as number].sheet,
                 );
                 c.moveToView(object, view as number);
             }
@@ -1528,7 +1553,8 @@ export function readEntries(
                             (view) =>
                                 Number.isInteger(view) &&
                                 view >= 0 &&
-                                view < c.views.length,
+                                view < c.views.length &&
+                                !c.views[view].sheet,
                         ),
                 );
                 c.alsoShow(object, also as number[]);

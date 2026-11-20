@@ -1,6 +1,8 @@
 import { playwright } from "@vitest/browser-playwright";
+import type { CDPSession } from "playwright";
 import type { BrowserCommand } from "vitest/node";
 import { defineConfig } from "vitest/config";
+import { serveDocCells } from "./doccells.config.ts";
 
 type Position = [number, number];
 
@@ -88,8 +90,22 @@ const pinch: BrowserCommand<
     await cdp.detach();
 };
 
+// The processor slowed down this many times, by a session kept open: its
+// emulation ends with it.
+const sessions = new WeakMap<object, Promise<CDPSession>>();
+const throttle: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
+    if (!sessions.has(page))
+        sessions.set(page, page.context().newCDPSession(page));
+    await (
+        await sessions.get(page)!
+    ).send("Emulation.setCPUThrottlingRate", {
+        rate,
+    });
+};
+
 export default defineConfig({
     plugins: [
+        serveDocCells(),
         {
             // Vitest wraps the pages' dynamic imports (src/start.ts) in a
             // call to its runner, which a page in a test's iframe lacks.
@@ -111,7 +127,7 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: "chromium" }],
-            commands: { drag, pinch },
+            commands: { drag, pinch, throttle },
         },
     },
 });

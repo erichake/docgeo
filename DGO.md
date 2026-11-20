@@ -107,6 +107,14 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | `img` | images : clé → data URL                  | `{}`       |
 | `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
 | `mac` | macro-constructions (ci-après)           | `[]`       |
+| `wb`  | classeur DocCells de la vue tableur      | `null`     |
+
+Classeur DocCells (depuis le 2026-11-20, `TABLEUR.md`) : `wb` est
+l'archive DocCells (`{ format: "doccells", version, … }`), recopiée telle
+que DocCells la donne (`save`) et lui est rendue (`load`). Elle va avec la
+vue tableur de la figure (`t` ci-après) : requise s'il y en a une, ignorée
+sinon. DocGeo n'en lit pour l'instant rien d'autre que sa présence : son
+contenu, vérifié par DocCells, est son affaire.
 
 Motif de fond (depuis le 2026-11-15) : l'image `bgi` est peinte derrière
 toute la figure, par-dessus la couleur `bg`, selon `bgf`, comme en CSS :
@@ -137,7 +145,8 @@ L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
 la page montrée.
 
 Pour l'instant, le mode intégré du lecteur montre la page `p` d'un classeur,
-seule, sans onglets : l'état élève est celui de cette page.
+seule, sans onglets, vue tableur comprise (`EMBED.md`) : l'état élève est
+celui de cette page.
 
 #### Références entre pages
 
@@ -183,6 +192,16 @@ reste une comparaison (`src/import/dgp_formula.ts`, nœud `external`).
 Format : aucune clé nouvelle, la référence n'étant que du texte de formule
 (un ajout à la grammaire, conforme aux règles d'évolution).
 
+Cellules (depuis le 2026-11-20, `TABLEUR.md`) : `X!B3` est la cellule B3
+de la feuille `X` du classeur `wb` de la page, si `X` en est une feuille et
+`B3` une adresse (lettres puis chiffres, sans `$`), sinon une référence à
+une page ; `X!B2:B21` une plage, écrite d'un seul tenant ; `'Page 2'!X!B3`
+une cellule du classeur d'une autre page, lue dans les valeurs `v` de son
+archive. Une cellule vide ou en erreur est indéfinie, un booléen vaut 1 ou
+0 ; une plage d'une ligne ou d'une colonne est une liste, un rectangle une
+liste de lignes, une cellule indéfinie y valant NaN. Aucune clé nouvelle :
+du texte de formule.
+
 #### Globales du classeur
 
 Une globale Blockly (6) est celle du classeur : toutes les pages qui ont une
@@ -227,6 +246,16 @@ construction pour toutes les vues ; chaque objet est dessiné dans la sienne
 est dans l'espace (points à trois coordonnées) dès qu'une de ses vues est 3D,
 sans clé de la racine ; une vue plane d'une figure de l'espace la montre de
 dessus (plan z = 0, ni rotation ni sol).
+
+Vue tableur (depuis le 2026-11-20, `TABLEUR.md`) : `"t": "s"` fait d'une
+vue une colonne qui montre le classeur `wb` de la figure (DocCells, dans
+une iframe) ; absente, c'est une vue graphique. Une figure a au plus une
+vue tableur, qui n'a que `t` et `cw`, plus `w` et `h` si c'est `v` ; les
+clés des vues graphiques (`o`, `u`, `3d`…) n'y sont ni écrites ni lues.
+Aucun objet n'y est dessiné : un style `vw` ou `vws` qui la nomme rend le
+fichier invalide ; un objet sans `vw` va dans la première vue graphique.
+Une page dont `v` est la vue tableur et qui n'a pas de `vs` est un onglet
+tableur.
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par

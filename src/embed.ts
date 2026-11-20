@@ -15,6 +15,7 @@ import {
     stateFigure,
 } from "./figure_state";
 import { frameRegion, hideFrame, showFrame } from "./frame";
+import { restoreSheet, sheetArchive } from "./sheet";
 import { importDgoBook, useWorkbook } from "./workbook";
 
 // The embedded mode's postMessage protocol: see EMBED.md.
@@ -67,19 +68,24 @@ export function embed(app: Embedder): void {
         app.scene.reveal();
     };
     // `values`: the state whose coordinates place points on objects, and
-    // whose changes restyle it.
+    // whose changes restyle it. The cells as in the base figure too.
     const rebuild = (figure: DgoFigure, values: FigureState = {}): void => {
         renew();
         readDgo(app.scene, figure, true);
+        const { workbook } = app.scene;
+        if (workbook) void restoreSheet(app.scene, workbook);
         placeOn(app.scene, values);
         restyle(app.scene, values);
         settle();
     };
     const state = () => figureState(app.scene, base!.values, view);
-    // Makes the current figure the base one, its view aside.
+    // Makes the current figure the base one, its view aside, its cells
+    // included.
     const rebase = (): void => {
+        const figure = stateFigure(app.scene, base!.figure, state());
+        if (app.scene.workbook) figure.wb = sheetArchive(app.scene);
         base = {
-            figure: stateFigure(app.scene, base!.figure, state()),
+            figure,
             values: figureValues(app.scene, view),
         };
         reported = "{}";

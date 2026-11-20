@@ -47,6 +47,7 @@ import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
 import { preferences } from "../preferences";
 import { finishSplash } from "../splash";
+import { cycles, restoreSheet, sheetArchive } from "../sheet";
 import {
     vAdd,
     vIsFinite,
@@ -311,7 +312,32 @@ const studio = {
     mountObject: mountButtonTools,
     // A step to undo once the border of two views moved.
     viewsChanged: () => void record(),
+    editor: true,
+    saveFigure: () => void save(),
+    sheetRenamed: (from, to) => void renameSheet(from, to),
+    sheetChanged: () => keepSheet(),
+    // The cells as they were before the formula (see TABLEUR.md).
+    sheetCycle: (ref) => {
+        const { wb } = JSON.parse(history[position].figure) as DgoFigure;
+        showHint(message("circular_reference", ref), true);
+        keepSheet(() => restoreSheet(scene(), wb!));
+    },
 } as Studio;
+
+// The cells aren't undone with the figure (see TABLEUR.md): the step shown
+// holds them as the user left them.
+function keepSheet(before?: () => Promise<void>): void {
+    recording = recording
+        .then(async () => {
+            await before?.();
+            const step = history[position];
+            const figure = JSON.parse(step.figure) as DgoFigure;
+            figure.wb = sheetArchive(scene());
+            step.figure = JSON.stringify(figure);
+            showChanged(unsaved());
+        })
+        .catch(failed);
+}
 studio.scene = construction.create(studio);
 const scene = () => studio.scene;
 watchMarks();
@@ -1158,6 +1184,10 @@ const menus: Menu[] = [
                 shortcut: installed ? shortcut("T") : undefined,
                 run: () => void addPage(),
             },
+            {
+                label: message("new_sheet_page"),
+                run: () => void addPage(true),
+            },
             null,
             {
                 label: `${message("open")}…`,
@@ -1217,7 +1247,21 @@ const menus: Menu[] = [
                     {
                         label: message("delete_view"),
                         run: () => void deleteView(),
-                        enabled: () => scene().views.length > 1,
+                        enabled: () =>
+                            scene().views.filter(({ sheet }) => !sheet).length >
+                            1,
+                    },
+                    null,
+                    {
+                        label: message("new_sheet_view"),
+                        run: () => void addView(true),
+                        enabled: () => sheetView() < 0,
+                    },
+                    {
+                        label: message("delete_sheet_view"),
+                        run: () => void deleteView(sheetView()),
+                        enabled: () =>
+                            sheetView() >= 0 && scene().views.length > 1,
                     },
                     null,
                     {
@@ -2306,6 +2350,7 @@ async function enterLine(
     // The sliders of the names the line reads that no object has.
     const sliders: construction_object[] = [];
     let borrowed = false;
+    const cyclic = new Set(cycles.keys());
     try {
         const line = parseLine(text, isCall);
         // A library's macro, copied into the figure to be applied.
@@ -2374,7 +2419,7 @@ async function enterLine(
                 point.coords = [x, y, z];
                 if (point.pinned) point.pin();
                 c.invalidateGeometry(target);
-                if (await refusedOffPlane()) throw new TextError("off_plane");
+                await refuseFlaws(cyclic);
                 done(target);
                 return false;
             }
@@ -2386,14 +2431,14 @@ async function enterLine(
                     result as expression_object,
                     spec.shown.map(({ name }) => scene().getObj(name)!),
                 );
-            if (await refusedOffPlane()) throw new TextError("off_plane");
+            await refuseFlaws(cyclic);
             done(result);
             return false;
         }
         const built = resolveWithSliders(c, line, undefined, sliders);
         const result = made(add(c, built));
         if (built.shown) showOnly(result as expression_object, built.shown);
-        if (await refusedOffPlane()) throw new TextError("off_plane");
+        await refuseFlaws(cyclic);
         if (result instanceof button_object) showProgram(result);
         done(result);
         return true;
@@ -5882,6 +5927,8 @@ async function reframe(
         saved
             ? {
                   ...saved,
+                  // The cells as the user left them.
+                  ...(saved.wb && figure.wb && { wb: figure.wb }),
                   v: {
                       ...saved.v,
                       ...camera(
@@ -5909,7 +5956,7 @@ async function reframe(
     if (step) {
         c.views.forEach(({ grid, rect }, n) => {
             const m = match(n);
-            if (m < 0) return;
+            if (m < 0 || c.views[n].sheet) return;
             const { o, u } = current[m];
             const [x, y] = o as Vec2;
             grid.ORG = [
@@ -5948,6 +5995,16 @@ function withView(
 
 // In a plane figure, an object put off the plane is refused, the figure
 // going back to its last step.
+// A line that leaves the figure off its plane, or reading cells that
+// depend on it (see TABLEUR.md), refused.
+async function refuseFlaws(cyclic: Set<string>): Promise<void> {
+    if (await refusedOffPlane()) throw new TextError("off_plane");
+    const closed = [...cycles].find(([key]) => !cyclic.has(key));
+    if (!closed) return;
+    await reframe({}, history[position]);
+    throw new TextError("circular_reference", closed[1]);
+}
+
 async function refusedOffPlane(): Promise<boolean> {
     const c = scene();
     c.flush();
@@ -7519,35 +7576,61 @@ const reshape = (): void => {
 
 // A new page, empty, after the others, shown: the figure is the first page
 // of a workbook if it wasn't one.
-async function addPage(): Promise<void> {
+async function addPage(sheet = false): Promise<void> {
     await recording;
     book ??= {
         pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
         current: 0,
     };
     useWorkbook(book);
-    let n = book.pages.length + 1;
-    while (pageNamed(message("page_name", String(n)))) n++;
+    const key = sheet ? "sheet_page_name" : "page_name";
+    let n = sheet ? 1 : book.pages.length + 1;
+    while (pageNamed(message(key, String(n)))) n++;
+    const figure = blank(scene());
     await insertPage(book.pages.length, {
-        name: message("page_name", String(n)),
-        figure: blank(scene()),
+        name: message(key, String(n)),
+        figure: sheet
+            ? {
+                  ...figure,
+                  v: { t: "s", w: figure.v.w, h: figure.v.h },
+                  wb: emptySheet(),
+              }
+            : figure,
     });
 }
+
+// A workbook of one empty sheet.
+const emptySheet = () => ({
+    format: "doccells",
+    version: 1,
+    sheets: [{ name: message("sheet_name") }],
+});
+
+// The index of the figure's sheet view, -1 if it has none.
+const sheetView = (): number => scene().views.findIndex(({ sheet }) => sheet);
 
 // ************************** VIEWS *******************************
 
 // A new view, a column at the right of the others, all as wide, each
-// keeping its center: with the settings of the view last pressed, its
-// origin at its center.
-async function addView(): Promise<void> {
+// keeping its center: with the settings of the view last pressed (a sheet
+// view's are a new figure's), its origin at its center; or a sheet view,
+// with an empty workbook.
+async function addView(sheet = false): Promise<void> {
     await recording;
     const c = scene();
     const figure = await asSaved(() => describeDgo(c));
     const views = [figure.v, ...(figure.vs ?? [])];
     const [width, height] = c.windowSize;
     const share = 1 / (views.length + 1);
-    const { o: _o, w: _w, h: _h, cw: _cw, ...settings } = views[c.active];
-    const columns = views.map((view, n) => {
+    const {
+        o: _o,
+        w: _w,
+        h: _h,
+        cw: _cw,
+        ...settings
+    } = c.views[c.active].sheet ? blank(c).v : views[c.active];
+    const columns: DgoFigure["v"][] = views.map((view, n) => {
+        if (!view.o) return { ...view, cw: share };
         const [x, y] = view.o as Vec2;
         return {
             ...view,
@@ -7555,38 +7638,48 @@ async function addView(): Promise<void> {
             cw: share,
         };
     });
-    columns.push({
-        ...settings,
-        o: [(share * width) / 2, height / 2],
-        cw: share,
-    });
+    columns.push(
+        sheet
+            ? { t: "s", cw: share }
+            : { ...settings, o: [(share * width) / 2, height / 2], cw: share },
+    );
     const [v, ...vs] = columns;
     const { ids } = history[position];
     nextIds = [...ids, Math.max(...ids) + 1];
-    await reframe({}, undefined, { v, vs });
+    await reframe({}, undefined, {
+        v,
+        vs,
+        ...(sheet && { wb: emptySheet() }),
+    });
     changed();
 }
 
-// The view last pressed, its column given to the one on its left (on its
-// right for the first), which keeps its center, its objects moved to it.
-async function deleteView(): Promise<void> {
+// The view last pressed, or the sheet view, its column given to the one on
+// its left (on its right for the first), which keeps its center, its
+// objects moved to the nearest view which isn't a sheet's.
+async function deleteView(deleted = scene().active): Promise<void> {
     await recording;
     const c = scene();
-    const deleted = c.active;
     const heir = deleted ? deleted - 1 : 1;
     const figure = await asSaved(() => describeDgo(c));
     const views = [figure.v, ...(figure.vs ?? [])];
     const [width] = c.windowSize;
-    const [x, y] = views[heir].o as Vec2;
     const share = c.views[deleted].rect[2];
+    const [x, y] = (views[heir].o as Vec2 | undefined) ?? [];
     views[heir] = {
         ...views[heir],
-        o: [x + (share * width) / 2, y],
+        ...(x !== undefined && { o: [x + (share * width) / 2, y] }),
         cw: c.views[heir].rect[2] + share,
     };
     views.splice(deleted, 1);
+    const graphic = c.views
+        .map((_, n) => n)
+        .filter((n) => n !== deleted && !c.views[n].sheet)
+        .sort((m, n) => Math.abs(m - deleted) - Math.abs(n - deleted))[0];
     const moved = (view: number): number =>
-        view === deleted ? heir - +(heir > deleted) : view - +(view > deleted);
+        view === deleted
+            ? graphic - +(graphic > deleted)
+            : view - +(view > deleted);
     const styles = [...(figure.st ?? [])];
     // The other views it is also drawn in lose the deleted one.
     const o = figure.o.map((entry) => {
@@ -7877,6 +7970,29 @@ function renamePage(index: number): void {
 
 type Rename = (page: string, name: string) => [string, string] | undefined;
 
+// The references to cells of a sheet renamed in DocCells written anew, in
+// the page shown and the others (see TABLEUR.md).
+async function renameSheet(from: string, to: string): Promise<void> {
+    await recording;
+    if (book) {
+        const page = book.pages[book.current].name;
+        renameReferences((other, name) =>
+            other === page && name.startsWith(`${from}!`)
+                ? [page, to + name.slice(from.length)]
+                : undefined,
+        );
+    }
+    const figure = await asSaved(() => describeDgo(scene()));
+    const renamed = renamedJson(figure, (sheet, name) =>
+        sheet === from && /^[A-Z]+\d+(:[A-Z]+\d+)?$/i.test(name)
+            ? [to, name]
+            : undefined,
+    ) as DgoFigure;
+    if (JSON.stringify(renamed) === JSON.stringify(figure)) return;
+    rebuild(studio, renamed);
+    changed();
+}
+
 // A description whose formulas' references to objects of other pages are
 // written anew.
 const renamedJson = (json: unknown, rename: Rename): unknown =>
@@ -7890,7 +8006,8 @@ const renamedJson = (json: unknown, rename: Rename): unknown =>
             ? Object.fromEntries(
                   Object.entries(json).map(([key, value]) => [
                       key,
-                      renamedJson(value, rename),
+                      // DocCells' formulas, not the figure's.
+                      key === "wb" ? value : renamedJson(value, rename),
                   ]),
               )
             : json;

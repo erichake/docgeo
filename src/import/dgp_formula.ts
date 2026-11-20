@@ -560,6 +560,8 @@ const KEYWORDS: ReadonlySet<string> = new Set(
 const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
 const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
 const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
+// A range's end, written at once after its start.
+const RANGE = /:[A-Z]+\d+/iy;
 const SPACE = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/y;
 // After its "/": the rest of a regular expression, its flags included.
 const REGEX = /(?:[^\\/[\n]|\\.|\[(?:[^\\\]\n]|\\.)*\])+\/[a-z]*/y;
@@ -634,7 +636,9 @@ export class FormulaLexer {
     }
 
     // The page's name followed at once by "!" and the object's: "a!=b"
-    // remains a comparison.
+    // remains a comparison. Or a sheet's and its cells (see TABLEUR.md):
+    // "Feuille1!B2:B21", "'Page 2'!Feuille1!B3", the sheet's and the
+    // cells' in the name.
     private external(page: Token): Token {
         const next = this.source[this.index + 1] ?? "";
         if (
@@ -643,7 +647,17 @@ export class FormulaLexer {
         )
             return page;
         this.index++;
-        const { value } = next === "`" ? this.quoted() : this.identifier();
+        let { value } = next === "`" ? this.quoted() : this.identifier();
+        const nested = this.external({ type: "identifier", value });
+        if (nested.type === "external")
+            value = `${nested.page}!${nested.value}`;
+        RANGE.lastIndex = this.index;
+        const range =
+            /^[A-Z]+\d+$/i.test(value as string) && RANGE.exec(this.source);
+        if (range) {
+            value += range[0];
+            this.index = RANGE.lastIndex;
+        }
         return { type: "external", value, page: page.value as string };
     }
 
@@ -685,6 +699,9 @@ let external = (_page: string, _name: string): ScriptValue | null => null;
 export function readExternals(read: typeof external): void {
     external = read;
 }
+
+export const readExternal = (page: string, name: string) =>
+    external(page, name);
 
 // The objects of the figure being read (see withObjects).
 let objects: ReadonlySet<string> = new Set();

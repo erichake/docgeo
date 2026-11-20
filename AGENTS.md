@@ -37,6 +37,15 @@ vont dans le moteur, puisque le lecteur doit ouvrir les figures qui en
 ont ; leur création et leur suppression relèvent de l'éditeur. Le poids du
 lecteur est mesuré à chaque étape. Lire ce mémo avant d'y toucher.
 
+Exception : les feuilles du tableur DocCells dans une page (vue tableur,
+liens entre cellules et figure), décrites dans `TABLEUR.md`, sont un
+chantier ouvert : DocCells est montré dans une iframe, jamais embarqué ;
+son affichage et les liens vont dans le moteur, puisque le lecteur doit
+ouvrir les figures qui en ont, et la saisie dans ses cellules vaut
+manipulation ; la création et la suppression des vues et pages tableur
+relèvent de l'éditeur. Le poids du lecteur est mesuré à chaque étape. Lire
+ce mémo avant d'y toucher.
+
 ### Format natif `.dgo`
 
 `.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement

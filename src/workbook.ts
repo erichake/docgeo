@@ -13,6 +13,7 @@ import { DIR } from "./i18n";
 import { readExternals, type ScriptValue } from "./import/dgp_formula";
 import { expression_object } from "./objects/expression_object";
 import { preferences } from "./preferences";
+import { archiveCells, readCells } from "./sheet";
 
 $("head").append(`<style>
     .docgeo-tabs { position: fixed; bottom: 0; inset-inline: var(--dge-panel-width, 0px) 0; height: var(--docgeo-tabs); display: flex; padding-inline: 8px; overflow-x: auto; background: #fafafc; box-shadow: inset 0 1px #e0e0e0; color: #676464; font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; user-select: none; -webkit-user-select: none; transition: inset-inline-start var(--dge-slide, 0s); }
@@ -105,6 +106,12 @@ function reader(): { page: Page; reads: Set<Page> } {
 // Undefined if it would close a cycle: the pages being computed, the page
 // shown first, can't be read.
 readExternals((name, object) => {
+    const [sheet, range] = object.split("!");
+    const wb = range && pageNamed(name)?.figure.wb;
+    const cells = range
+        ? wb && archiveCells(wb, sheet, range)
+        : readCells(name, object);
+    if (cells !== undefined || range) return cells ?? null;
     const page = pageNamed(name);
     if (!page) return null;
     reader().reads.add(page);
@@ -178,8 +185,10 @@ export function unreadable(
     name: string,
     object: string,
 ): "unknown_object" | "circular_reference" | null {
+    if (readCells(name, object) !== undefined) return null;
     const page = pageNamed(name);
     if (!page) return "unknown_object";
+    if (object.includes("!")) return null;
     const shown = reader().page;
     if (page === shown) return "circular_reference";
     const values = pageValues(page);

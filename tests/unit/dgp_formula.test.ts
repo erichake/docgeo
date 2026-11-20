@@ -167,6 +167,38 @@ describe("DGP formula parser", () => {
     });
 });
 
+describe("references to cells", () => {
+    const external = (page: string, name: string) => ({
+        kind: "external",
+        page,
+        name,
+    });
+    it("reads a sheet's cells as a page's object, a range at once", () => {
+        expect(parseFormula("Feuille1!B3")).toEqual(
+            external("Feuille1", "B3"),
+        );
+        expect(parseFormula("'Données 2'!AA12:B3")).toEqual(
+            external("Données 2", "AA12:B3"),
+        );
+        expect(parseFormula("'Page 2'!Feuille1!B2:B21")).toEqual(
+            external("Page 2", "Feuille1!B2:B21"),
+        );
+    });
+
+    it("leaves comparisons, spaced conditionals and objects alone", () => {
+        expect(parseFormula("a!=b").kind).toBe("binary");
+        expect(parseFormula("Page2!c")).toEqual(external("Page2", "c"));
+        expect(parseFormula("k ? F!A1 : B2")).toMatchObject({
+            kind: "conditional",
+            then: external("F", "A1"),
+        });
+        expect(parseFormula("k?F!c:B2")).toMatchObject({
+            kind: "conditional",
+            then: external("F", "c"),
+        });
+    });
+});
+
 describe("formulaIdentifiers", () => {
     it("collects every referenced object name", () => {
         expect(
