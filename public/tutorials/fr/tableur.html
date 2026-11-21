@@ -30,21 +30,21 @@
             <p>Dans l’exemple ci-dessus, l’ensemble de Mandelbrot :</p>
             <ul>
                 <li>
-                    la colonne B calcule l’orbite de 0 pour z ↦ z² + C, où C est
-                    le point vert de la figure : B1 contient
-                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> et B3
-                    <code>=B2^2+GEO("C")</code>, recopiée jusqu’à B5000. Une
+                    la colonne C calcule l’orbite de 0 pour z ↦ z² + C, où C est
+                    le point vert de la figure : C3 contient
+                    <code>[0; 0]</code>, C4 <code>=GEO("C")</code> et C5
+                    <code>=C4^2+GEO("C")</code>, recopiée jusqu’à C5002. Une
                     liste de deux nombres se calcule comme un point de la
                     figure, c’est-à-dire comme un complexe ;
                 </li>
                 <li>
-                    la colonne C ne garde que les termes dont le rang, en
-                    colonne A, est compris entre les curseurs L<sub>n</sub> et
+                    la colonne D ne garde que les termes dont le rang, en
+                    colonne B, est compris entre les curseurs L<sub>n</sub> et
                     U<sub>n</sub>, lus par <code>GEO("L_n")</code> et
                     <code>GEO("U_n")</code> ;
                 </li>
                 <li>
-                    la figure relit ces termes par <code>c = !C1:C5000</code> et
+                    la figure relit ces termes par <code>c = !D3:D5001</code> et
                     les dessine, reliés par des segments, avec
                     <code>d = Liste(c)</code>.
                 </li>

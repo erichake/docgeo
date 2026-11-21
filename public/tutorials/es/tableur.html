@@ -30,22 +30,22 @@
             <p>En el ejemplo de arriba, el conjunto de Mandelbrot:</p>
             <ul>
                 <li>
-                    la columna B calcula la órbita de 0 por z ↦ z² + C, siendo C
-                    el punto verde de la figura: B1 contiene
-                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> y B3
-                    <code>=B2^2+GEO("C")</code>, copiada hacia abajo hasta
-                    B5000. Una lista de dos números se calcula como un punto de
+                    la columna C calcula la órbita de 0 por z ↦ z² + C, siendo C
+                    el punto verde de la figura: C3 contiene
+                    <code>[0; 0]</code>, C4 <code>=GEO("C")</code> y C5
+                    <code>=C4^2+GEO("C")</code>, copiada hacia abajo hasta
+                    C5002. Una lista de dos números se calcula como un punto de
                     la figura, es decir, como un número complejo;
                 </li>
                 <li>
-                    la columna C solo conserva los términos cuyo rango, en la
-                    columna A, está entre los deslizadores L<sub>n</sub> y
+                    la columna D solo conserva los términos cuyo rango, en la
+                    columna B, está entre los deslizadores L<sub>n</sub> y
                     U<sub>n</sub>, leídos por <code>GEO("L_n")</code> y
                     <code>GEO("U_n")</code>;
                 </li>
                 <li>
                     la figura vuelve a leer estos términos con
-                    <code>c = !C1:C5000</code> y los dibuja, unidos por
+                    <code>c = !D3:D5001</code> y los dibuja, unidos por
                     segmentos, con <code>d = Lista(c)</code>.
                 </li>
             </ul>

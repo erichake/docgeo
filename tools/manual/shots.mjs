@@ -92,10 +92,10 @@ async function embedding({ page, type, t }, open) {
 }
 
 // mandelbrot.dgo, dropped on the window: a point c of the Mandelbrot set
-// and, beside it, a spreadsheet view whose column B computes the orbit of 0
-// under z ↦ z² + c (=B2^2+GEO("C"), points written as lists), column C
+// and, beside it, a spreadsheet view whose column C computes the orbit of 0
+// under z ↦ z² + c (=C4^2+GEO("C"), points written as lists), column D
 // keeps the terms between two sliders, and the figure draws the polygonal
-// line of those terms read back (!C1:C5000). The sheet view is made the
+// line of those terms read back (!D3:D5001). The sheet view is made the
 // active one by a press in a cell, DocCells' bars in place of the editor's.
 const MANDELBROT = readFileSync(
     fileURLToPath(new URL("mandelbrot.dgo", import.meta.url)),
@@ -130,7 +130,7 @@ async function spreadsheet({ page, button }) {
     });
     await page.waitForTimeout(2500);
     const box = await page.locator(".docgeo-sheet iframe").boundingBox();
-    await page.mouse.click(box.x + 300, box.y + 172);
+    await page.mouse.click(box.x + 200, box.y + 265);
 }
 
 export const SHOTS = [

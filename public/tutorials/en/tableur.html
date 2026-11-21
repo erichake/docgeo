@@ -29,20 +29,20 @@
             <p>In the example above, the Mandelbrot set:</p>
             <ul>
                 <li>
-                    column B computes the orbit of 0 under z ↦ z² + C, C being
-                    the figure’s green point: B1 holds <code>[0; 0]</code>, B2
-                    <code>=GEO("C")</code> and B3 <code>=B2^2+GEO("C")</code>,
-                    filled down to B5000. A list of two numbers is computed like
+                    column C computes the orbit of 0 under z ↦ z² + C, C being
+                    the figure’s green point: C3 holds <code>[0; 0]</code>, C4
+                    <code>=GEO("C")</code> and C5 <code>=C4^2+GEO("C")</code>,
+                    filled down to C5002. A list of two numbers is computed like
                     a point of the figure, that is, like a complex number;
                 </li>
                 <li>
-                    column C keeps only the terms whose rank, in column A, lies
+                    column D keeps only the terms whose rank, in column B, lies
                     between the sliders L<sub>n</sub> and U<sub>n</sub>, read by
                     <code>GEO("L_n")</code> and <code>GEO("U_n")</code>;
                 </li>
                 <li>
                     the figure reads these terms back with
-                    <code>c = !C1:C5000</code> and draws them, joined by
+                    <code>c = !D3:D5001</code> and draws them, joined by
                     segments, with <code>d = List(c)</code>.
                 </li>
             </ul>

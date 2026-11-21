@@ -30,22 +30,22 @@
             <p>Nell’esempio qui sopra, l’insieme di Mandelbrot:</p>
             <ul>
                 <li>
-                    la colonna B calcola l’orbita di 0 per z ↦ z² + C, dove C è
-                    il punto verde della figura: B1 contiene
-                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> e B3
-                    <code>=B2^2+GEO("C")</code>, copiata in basso fino a B5000.
+                    la colonna C calcola l’orbita di 0 per z ↦ z² + C, dove C è
+                    il punto verde della figura: C3 contiene
+                    <code>[0; 0]</code>, C4 <code>=GEO("C")</code> e C5
+                    <code>=C4^2+GEO("C")</code>, copiata in basso fino a C5002.
                     Una lista di due numeri si calcola come un punto della
                     figura, cioè come un numero complesso;
                 </li>
                 <li>
-                    la colonna C tiene solo i termini il cui indice, nella
-                    colonna A, è compreso tra gli slider L<sub>n</sub> e
+                    la colonna D tiene solo i termini il cui indice, nella
+                    colonna B, è compreso tra gli slider L<sub>n</sub> e
                     U<sub>n</sub>, letti da <code>GEO("L_n")</code> e
                     <code>GEO("U_n")</code>;
                 </li>
                 <li>
                     la figura rilegge questi termini con
-                    <code>c = !C1:C5000</code> e li disegna, uniti da segmenti,
+                    <code>c = !D3:D5001</code> e li disegna, uniti da segmenti,
                     con <code>d = Lista(c)</code>.
                 </li>
             </ul>

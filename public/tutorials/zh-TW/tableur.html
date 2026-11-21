@@ -28,13 +28,13 @@
             <p>在上面的例子中，即曼德博集合：</p>
             <ul>
                 <li>
-                    B 欄計算 0 在 z ↦ z² + C 下的軌道，C 是圖形中的綠色點：B1 為<code>[0; 0]</code>，B2 為<code>=GEO("C")</code>，B3 為<code>=B2^2+GEO("C")</code>，向下填滿到 B5000。由兩個數組成的列表像圖形中的點一樣計算，也就是像複數一樣計算；
+                    C 欄計算 0 在 z ↦ z² + C 下的軌道，C 是圖形中的綠色點：C3 為<code>[0; 0]</code>，C4 為<code>=GEO("C")</code>，C5 為<code>=C4^2+GEO("C")</code>，向下填滿到 C5002。由兩個數組成的列表像圖形中的點一樣計算，也就是像複數一樣計算；
                 </li>
                 <li>
-                    C 欄只保留在 A 欄中序號介於滑桿 L<sub>n</sub> 與 U<sub>n</sub> 之間的項，滑桿透過<code>GEO("L_n")</code>和<code>GEO("U_n")</code>讀取；
+                    D 欄只保留在 B 欄中序號介於滑桿 L<sub>n</sub> 與 U<sub>n</sub> 之間的項，滑桿透過<code>GEO("L_n")</code>和<code>GEO("U_n")</code>讀取；
                 </li>
                 <li>
-                    圖形透過<code>c = !C1:C5000</code>讀回這些項，並用<code>d = 列表(c)</code>把它們畫出來，以線段相連。
+                    圖形透過<code>c = !D3:D5001</code>讀回這些項，並用<code>d = 列表(c)</code>把它們畫出來，以線段相連。
                 </li>
             </ul>
             <p>

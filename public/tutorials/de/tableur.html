@@ -30,21 +30,21 @@
             <p>Im Beispiel oben, der Mandelbrot-Menge:</p>
             <ul>
                 <li>
-                    Spalte B berechnet den Orbit von 0 unter z ↦ z² + C, wobei C
-                    der grüne Punkt der Figur ist: B1 enthält
-                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> und B3
-                    <code>=B2^2+GEO("C")</code>, nach unten ausgefüllt bis
-                    B5000. Eine Liste aus zwei Zahlen wird wie ein Punkt der
+                    Spalte C berechnet den Orbit von 0 unter z ↦ z² + C, wobei C
+                    der grüne Punkt der Figur ist: C3 enthält
+                    <code>[0; 0]</code>, C4 <code>=GEO("C")</code> und C5
+                    <code>=C4^2+GEO("C")</code>, nach unten ausgefüllt bis
+                    C5002. Eine Liste aus zwei Zahlen wird wie ein Punkt der
                     Figur berechnet, also wie eine komplexe Zahl;
                 </li>
                 <li>
-                    Spalte C behält nur die Glieder, deren Index in Spalte A
+                    Spalte D behält nur die Glieder, deren Index in Spalte B
                     zwischen den Schiebereglern L<sub>n</sub> und U<sub>n</sub>
                     liegt, gelesen mit <code>GEO("L_n")</code> und
                     <code>GEO("U_n")</code>;
                 </li>
                 <li>
-                    Die Figur liest diese Glieder mit <code>c = !C1:C5000</code>
+                    Die Figur liest diese Glieder mit <code>c = !D3:D5001</code>
                     zurück und zeichnet sie, durch Strecken verbunden, mit
                     <code>d = Liste(c)</code>.
                 </li>

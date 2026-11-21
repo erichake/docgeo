@@ -29,22 +29,22 @@
             <p>In het voorbeeld hierboven, de Mandelbrotverzameling:</p>
             <ul>
                 <li>
-                    kolom B berekent de baan van 0 onder z ↦ z² + C, waarbij C
-                    het groene punt van de figuur is: B1 bevat
-                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> en B3
-                    <code>=B2^2+GEO("C")</code>, naar beneden doorgevoerd tot
-                    B5000. Een lijst van twee getallen wordt berekend als een
+                    kolom C berekent de baan van 0 onder z ↦ z² + C, waarbij C
+                    het groene punt van de figuur is: C3 bevat
+                    <code>[0; 0]</code>, C4 <code>=GEO("C")</code> en C5
+                    <code>=C4^2+GEO("C")</code>, naar beneden doorgevoerd tot
+                    C5002. Een lijst van twee getallen wordt berekend als een
                     punt van de figuur, dus als een complex getal;
                 </li>
                 <li>
-                    kolom C houdt alleen de termen over waarvan de rang, in
-                    kolom A, tussen de schuifregelaars L<sub>n</sub> en
+                    kolom D houdt alleen de termen over waarvan de rang, in
+                    kolom B, tussen de schuifregelaars L<sub>n</sub> en
                     U<sub>n</sub> ligt, gelezen met <code>GEO("L_n")</code> en
                     <code>GEO("U_n")</code>;
                 </li>
                 <li>
                     de figuur leest deze termen terug met
-                    <code>c = !C1:C5000</code> en tekent ze, verbonden door
+                    <code>c = !D3:D5001</code> en tekent ze, verbonden door
                     lijnstukken, met <code>d = Lijst(c)</code>.
                 </li>
             </ul>
