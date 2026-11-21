@@ -21,26 +21,41 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="A triangle and, on the right, a sheet whose cells read its sides; the spreadsheet’s menus and buttons in DocGeo’s bars"
+                    alt="The Mandelbrot set, a point C and the orbit of 0 under z ↦ z² + C; on the right, the sheet that computes this orbit; the spreadsheet’s menus and buttons in DocGeo’s bars"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>In the example above:</p>
+            <p>In the example above, the Mandelbrot set:</p>
             <ul>
                 <li>
-                    cells B1 to B3 read the lengths of the triangle’s sides a, b
-                    and c: <code>=GEO("a")</code>…;
+                    column B computes the orbit of 0 under z ↦ z² + C, C being
+                    the figure’s green point: B1 holds <code>[0; 0]</code>, B2
+                    <code>=GEO("C")</code> and B3 <code>=B2^2+GEO("C")</code>,
+                    filled down to B5000. A list of two numbers is computed like
+                    a point of the figure, that is, like a complex number;
                 </li>
-                <li>B4 adds them up: <code>=B1+B2+B3</code>;</li>
                 <li>
-                    the figure reads this sum back with the line
-                    <code>s = !B4</code>.
+                    column C keeps only the terms whose rank, in column A, lies
+                    between the sliders L<sub>n</sub> and U<sub>n</sub>, read by
+                    <code>GEO("L_n")</code> and <code>GEO("U_n")</code>;
+                </li>
+                <li>
+                    the figure reads these terms back with
+                    <code>c = !C1:C5000</code> and draws them, joined by
+                    segments, with <code>d = List(c)</code>.
                 </li>
             </ul>
             <p>
-                When A, B or C is dragged, the cells and <code>s</code> follow
-                during the move.
+                When C is dragged, the 5000 terms are recomputed and the line
+                follows during the move: it stays bounded while C is inside the
+                set, and escapes when C is taken out of it.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Open this figure in DocGeo</a
+                >
             </p>
 
             <h2 id="ajouter">Adding a spreadsheet</h2>

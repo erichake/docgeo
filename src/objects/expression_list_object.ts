@@ -129,12 +129,10 @@ export class expression_list_object extends list_object {
         let color = 54;
         let gradientStart = 0;
         if (Array.isArray(value))
-            for (const item of value) {
-                // As DGPad, a malformed item empties the whole list.
-                if (!Array.isArray(item) || item.length < 2) {
-                    items.length = styles.length = 0;
-                    break;
-                }
+            for (let item of value) {
+                // Unlike DGPad, which empties the whole list, a malformed item
+                // (an empty cell, an error) breaks the line, as a NaN point.
+                if (!Array.isArray(item) || item.length < 2) item = [NaN, NaN];
                 if (item.length > 3) {
                     const last = styles[styles.length - 1];
                     const [code, a, b, n] = item as number[];
@@ -219,6 +217,7 @@ export class expression_list_object extends list_object {
         this.points = (Array.isArray(value) ? value : []).filter(
             (item) =>
                 Array.isArray(item) &&
+                item.length > 1 &&
                 item.length < 4 &&
                 !(Number.isNaN(item[0]) && Number.isNaN(item[1])),
         );

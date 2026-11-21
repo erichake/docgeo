@@ -21,26 +21,44 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="Een driehoek en rechts een blad waarvan de cellen de zijden lezen; de menu’s en knoppen van het rekenblad in de balken van DocGeo"
+                    alt="De Mandelbrotverzameling, een punt C en de baan van 0 onder z ↦ z² + C; rechts het blad dat deze baan berekent; de menu’s en knoppen van de spreadsheet in de balken van DocGeo"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>In het voorbeeld hierboven:</p>
+            <p>In het voorbeeld hierboven, de Mandelbrotverzameling:</p>
             <ul>
                 <li>
-                    de cellen B1 tot B3 lezen de lengtes van de zijden a, b en c
-                    van de driehoek: <code>=GEO("a")</code>…;
+                    kolom B berekent de baan van 0 onder z ↦ z² + C, waarbij C
+                    het groene punt van de figuur is: B1 bevat
+                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> en B3
+                    <code>=B2^2+GEO("C")</code>, naar beneden doorgevoerd tot
+                    B5000. Een lijst van twee getallen wordt berekend als een
+                    punt van de figuur, dus als een complex getal;
                 </li>
-                <li>B4 telt ze op: <code>=B1+B2+B3</code>;</li>
                 <li>
-                    de figuur leest die som terug met de regel
-                    <code>s = !B4</code>.
+                    kolom C houdt alleen de termen over waarvan de rang, in
+                    kolom A, tussen de schuifregelaars L<sub>n</sub> en
+                    U<sub>n</sub> ligt, gelezen met <code>GEO("L_n")</code> en
+                    <code>GEO("U_n")</code>;
+                </li>
+                <li>
+                    de figuur leest deze termen terug met
+                    <code>c = !C1:C5000</code> en tekent ze, verbonden door
+                    lijnstukken, met <code>d = Lijst(c)</code>.
                 </li>
             </ul>
             <p>
-                Als men A, B of C versleept, volgen de cellen en
-                <code>s</code> tijdens de beweging.
+                Wanneer C wordt versleept, worden de 5000 termen herberekend en
+                volgt de lijn tijdens de beweging: ze blijft begrensd zolang C
+                in de verzameling ligt, en ontsnapt wanneer C eruit wordt
+                gehaald.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Deze figuur openen in DocGeo</a
+                >
             </p>
 
             <h2 id="ajouter">Een rekenblad toevoegen</h2>

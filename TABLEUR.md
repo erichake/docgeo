@@ -575,8 +575,8 @@ qui est dit plus haut.
 - [x] **Étape 14 (DocGeo) — références sans nom de feuille** (décision
   11) : `!B3`, `Tableur2!B3`, `'Page 1'!!B3` ; onglets tableur nommés
   `Tableur2` (sans espace, 12 langues).
-- [ ] **Étape 15 (DocCells et DocGeo) — insertion à la souris** (décision
-  12, à faire). Comme dans Excel quand on écrit une formule : pendant une
+- [x] **Étape 15 (DocCells et DocGeo) — insertion à la souris** (décision
+  12). Comme dans Excel quand on écrit une formule : pendant une
   saisie dans la Construction (champ de saisie ou ligne en cours
   d'édition), cliquer une cellule de la vue tableur insère `!B3` au
   curseur, glisser sur une plage insère `!A1:A200`, qui se met à jour
@@ -630,9 +630,10 @@ qui est dit plus haut.
 
 État au 2026-11-21 : étapes 1 à 14 faites et commitées, manuel compris
 (listes et points de l'étape 13, références sans nom de feuille de
-l'étape 14, capture `tableur.webp` refaite). Reste l'étape 15
-(insertion à la souris), et les décisions de l'auteur sur les limites de
-la v1.
+l'étape 14, capture `tableur.webp` refaite). Étape 15 (insertion à la
+souris) faite, dans DocCells et DocGeo, non commitée ; son manuel reste à
+écrire (page tableur, « Les cellules lues par la figure »). Restent les
+décisions de l'auteur sur les limites de la v1.
 
 ## Comptes rendus des étapes
 
@@ -1448,6 +1449,73 @@ DocGeo).
   et démarrage (noms d'onglets) ; capture `tableur.webp` refaite
   (`s = !B4`). Séparateur des listes : `;` dans les langues à virgule
   décimale, `,` ailleurs.
+
+### Étape 15 : ce qui est fait
+
+- **DocCells** (`src/features/embed/cellPicker.js`, décrit dans son
+  `EMBED.md`, section 15, et dans les tableaux des sections 2, 5 et 6) :
+  - `setPicking(on)` (accès synchrone, requête `setPicking` `{ on }` du
+    protocole, `on` booléen) ouvre ou ferme le mode « désignation » ;
+    événement `pick` `{ ref, done }` à chaque nouvelle plage désignée,
+    `done: true` au relâchement ; `ref` canonique, avec le nom de la
+    feuille (`Feuille1!B2:C4`), cellule fusionnée comptée entière, cellule
+    la plus proche hors de la grille.
+  - Écouteurs posés une fois, en capture sur la fenêtre de l'iframe, avant
+    ceux de l'hôte (posés après `ready`) : un appui désignant sur
+    `.fortune-cell-area` n'atteint ni FortuneSheet ni l'hôte
+    (`stopImmediatePropagation`). Le `pointerdown` n'est **pas** annulé :
+    l'annuler supprime le `mousedown` sans empêcher l'iframe de prendre le
+    focus ; c'est le `mousedown`, annulé, qui le garde dans le champ de
+    l'hôte. `click`, `dblclick`, `contextmenu`, `touchstart` sont arrêtés
+    aussi : ni éditeur de cellule, ni menu contextuel.
+  - Cellule sous le pointeur comme `handleCellAreaMouseDown` de
+    FortuneSheet (`rowLocation`, `colLocation`, volets figés, fusions) ;
+    les volets figés, que FortuneSheet garde hors du contexte, sont lus par
+    `doccellsFreeze()`, ajouté à l'API du Workbook par
+    `scripts/patch-fortune-live-update.cjs` (nouvelle version de son API,
+    mise à niveau sur place).
+  - Cadre pointillé (`.dc-pick-frame`, bleu de la copie de FortuneSheet)
+    dans la grille, gardé après le relâchement jusqu'à la désignation
+    suivante ou la fermeture.
+  - Tests : `tests/embed.test.mjs` (`setPicking`, `pick` à tous les
+    clients) ; `tests/browser/embedMode.browser.mjs`, 6 vérifications à la
+    vraie souris (glissé B2 → C4 : `pick` à chaque plage puis `done`, cadre,
+    sélection et focus inchangés, double clic sans éditeur, mode fermé : la
+    grille sélectionne). Corrigé au passage : « hostDependencies, requête
+    invalide » échouait depuis l'étape 13 (`[1, 2]` y est devenu une valeur
+    d'hôte valide ; le test envoie `[1, "a"]`). Navigateur 50/50,
+    `chromePortal` 41/41, Node 97/97, ESLint propre.
+  - `npm run build:doctools` fait. Bundle principal 5 692 963 → 5 695 677
+    octets (+2,7 Ko).
+- **DocGeo** (`pickCells`, `src/editor/main.ts`, éditeur seul, lecteur et
+  moteur inchangés) :
+  - `setPicking(!!editing())` à chaque `focusin` / `focusout` : ouvert tant
+    qu'un champ de la Construction (ligne de saisie, ligne en cours
+    d'édition, définition) a le focus. Sans vue tableur montrée, l'iframe
+    est masquée : rien à désigner.
+  - `pick` : la référence prise après le dernier `!` (`!B3`,
+    `!A1:A200`) remplace au curseur la sélection du champ, puis, pendant
+    le même glissé, ce qu'il a inséré (`replaceText`, comme un objet
+    désigné) ; complétion mise à jour.
+  - La vue tableur ne devient pas active : l'appui désignant n'atteint pas
+    l'écouteur `pointerdown` de `src/sheet.ts`. Hors saisie, un appui sur
+    les cellules l'active comme avant.
+  - Test (`tests/browser/sheet.test.ts`, « cells picked while a line is
+    typed ») à la vraie souris (commande `mouse` de
+    `vitest.browser.config.ts`) : `s = 2 * !B2 + 1` à l'appui,
+    `!B2:C4` puis `!B2:B4` pendant le glissé, cadre montré, focus et
+    curseur dans le champ, barres de DocGeo gardées ; un second appui
+    insère `!A1` ; hors saisie, l'appui active la vue tableur. La palette
+    d'outils ouverte couvrait la grille dans la fenêtre de test : le test
+    la ferme. Suite complète : 286 unitaires, 1 590 navigateur.
+- **Poids** : moteur 376 182 octets et lecteur `main` 15 857 inchangés ;
+  éditeur 330 599 → 330 923 (+324).
+- **Manuel** (à écrire, page tableur, section « Les cellules lues par la
+  figure ») : pendant la saisie d'une ligne, cliquer une cellule insère
+  `!B3` au curseur, glisser insère une plage `!A1:A20` ; la vue tableur
+  reste inactive et le focus dans la ligne ; un cadre pointillé montre la
+  plage. Hors saisie, un clic dans les cellules les sélectionne comme
+  avant.
 
 ## Remarques pour la suite
 

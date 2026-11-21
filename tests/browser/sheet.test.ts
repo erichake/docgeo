@@ -499,6 +499,79 @@ describe("DocCells' bars in the editor's", () => {
     });
 });
 
+describe("cells picked while a line is typed", () => {
+    it("give their reference at the caret, as the mouse drags over them", async () => {
+        const popup = window.open(
+            `/editor.html?lang=fr&url=${location.origin}/tests/dgo/tableur.dgo`,
+            "_blank",
+            "width=1200,height=700",
+        ) as typeof window;
+        cleanup.push(() => popup.close());
+        const page = await until(
+            () =>
+                popup.document?.querySelector(".docgeo-sheet.on") &&
+                popup.document,
+        );
+        await cell(page, "Feuille1!A1", 3);
+        // Not to cover the cells.
+        const palette = page.querySelector("#dge-palette")!;
+        if (palette.getClientRects().length)
+            page.querySelector<HTMLElement>(".dge-bar .dge-palette-button")!.click();
+        const iframe = page.querySelector(".docgeo-sheet > iframe")!;
+        const frame = (iframe as HTMLIFrameElement)
+            .contentWindow! as typeof window;
+        const area = frame.document
+            .querySelector(".fortune-cell-area")!
+            .getBoundingClientRect();
+        const { left, top } = iframe.getBoundingClientRect();
+        // Columns of 100 px, rows of 20 px.
+        const at = (r: number, c: number): [number, number] => [
+            left + area.left + c * 100 + 50,
+            top + area.top + r * 20 + 10,
+        ];
+        const on = () => page.body.classList.contains("dge-sheet-on");
+        const field = page.querySelector<HTMLInputElement>(
+            ".dge-entry .dge-input",
+        )!;
+        field.focus();
+        field.value = "s = 2 *  + 1";
+        field.setSelectionRange(8, 8);
+        await commands.mouse("move", ...at(1, 1));
+        await commands.mouse("down");
+        await until(() => field.value === "s = 2 * !B2 + 1");
+        await commands.mouse("move", ...at(3, 2));
+        await until(() => field.value === "s = 2 * !B2:C4 + 1");
+        expect(
+            frame.document.querySelector(".dc-pick-frame")!.getClientRects()
+                .length,
+        ).toBe(1);
+        await commands.mouse("move", ...at(3, 1));
+        await commands.mouse("up");
+        await until(() => field.value === "s = 2 * !B2:B4 + 1");
+        expect(page.activeElement).toBe(field);
+        expect(field.selectionStart).toBe(14);
+        expect(on()).toBe(false);
+        expect(
+            page.querySelector(".dge-bar")!.getClientRects().length,
+        ).toBe(1);
+        // Another press inserts another reference.
+        field.setRangeText(" + ", 14, 14, "end");
+        await commands.mouse("move", ...at(0, 0));
+        await commands.mouse("down");
+        await commands.mouse("up");
+        await until(() => field.value === "s = 2 * !B2:B4 + !A1 + 1");
+        expect(page.activeElement).toBe(field);
+        // Out of the line, pressed cells activate the sheet view.
+        field.blur();
+        await commands.mouse("move", ...at(4, 3));
+        await commands.mouse("down");
+        await commands.mouse("up");
+        await until(on);
+        expect(frame.document.querySelector(".dc-pick-frame")).toBe(null);
+        expect(field.value).toBe("s = 2 * !B2:B4 + !A1 + 1");
+    });
+});
+
 describe("cells read by the shown figure", () => {
     it("follows the cells typed in DocCells, a range as a list", async () => {
         const { page, request, typed } = await editor("/index.html?embed");
@@ -531,6 +604,11 @@ declare module "vitest/browser" {
     interface BrowserCommands {
         throttle: (rate: number) => Promise<void>;
         hover: (x: number, y: number) => Promise<void>;
+        mouse: (
+            action: "move" | "down" | "up",
+            x?: number,
+            y?: number,
+        ) => Promise<void>;
     }
 }
 

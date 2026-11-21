@@ -21,26 +21,42 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="Um triângulo e, à direita, uma folha cujas células leem seus lados; os menus e botões da planilha nas barras do DocGeo"
+                    alt="O conjunto de Mandelbrot, um ponto C e a órbita de 0 por z ↦ z² + C; à direita, a folha que calcula esta órbita; os menus e botões da folha de cálculo nas barras do DocGeo"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>No exemplo acima:</p>
+            <p>No exemplo acima, o conjunto de Mandelbrot:</p>
             <ul>
                 <li>
-                    as células B1 a B3 leem os comprimentos dos lados a, b e c
-                    do triângulo: <code>=GEO("a")</code>…;
+                    a coluna B calcula a órbita de 0 por z ↦ z² + C, sendo C o
+                    ponto verde da figura: B1 contém <code>[0; 0]</code>, B2
+                    <code>=GEO("C")</code> e B3 <code>=B2^2+GEO("C")</code>,
+                    copiada para baixo até B5000. Uma lista de dois números
+                    calcula-se como um ponto da figura, ou seja, como um número
+                    complexo;
                 </li>
-                <li>B4 faz a soma: <code>=B1+B2+B3</code>;</li>
                 <li>
-                    a figura lê essa soma de volta pela linha
-                    <code>s = !B4</code>.
+                    a coluna C só guarda os termos cuja ordem, na coluna A, está
+                    entre os seletores L<sub>n</sub> e U<sub>n</sub>, lidos por
+                    <code>GEO("L_n")</code> e <code>GEO("U_n")</code>;
+                </li>
+                <li>
+                    a figura relê estes termos com <code>c = !C1:C5000</code> e
+                    desenha-os, ligados por segmentos, com
+                    <code>d = Lista(c)</code>.
                 </li>
             </ul>
             <p>
-                Ao arrastar A, B ou C, as células e <code>s</code> acompanham
-                durante o movimento.
+                Ao arrastar C, os 5000 termos são recalculados e a linha
+                acompanha durante o movimento: fica limitada enquanto C está no
+                conjunto, e escapa quando se tira C dele.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Abrir esta figura no DocGeo</a
+                >
             </p>
 
             <h2 id="ajouter">Adicionar uma planilha</h2>

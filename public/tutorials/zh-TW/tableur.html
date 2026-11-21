@@ -20,22 +20,31 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="一個三角形，右側是一張儲存格讀取其邊長的工作表；試算表的選單和按鈕位於 DocGeo 的工具列中"
+                    alt="曼德博集合、一個點 C 以及 0 在 z ↦ z² + C 下的軌道；右側是計算這條軌道的工作表；試算表的選單和按鈕位於 DocGeo 的工具列中"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>在上面的例子中：</p>
+            <p>在上面的例子中，即曼德博集合：</p>
             <ul>
                 <li>
-                    儲存格 B1 到 B3 讀取三角形邊 a、b、c
-                    的長度：<code>=GEO("a")</code>……；
+                    B 欄計算 0 在 z ↦ z² + C 下的軌道，C 是圖形中的綠色點：B1 為<code>[0; 0]</code>，B2 為<code>=GEO("C")</code>，B3 為<code>=B2^2+GEO("C")</code>，向下填滿到 B5000。由兩個數組成的列表像圖形中的點一樣計算，也就是像複數一樣計算；
                 </li>
-                <li>B4 求它們的和：<code>=B1+B2+B3</code>；</li>
-                <li>圖形透過<code>s = !B4</code>這一行讀回這個和。</li>
+                <li>
+                    C 欄只保留在 A 欄中序號介於滑桿 L<sub>n</sub> 與 U<sub>n</sub> 之間的項，滑桿透過<code>GEO("L_n")</code>和<code>GEO("U_n")</code>讀取；
+                </li>
+                <li>
+                    圖形透過<code>c = !C1:C5000</code>讀回這些項，並用<code>d = 列表(c)</code>把它們畫出來，以線段相連。
+                </li>
             </ul>
             <p>
-                拖曳 A、B 或 C 時，儲存格和<code>s</code>在移動過程中隨之變化。
+                拖動 C 時，5000 個項會重新計算，折線在移動過程中隨之變化：只要 C 在集合內，它就保持有界；把 C 移出集合，它就會逃逸。
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >在 DocGeo 中開啟這個圖形</a
+                >
             </p>
 
             <h2 id="ajouter">新增試算表</h2>

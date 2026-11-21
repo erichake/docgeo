@@ -22,26 +22,44 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="Ein Dreieck und rechts ein Blatt, dessen Zellen seine Seiten lesen; Menüs und Schaltflächen der Tabellenkalkulation in den Leisten von DocGeo"
+                    alt="Die Mandelbrot-Menge, ein Punkt C und der Orbit von 0 unter z ↦ z² + C; rechts das Blatt, das diesen Orbit berechnet; Menüs und Schaltflächen der Tabellenkalkulation in den Leisten von DocGeo"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>Im Beispiel oben:</p>
+            <p>Im Beispiel oben, der Mandelbrot-Menge:</p>
             <ul>
                 <li>
-                    Die Zellen B1 bis B3 lesen die Längen der Dreiecksseiten a,
-                    b und c: <code>=GEO("a")</code>…;
+                    Spalte B berechnet den Orbit von 0 unter z ↦ z² + C, wobei C
+                    der grüne Punkt der Figur ist: B1 enthält
+                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> und B3
+                    <code>=B2^2+GEO("C")</code>, nach unten ausgefüllt bis
+                    B5000. Eine Liste aus zwei Zahlen wird wie ein Punkt der
+                    Figur berechnet, also wie eine komplexe Zahl;
                 </li>
-                <li>B4 bildet ihre Summe: <code>=B1+B2+B3</code>;</li>
                 <li>
-                    Die Figur liest diese Summe mit der Zeile
-                    <code>s = !B4</code> zurück.
+                    Spalte C behält nur die Glieder, deren Index in Spalte A
+                    zwischen den Schiebereglern L<sub>n</sub> und U<sub>n</sub>
+                    liegt, gelesen mit <code>GEO("L_n")</code> und
+                    <code>GEO("U_n")</code>;
+                </li>
+                <li>
+                    Die Figur liest diese Glieder mit <code>c = !C1:C5000</code>
+                    zurück und zeichnet sie, durch Strecken verbunden, mit
+                    <code>d = Liste(c)</code>.
                 </li>
             </ul>
             <p>
-                Zieht man A, B oder C, folgen die Zellen und
-                <code>s</code> während der Bewegung.
+                Zieht man C, werden die 5000 Glieder neu berechnet und die Linie
+                folgt während der Bewegung: Sie bleibt beschränkt, solange C in
+                der Menge liegt, und entweicht, sobald man C aus ihr
+                herauszieht.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Diese Figur in DocGeo öffnen</a
+                >
             </p>
 
             <h2 id="ajouter">Eine Tabellenkalkulation hinzufügen</h2>

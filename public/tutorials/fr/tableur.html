@@ -22,26 +22,43 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="Un triangle et, à droite, une feuille dont les cellules lisent ses côtés ; les menus et les boutons du tableur dans les barres de DocGeo"
+                    alt="L’ensemble de Mandelbrot, un point C et l’orbite de 0 pour z ↦ z² + C ; à droite, la feuille qui calcule cette orbite ; les menus et les boutons du tableur dans les barres de DocGeo"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>Dans l’exemple ci-dessus :</p>
+            <p>Dans l’exemple ci-dessus, l’ensemble de Mandelbrot :</p>
             <ul>
                 <li>
-                    les cellules B1 à B3 lisent les longueurs des côtés a, b et
-                    c du triangle : <code>=GEO("a")</code>… ;
+                    la colonne B calcule l’orbite de 0 pour z ↦ z² + C, où C est
+                    le point vert de la figure : B1 contient
+                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> et B3
+                    <code>=B2^2+GEO("C")</code>, recopiée jusqu’à B5000. Une
+                    liste de deux nombres se calcule comme un point de la
+                    figure, c’est-à-dire comme un complexe ;
                 </li>
-                <li>B4 en fait la somme : <code>=B1+B2+B3</code> ;</li>
                 <li>
-                    la figure relit cette somme par la ligne
-                    <code>s = !B4</code>.
+                    la colonne C ne garde que les termes dont le rang, en
+                    colonne A, est compris entre les curseurs L<sub>n</sub> et
+                    U<sub>n</sub>, lus par <code>GEO("L_n")</code> et
+                    <code>GEO("U_n")</code> ;
+                </li>
+                <li>
+                    la figure relit ces termes par <code>c = !C1:C5000</code> et
+                    les dessine, reliés par des segments, avec
+                    <code>d = Liste(c)</code>.
                 </li>
             </ul>
             <p>
-                Quand on déplace A, B ou C, les cellules et <code>s</code>
-                suivent pendant le mouvement.
+                Quand on déplace C, les 5000 termes sont recalculés et la ligne
+                suit pendant le mouvement : elle reste bornée tant que C est
+                dans l’ensemble, et s’échappe quand on l’en fait sortir.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Ouvrir cette figure dans DocGeo</a
+                >
             </p>
 
             <h2 id="ajouter">Ajouter un tableur</h2>

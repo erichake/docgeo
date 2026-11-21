@@ -321,7 +321,10 @@ const studio = {
         showHint(message("circular_reference", ref), true);
         keepSheet(() => restoreSheet(scene(), wb!));
     },
-    sheetReady: (cells) => mountSheetBars(cells),
+    sheetReady: (cells) => {
+        mountSheetBars(cells);
+        pickCells(cells);
+    },
     sheetActivated: () => showActiveView(),
 } as Studio;
 
@@ -4011,13 +4014,15 @@ function showActions(): void {
     actions.att("aria-label", label).show("flex");
 }
 
-// An expression whose value is a list of points (among the turtle's
-// drawing instructions).
+// An expression whose value is a list with points (among the turtle's
+// drawing instructions, or the malformed items that break the line).
 const pointList = (object: construction_object) =>
     object instanceof expression_object &&
     Array.isArray(object.value) &&
-    object.value.some((item) => Array.isArray(item) && item.length <= 3) &&
-    object.value.every((item) => Array.isArray(item) && item.length >= 2);
+    object.value.some(
+        (item) =>
+            Array.isArray(item) && item.length >= 2 && item.length <= 3,
+    );
 
 const pointValue = (object: construction_object) =>
     object instanceof expression_object &&
@@ -7829,6 +7834,32 @@ function showSheetBars(): void {
         "dge-sheet-on",
         sheetBars && !!c.views[c.active].sheet,
     );
+}
+
+// While a line of the Construction panel is typed, cells pressed or dragged
+// over in the sheet view give their reference at the caret, the field
+// keeping the focus, the sheet view staying inactive (see TABLEUR.md): the
+// one a drag inserted is replaced as it goes.
+function pickCells(cells: DocCells): void {
+    let picked: { start: number; end: number } | null = null;
+    const follow = () => cells.setPicking(!!editing());
+    for (const type of ["focusin", "focusout"] as const)
+        $("body").on(type, follow, false);
+    follow();
+    cells.on("pick", (event) => {
+        const { ref, done } = event as unknown as {
+            ref: string;
+            done: boolean;
+        };
+        const field = editing();
+        if (!field) return;
+        const text = ref.slice(ref.lastIndexOf("!"));
+        picked ??= { start: field.selectionStart!, end: field.selectionEnd! };
+        replaceText(field, picked.start, picked.end, text);
+        picked.end = picked.start + text.length;
+        updateCompletion(field);
+        if (done) picked = null;
+    });
 }
 
 // Pressed or typed in, the Construction panel leaves the sheet view for the

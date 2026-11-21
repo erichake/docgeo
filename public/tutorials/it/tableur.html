@@ -22,26 +22,43 @@
             <figure>
                 <img
                     src="img/tableur.webp"
-                    alt="Un triangolo e, a destra, un foglio le cui celle leggono i suoi lati; i menu e i pulsanti del foglio di calcolo nelle barre di DocGeo"
+                    alt="L’insieme di Mandelbrot, un punto C e l’orbita di 0 per z ↦ z² + C; a destra, il foglio che calcola questa orbita; i menu e i pulsanti del foglio di calcolo nelle barre di DocGeo"
                     width="1200"
                     height="720"
                 />
             </figure>
-            <p>Nell’esempio qui sopra:</p>
+            <p>Nell’esempio qui sopra, l’insieme di Mandelbrot:</p>
             <ul>
                 <li>
-                    le celle da B1 a B3 leggono le lunghezze dei lati a, b e c
-                    del triangolo: <code>=GEO("a")</code>…;
+                    la colonna B calcola l’orbita di 0 per z ↦ z² + C, dove C è
+                    il punto verde della figura: B1 contiene
+                    <code>[0; 0]</code>, B2 <code>=GEO("C")</code> e B3
+                    <code>=B2^2+GEO("C")</code>, copiata in basso fino a B5000.
+                    Una lista di due numeri si calcola come un punto della
+                    figura, cioè come un numero complesso;
                 </li>
-                <li>B4 ne fa la somma: <code>=B1+B2+B3</code>;</li>
                 <li>
-                    la figura rilegge questa somma con la riga
-                    <code>s = !B4</code>.
+                    la colonna C tiene solo i termini il cui indice, nella
+                    colonna A, è compreso tra gli slider L<sub>n</sub> e
+                    U<sub>n</sub>, letti da <code>GEO("L_n")</code> e
+                    <code>GEO("U_n")</code>;
+                </li>
+                <li>
+                    la figura rilegge questi termini con
+                    <code>c = !C1:C5000</code> e li disegna, uniti da segmenti,
+                    con <code>d = Lista(c)</code>.
                 </li>
             </ul>
             <p>
-                Trascinando A, B o C, le celle e <code>s</code> seguono durante
-                il movimento.
+                Quando si trascina C, i 5000 termini vengono ricalcolati e la
+                linea segue durante il movimento: resta limitata finché C è
+                nell’insieme, e sfugge quando lo si porta fuori.
+            </p>
+            <p>
+                <a
+                    href="https://doctools.org/apps/docgeo/editor.html?url=https://files.dgpad.net/tests/dgo/mandel5000.dgo"
+                    >Aprire questa figura in DocGeo</a
+                >
             </p>
 
             <h2 id="ajouter">Aggiungere un foglio di calcolo</h2>

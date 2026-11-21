@@ -1777,6 +1777,25 @@ STL(E4,"p:-1");`,
         expect(accepts(1, "expression")).toBe(false);
     });
 
+    it("breaks a list's line at its malformed items", () => {
+        const { scene: c } = studio();
+        type(c, "p = [[0, 0], 5, [1, 0], [2]]");
+        type(c, "L = List(p)");
+        c.flush();
+        const list = c.getObj("L") as expression_list_object;
+        expect(list.defined).toBe(true);
+        expect(list.items.map(([p]) => p)).toEqual([
+            [0, 0],
+            [NaN, NaN],
+            [1, 0],
+            [NaN, NaN],
+        ]);
+        expect(list.points).toEqual([
+            [0, 0],
+            [1, 0],
+        ]);
+    });
+
     it("reads a turtle by its name, whatever its list's", async () => {
         const { scene: c } = studio();
         const program = (name: string, source: string) =>
