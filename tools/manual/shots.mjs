@@ -88,6 +88,54 @@ async function embedding({ page, type, t }, open) {
     await page.waitForTimeout(1200);
 }
 
+// A triangle and, beside it, a spreadsheet view whose cells read its sides,
+// their sum read back by the figure; then the sheet view made the active
+// one by a press in a cell, DocCells' bars in place of the editor's.
+async function spreadsheet({ page, type, t }) {
+    await type(TRIANGLE.slice(0, 4));
+    await page.click(
+        `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+    );
+    await page.click(`.dge-menu-sub:has-text("${await t("view_section")}")`);
+    await page.click(
+        `.dge-menu-popup button:has-text("${await t("new_sheet_view")}")`,
+    );
+    await page.waitForFunction(
+        () =>
+            document.querySelector(".docgeo-sheet iframe")?.contentWindow
+                ?.docCells,
+    );
+    const sheet = await t("sheet_name");
+    await page.evaluate(async (sheet) => {
+        const cells = document.querySelector(".docgeo-sheet iframe")
+            .contentWindow.docCells;
+        await cells.whenReady();
+        // After the editor's own load of the new view's workbook.
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        cells.setCellValues(
+            [
+                ["A1", "BC"],
+                ["B1", '=GEO("a")'],
+                ["A2", "AC"],
+                ["B2", '=GEO("b")'],
+                ["A3", "AB"],
+                ["B3", '=GEO("c")'],
+                ["A4", "a + b + c"],
+                ["B4", "=B1+B2+B3"],
+            ].map(([ref, v]) => ({ ref: `${sheet}!${ref}`, v })),
+        );
+    }, sheet);
+    await type([
+        "a = Segment(B, C)",
+        "b = Segment(A, C)",
+        "c = Segment(A, B)",
+        `s = ${sheet}!B4`,
+    ]);
+    await page.waitForTimeout(800);
+    const box = await page.locator(".docgeo-sheet iframe").boundingBox();
+    await page.mouse.click(box.x + 195, box.y + 112);
+}
+
 export const SHOTS = [
     {
         file: "interface.webp",
@@ -335,6 +383,11 @@ export const SHOTS = [
                 "s = Section(py, pl)",
             ]);
         },
+    },
+    {
+        file: "tableur.webp",
+        page: "editor.html",
+        run: spreadsheet,
     },
     {
         file: "integrer-lien.webp",

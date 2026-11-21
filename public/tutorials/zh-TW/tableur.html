@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>試算表 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>試算表</h1>
+            <p class="lead">
+                DocGeo 的分頁可以包含一張 DocCells 工作表（DocTools
+                的試算表）：放在圖形旁邊，或單獨放在自己的分頁中。圖形與儲存格即時互相讀取。
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="一個三角形，右側是一張儲存格讀取其邊長的工作表；試算表的選單和按鈕位於 DocGeo 的工具列中"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>在上面的例子中：</p>
+            <ul>
+                <li>
+                    儲存格 B1 到 B3 讀取三角形邊 a、b、c
+                    的長度：<code>=GEO("a")</code>……；
+                </li>
+                <li>B4 求它們的和：<code>=B1+B2+B3</code>；</li>
+                <li>圖形透過<code>s = 工作表1!B4</code>這一行讀回這個和。</li>
+            </ul>
+            <p>
+                拖曳 A、B 或 C 時，儲存格和<code>s</code>在移動過程中隨之變化。
+            </p>
+
+            <h2 id="ajouter">新增試算表</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>方法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>在圖形旁邊</td>
+                            <td>
+                                <strong>檔案 › 檢視 › 新增試算表檢視</strong
+                                >：在右側多出一欄，含一張空白工作表；各欄寬度相同（<a
+                                    href="interface.html#vues"
+                                    >多個檢視</a
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>在獨立分頁中</td>
+                            <td>
+                                <strong>檔案 › 新增試算表分頁</strong
+                                >：一個只含一張工作表的分頁，名為「試算表
+                                1」「試算表 2」……（<a
+                                    href="demarrage.html#classeur"
+                                    >活頁簿</a
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>調整大小、移動</td>
+                            <td>
+                                拖曳欄之間的分隔線；試算表檢視處於作用中時，用<strong
+                                    >檔案 › 檢視 › 視圖左移</strong
+                                >或<strong>視圖右移</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>刪除</td>
+                            <td>
+                                <strong>檔案 › 檢視 › 刪除試算表檢視</strong
+                                >：檢視及其儲存格消失，圖形收回空間。試算表分頁的刪除方式與其他分頁相同。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    一個分頁最多有一個試算表檢視：已有一個時，<strong>新增試算表檢視</strong>會呈灰色。
+                </li>
+                <li>
+                    試算表檢視只顯示一張工作表，名為「工作表1」，沒有工作表標籤。要使用多張工作表，就建立多個試算表分頁，它們可以互相讀取（<a
+                        href="#autre-onglet"
+                        >見下文</a
+                    >）。
+                </li>
+                <li>新增或刪除試算表檢視可以復原，和其他檢視操作一樣。</li>
+            </ul>
+
+            <h2 id="barres">試算表的選單和按鈕</h2>
+            <p>
+                在儲存格中按一下或按鍵，試算表檢視即成為作用中的檢視。DocGeo
+                的工具列隨即讓位給試算表的工具列，高度不變：下方沒有任何移動。
+            </p>
+            <ul>
+                <li>
+                    選單列保留<strong>檔案</strong>，其後是<strong>DocGeo</strong>選單，然後是試算表的選單。
+                </li>
+                <li>
+                    試算表的按鈕列（數字格式、字型、粗體、色彩、框線、對齊……）取代
+                    DocGeo 的操作列。
+                </li>
+                <li>
+                    <strong>DocGeo</strong
+                    >選單提供仍然有用的功能：作圖歷程、工具面板、屬性和使用手冊。
+                </li>
+                <li>
+                    按一下圖形或「作圖」面板、在其中輸入一行，或切換分頁，即可回到
+                    DocGeo 的工具列。在試算表分頁中，試算表的工具列保持不變。
+                </li>
+                <li>
+                    試算表的對話方塊（條件式格式設定、數字格式……）在關閉之前會為整個
+                    DocGeo 視窗罩上遮罩。
+                </li>
+            </ul>
+            <p>
+                在試算表分頁中，「作圖」面板仍然可用（<strong
+                    >DocGeo › 作圖歷程</strong
+                >）：在其中輸入的物件會被計算但不繪製，該分頁的儲存格可以讀取它。
+            </p>
+            <p>
+                DocGeo 嵌入到其他頁面（例如
+                DocTools）時沒有選單列：試算表的工具列保留在其欄的頂端。
+            </p>
+
+            <h2 id="cellules">圖形讀取儲存格</h2>
+            <p>
+                圖形中的公式以工作表名稱、驚嘆號和儲存格位址來指定儲存格，與試算表中相同。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>寫法</th>
+                            <th>值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>工作表1!B3</code></td>
+                            <td>儲存格 B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>工作表1!B2:B21</code></td>
+                            <td>一列或一欄的範圍：值的清單</td>
+                        </tr>
+                        <tr>
+                            <td><code>工作表1!A1:C3</code></td>
+                            <td>矩形範圍：列的清單，每一列是一個清單</td>
+                        </tr>
+                        <tr>
+                            <td><code>'試算表 1'!工作表1!B3</code></td>
+                            <td>另一個分頁工作表中的儲存格 B3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (工作表1!B1, 工作表1!B2)
+r = 工作表1!B3
+L = 工作表1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    位址先寫字母再寫數字（<code>B3</code>、<code>AA12</code>），不加<code>$</code>。
+                </li>
+                <li>
+                    數字、文字或布林值按原樣讀取；日期讀作數字。空白或錯誤的儲存格（<code>#DIV/0!</code>……）給出未定義的值：讀取它的物件不繪製。
+                </li>
+                <li>
+                    儲存格一旦改變（無論是輸入還是試算表的計算），讀取它的物件就會重新計算並重繪。
+                </li>
+                <li>
+                    參照只是公式的一部分：它不建立任何物件。從儲存格讀取的點（如上面的
+                    A）是計算出來的：不能用滑鼠拖曳。要移動它，就修改儲存格。
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">另一個分頁的儲存格</h3>
+            <p>
+                先寫分頁名稱，若含空格或符號則加單引號，與<a
+                    href="formules.html#autres-pages"
+                    >讀取另一個分頁</a
+                >相同：<code>'試算表 1'!工作表1!B3</code
+                >。其儲存格按離開該分頁時的計算結果讀取。
+            </p>
+
+            <h2 id="geo">儲存格讀取圖形：GEO</h2>
+            <p>
+                在儲存格中，函數<code>GEO</code>讀取圖形中某個物件的值，物件名稱寫在引號中。
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'圖形 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    該值就是圖形中的公式透過物件名稱讀取到的值：線段的長度、運算式或滑桿的值、文字、核取方塊的狀態……操作圖形時，它隨之變化。
+                </li>
+                <li>
+                    點或清單無法讀取：請先建立一個運算式，例如<code
+                        >xA = x(A)</code
+                    >，再用<code>=GEO("xA")</code>。
+                </li>
+                <li>
+                    未知或未定義的物件，或既非數字、也非文字、也非布林值的物件，給出<code>#N/A</code>。名稱必須寫在公式中：<code>=GEO(A1)</code>給出<code>#VALUE!</code>。
+                </li>
+                <li>
+                    <code>GEO("'圖形 1'!c")</code>讀取另一個分頁中的物件
+                    c：試算表分頁就是這樣讀取圖形的。
+                </li>
+                <li>
+                    <code>GEO</code>在所有語言中名稱相同。它只存在於 DocGeo
+                    中：在單獨的 DocCells 中，它給出<code>#N/A</code>。
+                </li>
+            </ul>
+
+            <h2 id="circulaire">循環參照</h2>
+            <p>
+                被<code>GEO</code>讀取的物件不能依賴於依賴它的儲存格。如果<code>A1</code>包含<code>=GEO("m")+1</code>，用<code
+                    >m = 工作表1!A1</code
+                >這一行重新定義 m 會被拒絕：「循環參照：工作表1!A1」。
+            </p>
+            <p>
+                同樣，會與圖形形成循環的儲存格公式會以此訊息被取消，儲存格恢復先前的內容。若檔案中仍含有循環，閉合循環的那次讀取為未定義。
+            </p>
+
+            <h2 id="enregistrer">復原與儲存</h2>
+            <ul>
+                <li>
+                    儲存格有自己的復原：在儲存格中按<kbd>Ctrl</kbd>
+                    <kbd>Z</kbd>，或使用試算表的選單。DocGeo 的<i
+                        data-i="undo"
+                    ></i>
+                    <i data-i="redo"></i>按鈕不會復原試算表中的輸入。
+                </li>
+                <li>
+                    儲存格、公式及其格式與圖形一起儲存在同一個<code>.dgo</code>檔案中。在儲存格中按<kbd
+                        >Ctrl</kbd
+                    >
+                    <kbd>S</kbd>，或用<strong>檔案 › 儲存</strong
+                    >，即可全部儲存。
+                </li>
+            </ul>
+
+            <h2 id="eleves">給學生</h2>
+            <p>
+                DocGeo 的閱讀器與<a href="integration.html">嵌入網頁</a
+                >的圖形一樣，顯示工作表時不帶選單和按鈕，但保留公式列。
+            </p>
+            <ul>
+                <li>
+                    學生可以像在輸入欄位中一樣在儲存格中輸入：圖形隨之變化。
+                </li>
+                <li>重設按鈕會把儲存格還原為儲存時的樣子。</li>
+                <li>
+                    這些輸入不屬於嵌入該圖形的頁面所保存的學生答案：只有圖形中的物件才屬於。
+                </li>
+            </ul>
+            <p>
+                試算表是一個獨立的應用程式，只有當顯示的分頁含有試算表時才會載入。在自行架設
+                DocGeo 副本的網站上，<code>doccells</code>資料夾必須發布在
+                DocGeo 資料夾旁邊；否則試算表檢視顯示「⚠
+                DocCells」，圖形的其餘部分正常運作。
+            </p>
+        </main>
+    </body>
+</html>

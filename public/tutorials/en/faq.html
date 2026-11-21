@@ -100,6 +100,28 @@
                 OneDrive links from a school or work account are not supported,
                 nor are sites that refuse automated downloads.
             </p>
+            <h3>“⚠ DocCells” appears instead of the spreadsheet</h3>
+            <p>
+                The spreadsheet could not be loaded: on a site that hosts its
+                own copy of DocGeo, the <code>doccells</code> folder must be
+                published beside it (<a href="tableur.html#eleves"
+                    >the spreadsheet</a
+                >). The rest of the figure works.
+            </p>
+            <h3>Undo does not undo an entry in the spreadsheet</h3>
+            <p>
+                The cells have their own undo: <kbd>Ctrl</kbd> <kbd>Z</kbd> in
+                the cells, or the spreadsheet’s menus (<a
+                    href="tableur.html#enregistrer"
+                    >undoing and saving</a
+                >).
+            </p>
+            <h3><code>=GEO("A")</code> gives <code>#N/A</code></h3>
+            <p>
+                <code>GEO</code> only reads numbers, texts and booleans: for a
+                point, first create an expression such as
+                <code>xA = x(A)</code> (<a href="tableur.html#geo">GEO</a>).
+            </p>
             <h3>Incomplete import</h3>
             <p>
                 The listed elements are not supported (<a href="formats.html"

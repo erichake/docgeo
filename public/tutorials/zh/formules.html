@@ -110,6 +110,21 @@ area = 数据!p * 2</code></pre>
                 </li>
             </ul>
 
+            <h2 id="cellules">读取电子表格的单元格</h2>
+            <p>
+                在有<a href="tableur.html">电子表格视图</a
+                >的标签页中，公式通过工作表的名称读取其单元格：一个单元格、一个区域（列表），或另一个标签页的单元格。
+            </p>
+            <pre><code>r = 工作表1!B3
+L = 工作表1!B2:B21
+k = '电子表格 1'!工作表1!A1</code></pre>
+            <p>
+                空单元格或出错的单元格给出未定义的值。反过来，单元格用<code>=GEO("name")</code>读取图形中的对象（<a
+                    href="tableur.html#geo"
+                    >GEO</a
+                >）。
+            </p>
+
             <h2>运算符</h2>
             <div class="table">
                 <table>

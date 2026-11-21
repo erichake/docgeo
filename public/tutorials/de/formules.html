@@ -125,6 +125,24 @@ fläche = Daten!p * 2</code></pre>
                 </li>
             </ul>
 
+            <h2 id="cellules">Eine Zelle der Tabellenkalkulation lesen</h2>
+            <p>
+                In einem Tab mit
+                <a href="tableur.html">Tabellenansicht</a> liest eine Formel
+                dessen Zellen über den Namen des Blatts: eine Zelle, einen
+                Bereich (Liste) oder die Zelle eines anderen Tabs.
+            </p>
+            <pre><code>r = Tabelle1!B3
+L = Tabelle1!B2:B21
+k = 'Tabelle 1'!Tabelle1!A1</code></pre>
+            <p>
+                Eine leere Zelle oder eine Zelle mit Fehler ergibt einen
+                undefinierten Wert. Umgekehrt liest eine Zelle ein Objekt der
+                Figur mit <code>=GEO("Name")</code> (<a href="tableur.html#geo"
+                    >GEO</a
+                >).
+            </p>
+
             <h2>Operatoren</h2>
             <div class="table">
                 <table>

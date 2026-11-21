@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>A planilha — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>A planilha</h1>
+            <p class="lead">
+                Uma aba do DocGeo pode conter uma folha do DocCells, a planilha
+                do DocTools: ao lado da figura, ou sozinha em sua própria aba. A
+                figura e as células se leem mutuamente, ao vivo.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Um triângulo e, à direita, uma folha cujas células leem seus lados; os menus e botões da planilha nas barras do DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>No exemplo acima:</p>
+            <ul>
+                <li>
+                    as células B1 a B3 leem os comprimentos dos lados a, b e c
+                    do triângulo: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 faz a soma: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    a figura lê essa soma de volta pela linha
+                    <code>s = Planilha1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                Ao arrastar A, B ou C, as células e <code>s</code> acompanham
+                durante o movimento.
+            </p>
+
+            <h2 id="ajouter">Adicionar uma planilha</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ação</th>
+                            <th>Como</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ao lado da figura</td>
+                            <td>
+                                <strong
+                                    >Arquivo › Vista › Nova vista de
+                                    planilha</strong
+                                >: uma coluna a mais, à direita, com uma folha
+                                vazia; as colunas ficam com a mesma largura (<a
+                                    href="interface.html#vues"
+                                    >várias vistas</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Em sua própria aba</td>
+                            <td>
+                                <strong>Arquivo › Nova aba de planilha</strong>:
+                                uma aba “Planilha 1”, “Planilha 2”…, que contém
+                                apenas uma folha (<a
+                                    href="demarrage.html#classeur"
+                                    >pastas de trabalho</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Redimensionar, mover</td>
+                            <td>
+                                arrastar a separação das colunas;
+                                <strong
+                                    >Arquivo › Vista › Mover a vista para a
+                                    esquerda</strong
+                                >
+                                ou <strong>para a direita</strong>, quando a
+                                vista de planilha está ativa
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eliminar</td>
+                            <td>
+                                <strong
+                                    >Arquivo › Vista › Eliminar a vista de
+                                    planilha</strong
+                                >: a vista e suas células desaparecem, a figura
+                                retoma o espaço. Uma aba de planilha é eliminada
+                                como qualquer aba.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Uma aba tem no máximo uma vista de planilha:
+                    <strong>Nova vista de planilha</strong> fica acinzentado
+                    quando ela já tem uma.
+                </li>
+                <li>
+                    Uma vista de planilha mostra uma única folha, chamada
+                    “Planilha1”, sem abas de folhas. Para trabalhar com várias
+                    folhas, criam-se várias abas de planilha, que se leem entre
+                    si (<a href="#autre-onglet">veja abaixo</a>).
+                </li>
+                <li>
+                    Adicionar ou eliminar uma vista de planilha pode ser
+                    desfeito, como as outras ações sobre as vistas.
+                </li>
+            </ul>
+
+            <h2 id="barres">Os menus e os botões da planilha</h2>
+            <p>
+                Um clique ou uma tecla nas células torna ativa a vista de
+                planilha. As barras do DocGeo dão então lugar às da planilha, na
+                mesma altura: nada se move abaixo.
+            </p>
+            <ul>
+                <li>
+                    A barra de menus mantém <strong>Arquivo</strong>, seguido do
+                    menu <strong>DocGeo</strong> e depois dos menus da planilha.
+                </li>
+                <li>
+                    A barra de botões da planilha (formato dos números, fonte,
+                    negrito, cores, bordas, alinhamento…) substitui a barra de
+                    ações do DocGeo.
+                </li>
+                <li>
+                    O menu <strong>DocGeo</strong> oferece o que continua útil:
+                    Histórico da construção, Paleta de ferramentas, Propriedades
+                    e o Manual de utilização.
+                </li>
+                <li>
+                    Volta-se às barras do DocGeo com um clique na figura ou no
+                    painel “Construção”, digitando ali uma linha, ou mudando de
+                    aba. Em uma aba de planilha, as barras da planilha
+                    permanecem.
+                </li>
+                <li>
+                    Uma caixa de diálogo da planilha (formatação condicional,
+                    formato dos números…) vela toda a janela do DocGeo até ser
+                    fechada.
+                </li>
+            </ul>
+            <p>
+                O painel “Construção” continua disponível em uma aba de planilha
+                (<strong>DocGeo › Histórico da construção</strong>): um objeto
+                digitado ali é calculado sem ser desenhado, e as células dessa
+                aba podem lê-lo.
+            </p>
+            <p>
+                Quando o DocGeo está incorporado em outra página, como o
+                DocTools, ele não tem barra de menus: a planilha mantém suas
+                barras no alto de sua coluna.
+            </p>
+
+            <h2 id="cellules">A figura lê as células</h2>
+            <p>
+                Uma fórmula da figura designa uma célula pelo nome da folha, um
+                ponto de exclamação e o endereço da célula, como em uma
+                planilha.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Escrita</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Planilha1!B3</code></td>
+                            <td>a célula B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Planilha1!B2:B21</code></td>
+                            <td>
+                                um intervalo de uma linha ou de uma coluna: uma
+                                lista de valores
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Planilha1!A1:C3</code></td>
+                            <td>
+                                um retângulo: uma lista de linhas, cada uma uma
+                                lista
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Planilha 1'!Planilha1!B3</code></td>
+                            <td>a célula B3 da folha de outra aba</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Planilha1!B1, Planilha1!B2)
+r = Planilha1!B3
+L = Planilha1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    O endereço é escrito com letras e depois algarismos
+                    (<code>B3</code>, <code>AA12</code>), sem <code>$</code>.
+                </li>
+                <li>
+                    Um número, um texto ou um booleano é lido tal como está; uma
+                    data é lida como um número. Uma célula vazia ou com erro
+                    (<code>#DIV/0!</code>…) dá um valor indefinido: o objeto que
+                    a lê não é desenhado.
+                </li>
+                <li>
+                    Assim que uma célula muda, por uma digitação ou pelo cálculo
+                    da planilha, os objetos que a leem são recalculados e
+                    redesenhados.
+                </li>
+                <li>
+                    Uma referência é apenas parte de uma fórmula: não cria
+                    nenhum objeto. Um ponto lido nas células, como A acima, é
+                    calculado: não se arrasta com o mouse. Para movê-lo,
+                    mudam-se as células.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">As células de outra aba</h3>
+            <p>
+                O nome da aba vem primeiro, entre apóstrofos se contiver um
+                espaço ou um sinal, como para
+                <a href="formules.html#autres-pages">ler outra aba</a>:
+                <code>'Planilha 1'!Planilha1!B3</code>. Suas células são lidas
+                como estavam calculadas quando se saiu dessa aba.
+            </p>
+
+            <h2 id="geo">As células leem a figura: GEO</h2>
+            <p>
+                Em uma célula, a função <code>GEO</code> lê o valor de um objeto
+                da figura, designado por seu nome entre aspas.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figura 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    O valor é aquele que uma fórmula da figura leria ao nomear o
+                    objeto: comprimento de um segmento, valor de uma expressão
+                    ou de um controle deslizante, texto, estado de uma caixa de
+                    seleção… Ele acompanha a figura enquanto ela é manipulada.
+                </li>
+                <li>
+                    Um ponto ou uma lista não se leem: crie primeiro uma
+                    expressão, por exemplo <code>xA = x(A)</code>, e depois
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Um objeto desconhecido, indefinido, ou que não é nem número,
+                    nem texto, nem booleano dá <code>#N/A</code>. O nome deve
+                    estar escrito na fórmula: <code>=GEO(A1)</code> dá
+                    <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figura 1'!c")</code> lê o objeto c de outra aba:
+                    é assim que uma aba de planilha lê uma figura.
+                </li>
+                <li>
+                    <code>GEO</code> tem o mesmo nome em todos os idiomas. Ela
+                    só existe no DocGeo: no DocCells sozinho, dá
+                    <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Referência circular</h2>
+            <p>
+                Um objeto lido por <code>GEO</code> não pode depender de uma
+                célula que depende dele. Se <code>A1</code> contém
+                <code>=GEO("m")+1</code>, redefinir m pela linha
+                <code>m = Planilha1!A1</code> é recusado: “Referência circular:
+                Planilha1!A1”.
+            </p>
+            <p>
+                Da mesma forma, uma fórmula de célula que fecharia um ciclo com
+                a figura é anulada com essa mensagem, e as células retomam seu
+                conteúdo anterior. Em um arquivo que contém mesmo assim um
+                ciclo, a leitura que o fecha é indefinida.
+            </p>
+
+            <h2 id="enregistrer">Desfazer e salvar</h2>
+            <ul>
+                <li>
+                    As células têm seu próprio desfazer: <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> nas células, ou os menus da planilha. Os botões
+                    <i data-i="undo"></i> <i data-i="redo"></i> do DocGeo não
+                    desfazem uma digitação na planilha.
+                </li>
+                <li>
+                    As células, suas fórmulas e sua formatação são salvas com a
+                    figura, no mesmo arquivo <code>.dgo</code>. <kbd>Ctrl</kbd>
+                    <kbd>S</kbd> nas células, ou
+                    <strong>Arquivo › Salvar</strong>, salva tudo.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Para os alunos</h2>
+            <p>
+                O leitor do DocGeo, como uma figura
+                <a href="integration.html">incorporada em uma página web</a>,
+                mostra a folha sem seus menus nem seus botões, com sua barra de
+                fórmulas.
+            </p>
+            <ul>
+                <li>
+                    O aluno pode digitar nas células, como em um campo de
+                    entrada: a figura acompanha.
+                </li>
+                <li>
+                    O botão de reinicialização devolve as células como foram
+                    salvas.
+                </li>
+                <li>
+                    Essas digitações não fazem parte da resposta do aluno
+                    guardada por uma página que incorpora a figura: só os
+                    objetos da figura.
+                </li>
+            </ul>
+            <p>
+                A planilha é um aplicativo à parte, carregado apenas se a aba
+                mostrada tiver uma. Em um site que hospeda sua própria cópia do
+                DocGeo, a pasta <code>doccells</code> deve ser publicada ao lado
+                da pasta do DocGeo; caso contrário, a vista de planilha mostra
+                “⚠ DocCells”, e o resto da figura funciona.
+            </p>
+        </main>
+    </body>
+</html>

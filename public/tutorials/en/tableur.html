@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>The spreadsheet — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>The spreadsheet</h1>
+            <p class="lead">
+                A DocGeo tab can hold a worksheet of DocCells, the DocTools
+                spreadsheet: beside the figure, or alone in its own tab. The
+                figure and the cells read each other, live.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="A triangle and, on the right, a sheet whose cells read its sides; the spreadsheet’s menus and buttons in DocGeo’s bars"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>In the example above:</p>
+            <ul>
+                <li>
+                    cells B1 to B3 read the lengths of the triangle’s sides a, b
+                    and c: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 adds them up: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    the figure reads this sum back with the line
+                    <code>s = Sheet1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                When A, B or C is dragged, the cells and <code>s</code> follow
+                during the move.
+            </p>
+
+            <h2 id="ajouter">Adding a spreadsheet</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>How</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Beside the figure</td>
+                            <td>
+                                <strong
+                                    >File › View › New spreadsheet view</strong
+                                >: one more column, on the right, with an empty
+                                sheet; the columns take the same width (<a
+                                    href="interface.html#vues"
+                                    >several views</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>In its own tab</td>
+                            <td>
+                                <strong>File › New spreadsheet tab</strong>: a
+                                tab “Spreadsheet 1”, “Spreadsheet 2”…, holding
+                                only a sheet (<a href="demarrage.html#classeur"
+                                    >workbooks</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Resize, move</td>
+                            <td>
+                                drag the boundary between the columns;
+                                <strong>File › View › Move view left</strong> or
+                                <strong>Move view right</strong>, while the
+                                spreadsheet view is active
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Delete</td>
+                            <td>
+                                <strong
+                                    >File › View › Delete the spreadsheet
+                                    view</strong
+                                >: the view and its cells disappear, the figure
+                                takes the room back. A spreadsheet tab is
+                                deleted like any tab.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    A tab has at most one spreadsheet view:
+                    <strong>New spreadsheet view</strong> is greyed out when it
+                    already has one.
+                </li>
+                <li>
+                    A spreadsheet view shows a single sheet, named “Sheet1”,
+                    without sheet tabs. To work on several sheets, create
+                    several spreadsheet tabs, which read one another (<a
+                        href="#autre-onglet"
+                        >see below</a
+                    >).
+                </li>
+                <li>
+                    Adding or deleting a spreadsheet view can be undone, like
+                    the other actions on views.
+                </li>
+            </ul>
+
+            <h2 id="barres">The spreadsheet’s menus and buttons</h2>
+            <p>
+                A click or a keystroke in the cells makes the spreadsheet view
+                active. DocGeo’s bars then give way to the spreadsheet’s, at the
+                same height: nothing below moves.
+            </p>
+            <ul>
+                <li>
+                    The menu bar keeps <strong>File</strong>, followed by the
+                    <strong>DocGeo</strong> menu, then the spreadsheet’s menus.
+                </li>
+                <li>
+                    The spreadsheet’s button bar (number format, font, bold,
+                    colours, borders, alignment…) replaces DocGeo’s action bar.
+                </li>
+                <li>
+                    The <strong>DocGeo</strong> menu offers what remains useful:
+                    Construction history, Tool palette, Properties, and the User
+                    manual.
+                </li>
+                <li>
+                    Clicking in the figure or in the “Construction” panel,
+                    typing a line there, or changing tabs brings DocGeo’s bars
+                    back. In a spreadsheet tab, the spreadsheet’s bars stay.
+                </li>
+                <li>
+                    A spreadsheet dialog (conditional formatting, number
+                    format…) veils the whole DocGeo window until it is closed.
+                </li>
+            </ul>
+            <p>
+                The “Construction” panel remains available in a spreadsheet tab
+                (<strong>DocGeo › Construction history</strong>): an object
+                typed there is computed without being drawn, and the cells of
+                that tab can read it.
+            </p>
+            <p>
+                When DocGeo is embedded in another page, such as DocTools, it
+                has no menu bar: the spreadsheet keeps its bars at the top of
+                its column.
+            </p>
+
+            <h2 id="cellules">The figure reads the cells</h2>
+            <p>
+                A formula of the figure names a cell by the sheet’s name, an
+                exclamation mark and the cell’s address, as in a spreadsheet.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Written</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Sheet1!B3</code></td>
+                            <td>cell B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Sheet1!B2:B21</code></td>
+                            <td>
+                                a range of one row or one column: a list of
+                                values
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Sheet1!A1:C3</code></td>
+                            <td>
+                                a rectangle: a list of rows, each one a list
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Spreadsheet 1'!Sheet1!B3</code></td>
+                            <td>cell B3 of the sheet of another tab</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Sheet1!B1, Sheet1!B2)
+r = Sheet1!B3
+L = Sheet1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    The address is written with letters then digits
+                    (<code>B3</code>, <code>AA12</code>), without
+                    <code>$</code>.
+                </li>
+                <li>
+                    A number, a text or a boolean is read as it is; a date is
+                    read as a number. An empty cell or a cell in error
+                    (<code>#DIV/0!</code>…) gives an undefined value: the object
+                    that reads it is not drawn.
+                </li>
+                <li>
+                    As soon as a cell changes, by an entry or by the
+                    spreadsheet’s calculation, the objects that read it are
+                    recomputed and redrawn.
+                </li>
+                <li>
+                    A reference is only part of a formula: it creates no object.
+                    A point read from the cells, like A above, is computed: it
+                    cannot be dragged with the mouse. To move it, change the
+                    cells.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">Cells of another tab</h3>
+            <p>
+                The tab’s name comes first, in apostrophes if it contains a
+                space or a sign, as when
+                <a href="formules.html#autres-pages">reading another tab</a>:
+                <code>'Spreadsheet 1'!Sheet1!B3</code>. Its cells are read as
+                they were computed when that tab was left.
+            </p>
+
+            <h2 id="geo">The cells read the figure: GEO</h2>
+            <p>
+                In a cell, the <code>GEO</code> function reads the value of an
+                object of the figure, named in quotes.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figure 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    The value is the one a formula of the figure would read by
+                    naming the object: length of a segment, value of an
+                    expression or a slider, text, state of a checkbox… It
+                    follows the figure while it is manipulated.
+                </li>
+                <li>
+                    A point or a list cannot be read: first create an
+                    expression, for example <code>xA = x(A)</code>, then
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    An unknown or undefined object, or one that is neither a
+                    number, nor a text, nor a boolean, gives <code>#N/A</code>.
+                    The name must be written in the formula:
+                    <code>=GEO(A1)</code> gives <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figure 1'!c")</code> reads object c of another
+                    tab: this is how a spreadsheet tab reads a figure.
+                </li>
+                <li>
+                    <code>GEO</code> has the same name in every language. It
+                    only exists in DocGeo: in DocCells alone, it gives
+                    <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Circular reference</h2>
+            <p>
+                An object read by <code>GEO</code> cannot depend on a cell that
+                depends on it. If <code>A1</code> contains
+                <code>=GEO("m")+1</code>, redefining m with the line
+                <code>m = Sheet1!A1</code> is refused: “Circular reference:
+                Sheet1!A1”.
+            </p>
+            <p>
+                Likewise, a cell formula that would close a loop with the figure
+                is cancelled with this message, and the cells get their previous
+                content back. In a file that contains a loop anyway, the reading
+                that closes it is undefined.
+            </p>
+
+            <h2 id="enregistrer">Undoing and saving</h2>
+            <ul>
+                <li>
+                    The cells have their own undo: <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> in the cells, or the spreadsheet’s menus.
+                    DocGeo’s <i data-i="undo"></i> <i data-i="redo"></i> buttons
+                    do not undo an entry in the spreadsheet.
+                </li>
+                <li>
+                    The cells, their formulas and their formatting are saved
+                    with the figure, in the same <code>.dgo</code> file.
+                    <kbd>Ctrl</kbd> <kbd>S</kbd> in the cells, or
+                    <strong>File › Save</strong>, saves everything.
+                </li>
+            </ul>
+
+            <h2 id="eleves">For students</h2>
+            <p>
+                The DocGeo player, like a figure
+                <a href="integration.html">embedded in a web page</a>, shows the
+                sheet without its menus or buttons, with its formula bar.
+            </p>
+            <ul>
+                <li>
+                    Students can type in the cells, as in an input field: the
+                    figure follows.
+                </li>
+                <li>
+                    The reset button gives the cells back as they were saved.
+                </li>
+                <li>
+                    These entries are not part of the student’s answer kept by a
+                    page that embeds the figure: only the figure’s objects are.
+                </li>
+            </ul>
+            <p>
+                The spreadsheet is a separate application, loaded only if the
+                tab shown has one. On a site that hosts its own copy of DocGeo,
+                the <code>doccells</code> folder must be published beside the
+                DocGeo folder; otherwise the spreadsheet view shows “⚠
+                DocCells”, and the rest of the figure works.
+            </p>
+        </main>
+    </body>
+</html>

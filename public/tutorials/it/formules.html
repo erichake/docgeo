@@ -123,6 +123,22 @@ area = Dati!p * 2</code></pre>
                 </li>
             </ul>
 
+            <h2 id="cellules">Leggere una cella del foglio di calcolo</h2>
+            <p>
+                In una scheda con una
+                <a href="tableur.html">vista foglio di calcolo</a>, una formula
+                legge le sue celle tramite il nome del foglio: una cella, un
+                intervallo (lista) o la cella di un’altra scheda.
+            </p>
+            <pre><code>r = Foglio1!B3
+L = Foglio1!B2:B21
+k = 'Foglio di calcolo 1'!Foglio1!A1</code></pre>
+            <p>
+                Una cella vuota o in errore dà un valore indefinito. Nel senso
+                inverso, una cella legge un oggetto della figura con
+                <code>=GEO("nome")</code> (<a href="tableur.html#geo">GEO</a>).
+            </p>
+
             <h2>Operatori</h2>
             <div class="table">
                 <table>

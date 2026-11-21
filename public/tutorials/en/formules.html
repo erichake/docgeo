@@ -84,7 +84,7 @@
                 reflection of A in B.
             </p>
 
-            <h2 id="autres-tabs">Reading another tab</h2>
+            <h2 id="autres-pages">Reading another tab</h2>
             <p>
                 In a <a href="demarrage.html#classeur">workbook</a>, a formula
                 reads the value of an object of another tab, as in a
@@ -120,6 +120,21 @@ area = Data!p * 2</code></pre>
                     formulas that read it are undefined.
                 </li>
             </ul>
+
+            <h2 id="cellules">Reading a spreadsheet cell</h2>
+            <p>
+                In a tab that has a <a href="tableur.html">spreadsheet view</a>,
+                a formula reads its cells through the sheet’s name: a cell, a
+                range (a list), or a cell of another tab.
+            </p>
+            <pre><code>r = Sheet1!B3
+L = Sheet1!B2:B21
+k = 'Spreadsheet 1'!Sheet1!A1</code></pre>
+            <p>
+                An empty cell or a cell in error gives an undefined value. The
+                other way round, a cell reads an object of the figure with
+                <code>=GEO("name")</code> (<a href="tableur.html#geo">GEO</a>).
+            </p>
 
             <h2>Operators</h2>
             <div class="table">

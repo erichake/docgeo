@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Il foglio di calcolo — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Il foglio di calcolo</h1>
+            <p class="lead">
+                Una scheda di DocGeo può contenere un foglio di DocCells, il
+                foglio di calcolo di DocTools: accanto alla figura, o da solo
+                nella sua scheda. La figura e le celle si leggono a vicenda, in
+                tempo reale.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Un triangolo e, a destra, un foglio le cui celle leggono i suoi lati; i menu e i pulsanti del foglio di calcolo nelle barre di DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>Nell’esempio qui sopra:</p>
+            <ul>
+                <li>
+                    le celle da B1 a B3 leggono le lunghezze dei lati a, b e c
+                    del triangolo: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 ne fa la somma: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    la figura rilegge questa somma con la riga
+                    <code>s = Foglio1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                Trascinando A, B o C, le celle e <code>s</code> seguono durante
+                il movimento.
+            </p>
+
+            <h2 id="ajouter">Aggiungere un foglio di calcolo</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Azione</th>
+                            <th>Come</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Accanto alla figura</td>
+                            <td>
+                                <strong
+                                    >File › Vista › Nuova vista foglio di
+                                    calcolo</strong
+                                >: una colonna in più, a destra, con un foglio
+                                vuoto; le colonne prendono la stessa larghezza
+                                (<a href="interface.html#vues">più viste</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nella sua scheda</td>
+                            <td>
+                                <strong
+                                    >File › Nuova scheda foglio di
+                                    calcolo</strong
+                                >: una scheda «Foglio di calcolo 1», «Foglio di
+                                calcolo 2»…, che contiene solo un foglio (<a
+                                    href="demarrage.html#classeur"
+                                    >cartelle di lavoro</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ridimensionare, spostare</td>
+                            <td>
+                                trascinare la separazione delle colonne;
+                                <strong
+                                    >File › Vista › Sposta la vista a
+                                    sinistra</strong
+                                >
+                                o <strong>a destra</strong>, quando la vista
+                                foglio di calcolo è attiva
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eliminare</td>
+                            <td>
+                                <strong
+                                    >File › Vista › Elimina la vista foglio di
+                                    calcolo</strong
+                                >: la vista e le sue celle scompaiono, la figura
+                                riprende lo spazio. Una scheda foglio di calcolo
+                                si elimina come ogni scheda.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Una scheda ha al massimo una vista foglio di calcolo:
+                    <strong>Nuova vista foglio di calcolo</strong> è disattivato
+                    quando ne ha già una.
+                </li>
+                <li>
+                    Una vista foglio di calcolo mostra un solo foglio, chiamato
+                    «Foglio1», senza schede dei fogli. Per lavorare su più
+                    fogli, si creano più schede foglio di calcolo, che si
+                    leggono tra loro (<a href="#autre-onglet">vedi sotto</a>).
+                </li>
+                <li>
+                    Aggiungere o eliminare una vista foglio di calcolo si può
+                    annullare, come le altre azioni sulle viste.
+                </li>
+            </ul>
+
+            <h2 id="barres">I menu e i pulsanti del foglio di calcolo</h2>
+            <p>
+                Un clic o la pressione di un tasto nelle celle rende attiva la
+                vista foglio di calcolo. Le barre di DocGeo lasciano allora il
+                posto a quelle del foglio di calcolo, alla stessa altezza: sotto
+                non si sposta nulla.
+            </p>
+            <ul>
+                <li>
+                    La barra dei menu mantiene <strong>File</strong>, seguito
+                    dal menu <strong>DocGeo</strong>, poi dai menu del foglio di
+                    calcolo.
+                </li>
+                <li>
+                    La barra dei pulsanti del foglio di calcolo (formato dei
+                    numeri, carattere, grassetto, colori, bordi, allineamento…)
+                    sostituisce la barra delle azioni di DocGeo.
+                </li>
+                <li>
+                    Il menu <strong>DocGeo</strong> offre ciò che resta utile:
+                    Cronologia della costruzione, Tavolozza degli strumenti,
+                    Proprietà e il Manuale d’uso.
+                </li>
+                <li>
+                    Si torna alle barre di DocGeo con un clic nella figura o nel
+                    pannello «Costruzione», scrivendovi una riga, o cambiando
+                    scheda. In una scheda foglio di calcolo, le barre del foglio
+                    di calcolo restano.
+                </li>
+                <li>
+                    Una finestra di dialogo del foglio di calcolo (formattazione
+                    condizionale, formato dei numeri…) vela tutta la finestra di
+                    DocGeo finché non viene chiusa.
+                </li>
+            </ul>
+            <p>
+                Il pannello «Costruzione» resta disponibile in una scheda foglio
+                di calcolo (<strong
+                    >DocGeo › Cronologia della costruzione</strong
+                >): un oggetto scritto lì è calcolato senza essere disegnato, e
+                le celle di quella scheda possono leggerlo.
+            </p>
+            <p>
+                Quando DocGeo è incorporato in un’altra pagina, come DocTools,
+                non ha barra dei menu: il foglio di calcolo mantiene le sue
+                barre in cima alla sua colonna.
+            </p>
+
+            <h2 id="cellules">La figura legge le celle</h2>
+            <p>
+                Una formula della figura designa una cella con il nome del
+                foglio, un punto esclamativo e l’indirizzo della cella, come in
+                un foglio di calcolo.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scrittura</th>
+                            <th>Valore</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Foglio1!B3</code></td>
+                            <td>la cella B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Foglio1!B2:B21</code></td>
+                            <td>
+                                un intervallo di una riga o di una colonna: una
+                                lista di valori
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Foglio1!A1:C3</code></td>
+                            <td>
+                                un rettangolo: una lista di righe, ognuna una
+                                lista
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>'Foglio di calcolo 1'!Foglio1!B3</code>
+                            </td>
+                            <td>la cella B3 del foglio di un’altra scheda</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Foglio1!B1, Foglio1!B2)
+r = Foglio1!B3
+L = Foglio1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    L’indirizzo si scrive con lettere poi cifre
+                    (<code>B3</code>, <code>AA12</code>), senza <code>$</code>.
+                </li>
+                <li>
+                    Un numero, un testo o un booleano è letto così com’è; una
+                    data è letta come un numero. Una cella vuota o in errore
+                    (<code>#DIV/0!</code>…) dà un valore indefinito: l’oggetto
+                    che la legge non è disegnato.
+                </li>
+                <li>
+                    Appena una cella cambia, per una scrittura o per il calcolo
+                    del foglio, gli oggetti che la leggono sono ricalcolati e
+                    ridisegnati.
+                </li>
+                <li>
+                    Un riferimento è solo una parte di formula: non crea alcun
+                    oggetto. Un punto letto nelle celle, come A qui sopra, è
+                    calcolato: non si trascina con il mouse. Per spostarlo, si
+                    cambiano le celle.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">Le celle di un’altra scheda</h3>
+            <p>
+                Il nome della scheda viene prima, tra apostrofi se contiene uno
+                spazio o un segno, come per
+                <a href="formules.html#autres-pages">leggere un’altra scheda</a
+                >: <code>'Foglio di calcolo 1'!Foglio1!B3</code>. Le sue celle
+                sono lette come erano calcolate quando si è lasciata quella
+                scheda.
+            </p>
+
+            <h2 id="geo">Le celle leggono la figura: GEO</h2>
+            <p>
+                In una cella, la funzione <code>GEO</code> legge il valore di un
+                oggetto della figura, designato dal suo nome tra virgolette.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figura 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    Il valore è quello che leggerebbe una formula della figura
+                    nominando l’oggetto: lunghezza di un segmento, valore di
+                    un’espressione o di un cursore, testo, stato di una casella
+                    di controllo… Segue la figura mentre la si manipola.
+                </li>
+                <li>
+                    Un punto o una lista non si leggono: creare prima
+                    un’espressione, per esempio <code>xA = x(A)</code>, poi
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Un oggetto sconosciuto, indefinito, o che non è né un
+                    numero, né un testo, né un booleano dà <code>#N/A</code>. Il
+                    nome deve essere scritto nella formula:
+                    <code>=GEO(A1)</code> dà <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figura 1'!c")</code> legge l’oggetto c di
+                    un’altra scheda: è così che una scheda foglio di calcolo
+                    legge una figura.
+                </li>
+                <li>
+                    <code>GEO</code> ha lo stesso nome in tutte le lingue.
+                    Esiste solo in DocGeo: in DocCells da solo, dà
+                    <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Riferimento circolare</h2>
+            <p>
+                Un oggetto letto da <code>GEO</code> non può dipendere da una
+                cella che dipende da lui. Se <code>A1</code> contiene
+                <code>=GEO("m")+1</code>, ridefinire m con la riga
+                <code>m = Foglio1!A1</code> è rifiutato: «Riferimento circolare:
+                Foglio1!A1».
+            </p>
+            <p>
+                Allo stesso modo, una formula di cella che chiuderebbe un ciclo
+                con la figura è annullata con questo messaggio, e le celle
+                riprendono il loro contenuto precedente. In un file che contiene
+                comunque un ciclo, la lettura che lo chiude è indefinita.
+            </p>
+
+            <h2 id="enregistrer">Annullare e salvare</h2>
+            <ul>
+                <li>
+                    Le celle hanno il proprio annullamento: <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> nelle celle, o i menu del foglio di calcolo. I
+                    pulsanti <i data-i="undo"></i> <i data-i="redo"></i> di
+                    DocGeo non annullano una scrittura nel foglio di calcolo.
+                </li>
+                <li>
+                    Le celle, le loro formule e la loro formattazione sono
+                    salvate con la figura, nello stesso file <code>.dgo</code>.
+                    <kbd>Ctrl</kbd> <kbd>S</kbd> nelle celle, o
+                    <strong>File › Salva</strong>, salva tutto.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Per gli studenti</h2>
+            <p>
+                Il lettore di DocGeo, come una figura
+                <a href="integration.html">incorporata in una pagina web</a>,
+                mostra il foglio senza menu né pulsanti, con la sua barra della
+                formula.
+            </p>
+            <ul>
+                <li>
+                    Lo studente può scrivere nelle celle, come in un campo di
+                    inserimento: la figura segue.
+                </li>
+                <li>
+                    Il pulsante di reimpostazione restituisce le celle com’erano
+                    salvate.
+                </li>
+                <li>
+                    Queste scritture non fanno parte della risposta dello
+                    studente conservata da una pagina che incorpora la figura:
+                    solo gli oggetti della figura.
+                </li>
+            </ul>
+            <p>
+                Il foglio di calcolo è un’applicazione a parte, caricata solo se
+                la scheda mostrata ne ha uno. Su un sito che ospita la propria
+                copia di DocGeo, la cartella <code>doccells</code> deve essere
+                pubblicata accanto a quella di DocGeo; altrimenti la vista
+                foglio di calcolo mostra «⚠ DocCells», e il resto della figura
+                funziona.
+            </p>
+        </main>
+    </body>
+</html>

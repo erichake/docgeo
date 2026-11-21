@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>La hoja de cálculo — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>La hoja de cálculo</h1>
+            <p class="lead">
+                Una pestaña de DocGeo puede contener una hoja de DocCells, la
+                hoja de cálculo de DocTools: junto a la figura, o sola en su
+                propia pestaña. La figura y las celdas se leen mutuamente, en
+                directo.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Un triángulo y, a la derecha, una hoja cuyas celdas leen sus lados; los menús y botones de la hoja de cálculo en las barras de DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>En el ejemplo de arriba:</p>
+            <ul>
+                <li>
+                    las celdas B1 a B3 leen las longitudes de los lados a, b y c
+                    del triángulo: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 las suma: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    la figura vuelve a leer esta suma con la línea
+                    <code>s = Hoja1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                Al arrastrar A, B o C, las celdas y <code>s</code> siguen
+                durante el movimiento.
+            </p>
+
+            <h2 id="ajouter">Añadir una hoja de cálculo</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Acción</th>
+                            <th>Cómo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Junto a la figura</td>
+                            <td>
+                                <strong
+                                    >Archivo › Vista › Nueva vista de hoja de
+                                    cálculo</strong
+                                >: una columna más, a la derecha, con una hoja
+                                vacía; las columnas toman el mismo ancho (<a
+                                    href="interface.html#vues"
+                                    >varias vistas</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>En su propia pestaña</td>
+                            <td>
+                                <strong
+                                    >Archivo › Nueva pestaña de hoja de
+                                    cálculo</strong
+                                >: una pestaña «Hoja de cálculo 1», «Hoja de
+                                cálculo 2»…, que solo contiene una hoja (<a
+                                    href="demarrage.html#classeur"
+                                    >libros</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Redimensionar, mover</td>
+                            <td>
+                                arrastrar la separación de las columnas;
+                                <strong
+                                    >Archivo › Vista › Mover la vista a la
+                                    izquierda</strong
+                                >
+                                o <strong>a la derecha</strong>, cuando la vista
+                                de hoja de cálculo está activa
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eliminar</td>
+                            <td>
+                                <strong
+                                    >Archivo › Vista › Eliminar la vista de hoja
+                                    de cálculo</strong
+                                >: la vista y sus celdas desaparecen, la figura
+                                recupera el espacio. Una pestaña de hoja de
+                                cálculo se elimina como cualquier pestaña.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Una pestaña tiene como máximo una vista de hoja de cálculo:
+                    <strong>Nueva vista de hoja de cálculo</strong> aparece en
+                    gris cuando ya tiene una.
+                </li>
+                <li>
+                    Una vista de hoja de cálculo muestra una sola hoja, llamada
+                    «Hoja1», sin pestañas de hojas. Para trabajar con varias
+                    hojas, se crean varias pestañas de hoja de cálculo, que se
+                    leen entre sí (<a href="#autre-onglet">ver más abajo</a>).
+                </li>
+                <li>
+                    Añadir o eliminar una vista de hoja de cálculo se puede
+                    deshacer, como las demás acciones sobre las vistas.
+                </li>
+            </ul>
+
+            <h2 id="barres">Los menús y botones de la hoja de cálculo</h2>
+            <p>
+                Un clic o una pulsación de tecla en las celdas activa la vista
+                de hoja de cálculo. Las barras de DocGeo dejan entonces su sitio
+                a las de la hoja de cálculo, a la misma altura: nada se mueve
+                debajo.
+            </p>
+            <ul>
+                <li>
+                    La barra de menús conserva <strong>Archivo</strong>, seguido
+                    del menú <strong>DocGeo</strong> y luego de los menús de la
+                    hoja de cálculo.
+                </li>
+                <li>
+                    La barra de botones de la hoja de cálculo (formato de
+                    números, fuente, negrita, colores, bordes, alineación…)
+                    sustituye a la barra de acciones de DocGeo.
+                </li>
+                <li>
+                    El menú <strong>DocGeo</strong> ofrece lo que sigue siendo
+                    útil: Historial de la construcción, Paleta de herramientas,
+                    Propiedades y el Manual de uso.
+                </li>
+                <li>
+                    Se vuelve a las barras de DocGeo con un clic en la figura o
+                    en el panel «Construcción», escribiendo allí una línea, o
+                    cambiando de pestaña. En una pestaña de hoja de cálculo, las
+                    barras de la hoja de cálculo permanecen.
+                </li>
+                <li>
+                    Un cuadro de diálogo de la hoja de cálculo (formato
+                    condicional, formato de números…) vela toda la ventana de
+                    DocGeo hasta que se cierra.
+                </li>
+            </ul>
+            <p>
+                El panel «Construcción» sigue disponible en una pestaña de hoja
+                de cálculo (<strong
+                    >DocGeo › Historial de la construcción</strong
+                >): un objeto escrito allí se calcula sin dibujarse, y las
+                celdas de esa pestaña pueden leerlo.
+            </p>
+            <p>
+                Cuando DocGeo está integrado en otra página, como DocTools, no
+                tiene barra de menús: la hoja de cálculo conserva sus barras en
+                la parte superior de su columna.
+            </p>
+
+            <h2 id="cellules">La figura lee las celdas</h2>
+            <p>
+                Una fórmula de la figura designa una celda por el nombre de la
+                hoja, un signo de exclamación y la dirección de la celda, como
+                en una hoja de cálculo.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Escritura</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Hoja1!B3</code></td>
+                            <td>la celda B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Hoja1!B2:B21</code></td>
+                            <td>
+                                un rango de una fila o una columna: una lista de
+                                valores
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Hoja1!A1:C3</code></td>
+                            <td>
+                                un rectángulo: una lista de filas, cada una una
+                                lista
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Hoja de cálculo 1'!Hoja1!B3</code></td>
+                            <td>la celda B3 de la hoja de otra pestaña</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Hoja1!B1, Hoja1!B2)
+r = Hoja1!B3
+L = Hoja1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    La dirección se escribe con letras y luego cifras
+                    (<code>B3</code>, <code>AA12</code>), sin <code>$</code>.
+                </li>
+                <li>
+                    Un número, un texto o un booleano se lee tal cual; una fecha
+                    se lee como un número. Una celda vacía o con error
+                    (<code>#DIV/0!</code>…) da un valor indefinido: el objeto
+                    que la lee no se dibuja.
+                </li>
+                <li>
+                    En cuanto cambia una celda, por una entrada o por el cálculo
+                    de la hoja, los objetos que la leen se recalculan y se
+                    redibujan.
+                </li>
+                <li>
+                    Una referencia es solo parte de una fórmula: no crea ningún
+                    objeto. Un punto leído en las celdas, como A arriba, es
+                    calculado: no se arrastra con el ratón. Para moverlo, se
+                    cambian las celdas.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">Las celdas de otra pestaña</h3>
+            <p>
+                Primero va el nombre de la pestaña, entre apóstrofos si contiene
+                un espacio o un signo, como para
+                <a href="formules.html#autres-pages">leer otra pestaña</a>:
+                <code>'Hoja de cálculo 1'!Hoja1!B3</code>. Sus celdas se leen
+                tal como estaban calculadas al salir de esa pestaña.
+            </p>
+
+            <h2 id="geo">Las celdas leen la figura: GEO</h2>
+            <p>
+                En una celda, la función <code>GEO</code> lee el valor de un
+                objeto de la figura, designado por su nombre entre comillas.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figura 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    El valor es el que leería una fórmula de la figura al
+                    nombrar el objeto: longitud de un segmento, valor de una
+                    expresión o de un deslizador, texto, estado de una casilla…
+                    Sigue a la figura mientras se manipula.
+                </li>
+                <li>
+                    Un punto o una lista no se leen: cree primero una expresión,
+                    por ejemplo <code>xA = x(A)</code>, y luego
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Un objeto desconocido, indefinido, o que no es ni número, ni
+                    texto, ni booleano da <code>#N/A</code>. El nombre debe
+                    estar escrito en la fórmula: <code>=GEO(A1)</code> da
+                    <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figura 1'!c")</code> lee el objeto c de otra
+                    pestaña: así lee una figura una pestaña de hoja de cálculo.
+                </li>
+                <li>
+                    <code>GEO</code> tiene el mismo nombre en todos los idiomas.
+                    Solo existe en DocGeo: en DocCells solo, da
+                    <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Referencia circular</h2>
+            <p>
+                Un objeto leído por <code>GEO</code> no puede depender de una
+                celda que depende de él. Si <code>A1</code> contiene
+                <code>=GEO("m")+1</code>, redefinir m con la línea
+                <code>m = Hoja1!A1</code> se rechaza: «Referencia circular:
+                Hoja1!A1».
+            </p>
+            <p>
+                Del mismo modo, una fórmula de celda que cerraría un ciclo con
+                la figura se anula con este mensaje, y las celdas recuperan su
+                contenido anterior. En un archivo que aun así contiene un ciclo,
+                la lectura que lo cierra es indefinida.
+            </p>
+
+            <h2 id="enregistrer">Deshacer y guardar</h2>
+            <ul>
+                <li>
+                    Las celdas tienen su propio deshacer: <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> en las celdas, o los menús de la hoja de
+                    cálculo. Los botones <i data-i="undo"></i>
+                    <i data-i="redo"></i> de DocGeo no deshacen lo escrito en la
+                    hoja de cálculo.
+                </li>
+                <li>
+                    Las celdas, sus fórmulas y su formato se guardan con la
+                    figura, en el mismo archivo <code>.dgo</code>.
+                    <kbd>Ctrl</kbd> <kbd>S</kbd> en las celdas, o
+                    <strong>Archivo › Guardar</strong>, lo guarda todo.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Para los alumnos</h2>
+            <p>
+                El lector de DocGeo, como una figura
+                <a href="integration.html">insertada en una página web</a>,
+                muestra la hoja sin sus menús ni sus botones, con su barra de
+                fórmulas.
+            </p>
+            <ul>
+                <li>
+                    El alumno puede escribir en las celdas, como en un campo de
+                    entrada: la figura sigue.
+                </li>
+                <li>
+                    El botón de reinicio devuelve las celdas tal como se
+                    guardaron.
+                </li>
+                <li>
+                    Estas entradas no forman parte de la respuesta del alumno
+                    que guarda una página que integra la figura: solo los
+                    objetos de la figura.
+                </li>
+            </ul>
+            <p>
+                La hoja de cálculo es una aplicación aparte, que solo se carga
+                si la pestaña mostrada tiene una. En un sitio que aloja su
+                propia copia de DocGeo, la carpeta <code>doccells</code> debe
+                publicarse junto a la de DocGeo; si no, la vista de hoja de
+                cálculo muestra «⚠ DocCells», y el resto de la figura funciona.
+            </p>
+        </main>
+    </body>
+</html>

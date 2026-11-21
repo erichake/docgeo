@@ -124,6 +124,22 @@ aire = Calculs!p * 2</code></pre>
                 </li>
             </ul>
 
+            <h2 id="cellules">Lire une cellule du tableur</h2>
+            <p>
+                Dans un onglet qui a une
+                <a href="tableur.html">vue tableur</a>, une formule lit ses
+                cellules par le nom de la feuille : une cellule, une plage
+                (liste), ou la cellule d’un autre onglet.
+            </p>
+            <pre><code>r = Feuille1!B3
+L = Feuille1!B2:B21
+k = 'Tableur 1'!Feuille1!A1</code></pre>
+            <p>
+                Une cellule vide ou en erreur donne une valeur indéfinie. Dans
+                l’autre sens, une cellule lit un objet de la figure par
+                <code>=GEO("nom")</code> (<a href="tableur.html#geo">GEO</a>).
+            </p>
+
             <h2>Opérateurs</h2>
             <div class="table">
                 <table>

@@ -110,6 +110,21 @@ area = 資料!p * 2</code></pre>
                 </li>
             </ul>
 
+            <h2 id="cellules">讀取試算表的儲存格</h2>
+            <p>
+                在有<a href="tableur.html">試算表檢視</a
+                >的分頁中，公式透過工作表的名稱讀取其儲存格：一個儲存格、一個範圍（清單），或另一個分頁的儲存格。
+            </p>
+            <pre><code>r = 工作表1!B3
+L = 工作表1!B2:B21
+k = '試算表 1'!工作表1!A1</code></pre>
+            <p>
+                空白或錯誤的儲存格會給出未定義的值。反過來，儲存格以<code>=GEO("name")</code>讀取圖形中的物件（<a
+                    href="tableur.html#geo"
+                    >GEO</a
+                >）。
+            </p>
+
             <h2>運算子</h2>
             <div class="table">
                 <table>

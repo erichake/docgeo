@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Die Tabellenkalkulation — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Die Tabellenkalkulation</h1>
+            <p class="lead">
+                Ein Tab von DocGeo kann ein Tabellenblatt von DocCells
+                enthalten, der Tabellenkalkulation von DocTools: neben der Figur
+                oder allein in einem eigenen Tab. Figur und Zellen lesen sich
+                gegenseitig, live.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Ein Dreieck und rechts ein Blatt, dessen Zellen seine Seiten lesen; Menüs und Schaltflächen der Tabellenkalkulation in den Leisten von DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>Im Beispiel oben:</p>
+            <ul>
+                <li>
+                    Die Zellen B1 bis B3 lesen die Längen der Dreiecksseiten a,
+                    b und c: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 bildet ihre Summe: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    Die Figur liest diese Summe mit der Zeile
+                    <code>s = Tabelle1!B4</code> zurück.
+                </li>
+            </ul>
+            <p>
+                Zieht man A, B oder C, folgen die Zellen und
+                <code>s</code> während der Bewegung.
+            </p>
+
+            <h2 id="ajouter">Eine Tabellenkalkulation hinzufügen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aktion</th>
+                            <th>Wie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Neben der Figur</td>
+                            <td>
+                                <strong
+                                    >Datei › Ansicht › Neue
+                                    Tabellenansicht</strong
+                                >: eine Spalte mehr, rechts, mit einem leeren
+                                Blatt; die Spalten werden gleich breit (<a
+                                    href="interface.html#vues"
+                                    >mehrere Ansichten</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>In einem eigenen Tab</td>
+                            <td>
+                                <strong>Datei › Neuer Tabellen-Tab</strong>: ein
+                                Tab „Tabelle 1“, „Tabelle 2“…, der nur ein Blatt
+                                enthält (<a href="demarrage.html#classeur"
+                                    >Arbeitsmappen</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Größe ändern, verschieben</td>
+                            <td>
+                                die Trennlinie der Spalten ziehen;
+                                <strong
+                                    >Datei › Ansicht › Ansicht nach links
+                                    verschieben</strong
+                                >
+                                oder <strong>nach rechts</strong>, solange die
+                                Tabellenansicht aktiv ist
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Löschen</td>
+                            <td>
+                                <strong
+                                    >Datei › Ansicht › Tabellenansicht
+                                    löschen</strong
+                                >: Ansicht und Zellen verschwinden, die Figur
+                                nimmt den Platz wieder ein. Ein Tabellen-Tab
+                                wird wie jeder Tab gelöscht.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Ein Tab hat höchstens eine Tabellenansicht:
+                    <strong>Neue Tabellenansicht</strong> ist ausgegraut, wenn
+                    er schon eine hat.
+                </li>
+                <li>
+                    Eine Tabellenansicht zeigt ein einziges Blatt namens
+                    „Tabelle1“, ohne Blattregister. Für mehrere Blätter legt man
+                    mehrere Tabellen-Tabs an, die sich gegenseitig lesen (<a
+                        href="#autre-onglet"
+                        >siehe unten</a
+                    >).
+                </li>
+                <li>
+                    Hinzufügen und Löschen einer Tabellenansicht lassen sich
+                    rückgängig machen, wie die anderen Aktionen an Ansichten.
+                </li>
+            </ul>
+
+            <h2 id="barres">Menüs und Schaltflächen der Tabellenkalkulation</h2>
+            <p>
+                Ein Klick oder eine Eingabe in den Zellen macht die
+                Tabellenansicht aktiv. Die Leisten von DocGeo weichen dann denen
+                der Tabellenkalkulation, in gleicher Höhe: darunter verschiebt
+                sich nichts.
+            </p>
+            <ul>
+                <li>
+                    Die Menüleiste behält <strong>Datei</strong>, gefolgt vom
+                    Menü <strong>DocGeo</strong>, dann den Menüs der
+                    Tabellenkalkulation.
+                </li>
+                <li>
+                    Die Schaltflächenleiste der Tabellenkalkulation
+                    (Zahlenformat, Schrift, Fett, Farben, Rahmen, Ausrichtung…)
+                    ersetzt die Aktionsleiste von DocGeo.
+                </li>
+                <li>
+                    Das Menü <strong>DocGeo</strong> bietet, was nützlich
+                    bleibt: Konstruktionsverlauf, Werkzeugpalette, Eigenschaften
+                    und das Benutzerhandbuch.
+                </li>
+                <li>
+                    Ein Klick in die Figur oder in das Feld „Konstruktion“, eine
+                    dort eingegebene Zeile oder ein Tabwechsel bringt die
+                    Leisten von DocGeo zurück. In einem Tabellen-Tab bleiben die
+                    Leisten der Tabellenkalkulation.
+                </li>
+                <li>
+                    Ein Dialog der Tabellenkalkulation (bedingte Formatierung,
+                    Zahlenformat…) verschleiert das ganze Fenster von DocGeo,
+                    bis er geschlossen wird.
+                </li>
+            </ul>
+            <p>
+                Das Feld „Konstruktion“ bleibt in einem Tabellen-Tab verfügbar
+                (<strong>DocGeo › Konstruktionsverlauf</strong>): Ein dort
+                eingegebenes Objekt wird berechnet, aber nicht gezeichnet, und
+                die Zellen dieses Tabs können es lesen.
+            </p>
+            <p>
+                Ist DocGeo in eine andere Seite eingebettet, etwa in DocTools,
+                hat es keine Menüleiste: Die Tabellenkalkulation behält ihre
+                Leisten oben in ihrer Spalte.
+            </p>
+
+            <h2 id="cellules">Die Figur liest die Zellen</h2>
+            <p>
+                Eine Formel der Figur bezeichnet eine Zelle mit dem Namen des
+                Blatts, einem Ausrufezeichen und der Adresse der Zelle, wie in
+                einer Tabellenkalkulation.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Schreibweise</th>
+                            <th>Wert</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Tabelle1!B3</code></td>
+                            <td>die Zelle B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Tabelle1!B2:B21</code></td>
+                            <td>
+                                ein Bereich aus einer Zeile oder Spalte: eine
+                                Liste von Werten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Tabelle1!A1:C3</code></td>
+                            <td>
+                                ein Rechteck: eine Liste von Zeilen, jede eine
+                                Liste
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Tabelle 1'!Tabelle1!B3</code></td>
+                            <td>die Zelle B3 des Blatts eines anderen Tabs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Tabelle1!B1, Tabelle1!B2)
+r = Tabelle1!B3
+L = Tabelle1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    Die Adresse besteht aus Buchstaben, dann Ziffern
+                    (<code>B3</code>, <code>AA12</code>), ohne <code>$</code>.
+                </li>
+                <li>
+                    Eine Zahl, ein Text oder ein Wahrheitswert wird unverändert
+                    gelesen; ein Datum als Zahl. Eine leere Zelle oder eine
+                    Zelle mit Fehler (<code>#DIV/0!</code>…) ergibt einen
+                    undefinierten Wert: Das Objekt, das sie liest, wird nicht
+                    gezeichnet.
+                </li>
+                <li>
+                    Sobald sich eine Zelle ändert, durch eine Eingabe oder durch
+                    die Berechnung der Tabelle, werden die Objekte, die sie
+                    lesen, neu berechnet und neu gezeichnet.
+                </li>
+                <li>
+                    Ein Bezug ist nur ein Teil einer Formel: Er erzeugt kein
+                    Objekt. Ein aus den Zellen gelesener Punkt wie A oben ist
+                    berechnet: Er lässt sich nicht mit der Maus ziehen. Um ihn
+                    zu bewegen, ändert man die Zellen.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">Die Zellen eines anderen Tabs</h3>
+            <p>
+                Der Name des Tabs steht vorn, in Apostrophen, wenn er ein Leer-
+                oder Sonderzeichen enthält, wie beim
+                <a href="formules.html#autres-pages">Lesen eines anderen Tabs</a
+                >: <code>'Tabelle 1'!Tabelle1!B3</code>. Seine Zellen werden so
+                gelesen, wie sie beim Verlassen dieses Tabs berechnet waren.
+            </p>
+
+            <h2 id="geo">Die Zellen lesen die Figur: GEO</h2>
+            <p>
+                In einer Zelle liest die Funktion <code>GEO</code> den Wert
+                eines Objekts der Figur, dessen Name in Anführungszeichen steht.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figur 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    Der Wert ist der, den eine Formel der Figur über den Namen
+                    des Objekts lesen würde: Länge einer Strecke, Wert eines
+                    Ausdrucks oder Schiebereglers, Text, Zustand eines
+                    Kontrollkästchens… Er folgt der Figur, während man sie
+                    bewegt.
+                </li>
+                <li>
+                    Ein Punkt oder eine Liste lässt sich nicht lesen: Erst einen
+                    Ausdruck anlegen, zum Beispiel <code>xA = x(A)</code>, dann
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Ein unbekanntes oder undefiniertes Objekt, oder eines, das
+                    weder Zahl noch Text noch Wahrheitswert ist, ergibt
+                    <code>#N/A</code>. Der Name muss in der Formel stehen:
+                    <code>=GEO(A1)</code> ergibt <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figur 1'!c")</code> liest das Objekt c eines
+                    anderen Tabs: So liest ein Tabellen-Tab eine Figur.
+                </li>
+                <li>
+                    <code>GEO</code> heißt in allen Sprachen gleich. Es gibt die
+                    Funktion nur in DocGeo: In DocCells allein ergibt sie
+                    <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Zirkelbezug</h2>
+            <p>
+                Ein von <code>GEO</code> gelesenes Objekt kann nicht von einer
+                Zelle abhängen, die von ihm abhängt. Enthält <code>A1</code> die
+                Formel <code>=GEO("m")+1</code>, wird die Neudefinition von m
+                durch die Zeile <code>m = Tabelle1!A1</code> abgelehnt:
+                „Zirkelbezug: Tabelle1!A1“.
+            </p>
+            <p>
+                Ebenso wird eine Zellformel, die einen Kreis mit der Figur
+                schließen würde, mit dieser Meldung zurückgenommen, und die
+                Zellen erhalten ihren vorherigen Inhalt zurück. In einer Datei,
+                die dennoch einen Kreis enthält, ist der Lesezugriff, der ihn
+                schließt, undefiniert.
+            </p>
+
+            <h2 id="enregistrer">Rückgängig und Speichern</h2>
+            <ul>
+                <li>
+                    Die Zellen haben ihr eigenes Rückgängig: <kbd>Strg</kbd>
+                    <kbd>Z</kbd> in den Zellen oder die Menüs der
+                    Tabellenkalkulation. Die Schaltflächen <i data-i="undo"></i>
+                    <i data-i="redo"></i> von DocGeo machen keine Eingabe in der
+                    Tabelle rückgängig.
+                </li>
+                <li>
+                    Zellen, Formeln und Formatierung werden mit der Figur in
+                    derselben <code>.dgo</code>-Datei gespeichert.
+                    <kbd>Strg</kbd> <kbd>S</kbd> in den Zellen oder
+                    <strong>Datei › Speichern</strong> speichert alles.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Für Schülerinnen und Schüler</h2>
+            <p>
+                Der Player von DocGeo zeigt das Blatt, wie eine
+                <a href="integration.html">in eine Webseite eingebettete</a>
+                Figur, ohne Menüs und Schaltflächen, mit seiner Formelleiste.
+            </p>
+            <ul>
+                <li>
+                    Schülerinnen und Schüler können in die Zellen schreiben, wie
+                    in ein Eingabefeld: Die Figur folgt.
+                </li>
+                <li>
+                    Die Schaltfläche zum Zurücksetzen stellt die Zellen so
+                    wieder her, wie sie gespeichert waren.
+                </li>
+                <li>
+                    Diese Eingaben gehören nicht zur Antwort, die eine
+                    einbettende Seite festhält: Nur die Objekte der Figur
+                    gehören dazu.
+                </li>
+            </ul>
+            <p>
+                Die Tabellenkalkulation ist eine eigene Anwendung, die nur
+                geladen wird, wenn der angezeigte Tab eine hat. Auf einer
+                Website mit eigener Kopie von DocGeo muss der Ordner
+                <code>doccells</code> neben dem Ordner von DocGeo veröffentlicht
+                sein; sonst zeigt die Tabellenansicht „⚠ DocCells“, und der Rest
+                der Figur funktioniert.
+            </p>
+        </main>
+    </body>
+</html>

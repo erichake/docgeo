@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Het rekenblad — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Het rekenblad</h1>
+            <p class="lead">
+                Een tabblad van DocGeo kan een blad van DocCells bevatten, het
+                rekenblad van DocTools: naast de figuur, of alleen in een eigen
+                tabblad. De figuur en de cellen lezen elkaar, live.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Een driehoek en rechts een blad waarvan de cellen de zijden lezen; de menu’s en knoppen van het rekenblad in de balken van DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>In het voorbeeld hierboven:</p>
+            <ul>
+                <li>
+                    de cellen B1 tot B3 lezen de lengtes van de zijden a, b en c
+                    van de driehoek: <code>=GEO("a")</code>…;
+                </li>
+                <li>B4 telt ze op: <code>=B1+B2+B3</code>;</li>
+                <li>
+                    de figuur leest die som terug met de regel
+                    <code>s = Blad1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                Als men A, B of C versleept, volgen de cellen en
+                <code>s</code> tijdens de beweging.
+            </p>
+
+            <h2 id="ajouter">Een rekenblad toevoegen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actie</th>
+                            <th>Hoe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Naast de figuur</td>
+                            <td>
+                                <strong
+                                    >Bestand › Weergave › Nieuwe
+                                    rekenbladweergave</strong
+                                >: een kolom meer, rechts, met een leeg blad; de
+                                kolommen krijgen dezelfde breedte (<a
+                                    href="interface.html#vues"
+                                    >meerdere weergaven</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>In een eigen tabblad</td>
+                            <td>
+                                <strong>Bestand › Nieuw rekenbladtabblad</strong
+                                >: een tabblad „Rekenblad 1”, „Rekenblad 2”…,
+                                dat alleen een blad bevat (<a
+                                    href="demarrage.html#classeur"
+                                    >werkmappen</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Grootte wijzigen, verplaatsen</td>
+                            <td>
+                                de scheiding tussen de kolommen slepen;
+                                <strong
+                                    >Bestand › Weergave › Weergave naar links
+                                    verplaatsen</strong
+                                >
+                                of <strong>naar rechts</strong>, als de
+                                rekenbladweergave actief is
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Verwijderen</td>
+                            <td>
+                                <strong
+                                    >Bestand › Weergave › Rekenbladweergave
+                                    verwijderen</strong
+                                >: de weergave en haar cellen verdwijnen, de
+                                figuur neemt de ruimte weer in. Een
+                                rekenbladtabblad verwijdert men zoals elk
+                                tabblad.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Een tabblad heeft hoogstens één rekenbladweergave:
+                    <strong>Nieuwe rekenbladweergave</strong> is grijs als het
+                    er al een heeft.
+                </li>
+                <li>
+                    Een rekenbladweergave toont één blad, „Blad1” genoemd,
+                    zonder bladtabs. Om met meerdere bladen te werken, maakt men
+                    meerdere rekenbladtabbladen, die elkaar lezen (<a
+                        href="#autre-onglet"
+                        >zie verder</a
+                    >).
+                </li>
+                <li>
+                    Een rekenbladweergave toevoegen of verwijderen kan ongedaan
+                    worden gemaakt, zoals de andere acties op weergaven.
+                </li>
+            </ul>
+
+            <h2 id="barres">De menu’s en knoppen van het rekenblad</h2>
+            <p>
+                Een klik of een toetsaanslag in de cellen maakt de
+                rekenbladweergave actief. De balken van DocGeo maken dan plaats
+                voor die van het rekenblad, op dezelfde hoogte: eronder
+                verschuift niets.
+            </p>
+            <ul>
+                <li>
+                    De menubalk houdt <strong>Bestand</strong>, gevolgd door het
+                    menu <strong>DocGeo</strong> en daarna de menu’s van het
+                    rekenblad.
+                </li>
+                <li>
+                    De knoppenbalk van het rekenblad (getalnotatie, lettertype,
+                    vet, kleuren, randen, uitlijning…) vervangt de actiebalk van
+                    DocGeo.
+                </li>
+                <li>
+                    Het menu <strong>DocGeo</strong> biedt wat nuttig blijft:
+                    Constructiegeschiedenis, Gereedschapspalet, Eigenschappen en
+                    de Gebruikershandleiding.
+                </li>
+                <li>
+                    Men keert terug naar de balken van DocGeo met een klik in de
+                    figuur of in het paneel „Constructie”, door er een regel in
+                    te typen, of door van tabblad te wisselen. In een
+                    rekenbladtabblad blijven de balken van het rekenblad.
+                </li>
+                <li>
+                    Een dialoogvenster van het rekenblad (voorwaardelijke
+                    opmaak, getalnotatie…) bedekt het hele venster van DocGeo
+                    met een sluier tot het wordt gesloten.
+                </li>
+            </ul>
+            <p>
+                Het paneel „Constructie” blijft beschikbaar in een
+                rekenbladtabblad (<strong
+                    >DocGeo › Constructiegeschiedenis</strong
+                >): een object dat men er typt, wordt berekend zonder getekend
+                te worden, en de cellen van dat tabblad kunnen het lezen.
+            </p>
+            <p>
+                Als DocGeo in een andere pagina is ingesloten, zoals DocTools,
+                heeft het geen menubalk: het rekenblad houdt zijn balken
+                bovenaan zijn kolom.
+            </p>
+
+            <h2 id="cellules">De figuur leest de cellen</h2>
+            <p>
+                Een formule van de figuur duidt een cel aan met de naam van het
+                blad, een uitroepteken en het adres van de cel, zoals in een
+                rekenblad.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Schrijfwijze</th>
+                            <th>Waarde</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Blad1!B3</code></td>
+                            <td>cel B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Blad1!B2:B21</code></td>
+                            <td>
+                                een bereik van één rij of één kolom: een lijst
+                                van waarden
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Blad1!A1:C3</code></td>
+                            <td>
+                                een rechthoek: een lijst van rijen, elk een
+                                lijst
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Rekenblad 1'!Blad1!B3</code></td>
+                            <td>cel B3 van het blad van een ander tabblad</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Blad1!B1, Blad1!B2)
+r = Blad1!B3
+L = Blad1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    Het adres bestaat uit letters en dan cijfers
+                    (<code>B3</code>, <code>AA12</code>), zonder <code>$</code>.
+                </li>
+                <li>
+                    Een getal, een tekst of een boolean wordt gelezen zoals hij
+                    is; een datum wordt als getal gelezen. Een lege cel of een
+                    cel met een fout (<code>#DIV/0!</code>…) geeft een
+                    ongedefinieerde waarde: het object dat haar leest, wordt
+                    niet getekend.
+                </li>
+                <li>
+                    Zodra een cel verandert, door een invoer of door de
+                    berekening van het rekenblad, worden de objecten die haar
+                    lezen opnieuw berekend en getekend.
+                </li>
+                <li>
+                    Een verwijzing is slechts een deel van een formule: ze maakt
+                    geen object. Een punt dat uit de cellen gelezen wordt, zoals
+                    A hierboven, is berekend: het kan niet met de muis worden
+                    versleept. Om het te verplaatsen, wijzigt men de cellen.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">De cellen van een ander tabblad</h3>
+            <p>
+                De naam van het tabblad komt eerst, tussen apostrofs als hij een
+                spatie of een teken bevat, zoals bij
+                <a href="formules.html#autres-pages">een ander tabblad lezen</a
+                >: <code>'Rekenblad 1'!Blad1!B3</code>. De cellen worden gelezen
+                zoals ze berekend waren toen men dat tabblad verliet.
+            </p>
+
+            <h2 id="geo">De cellen lezen de figuur: GEO</h2>
+            <p>
+                In een cel leest de functie <code>GEO</code> de waarde van een
+                object van de figuur, aangeduid met zijn naam tussen
+                aanhalingstekens.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figuur 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    De waarde is die welke een formule van de figuur zou lezen
+                    door het object te noemen: lengte van een lijnstuk, waarde
+                    van een uitdrukking of schuifregelaar, tekst, toestand van
+                    een selectievakje… Ze volgt de figuur terwijl men die
+                    bewerkt.
+                </li>
+                <li>
+                    Een punt of een lijst kan niet gelezen worden: maak eerst
+                    een uitdrukking, bijvoorbeeld <code>xA = x(A)</code>, en dan
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Een onbekend of ongedefinieerd object, of een object dat
+                    geen getal, tekst of boolean is, geeft <code>#N/A</code>. De
+                    naam moet in de formule geschreven staan:
+                    <code>=GEO(A1)</code> geeft <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figuur 1'!c")</code> leest het object c van een
+                    ander tabblad: zo leest een rekenbladtabblad een figuur.
+                </li>
+                <li>
+                    <code>GEO</code> heeft in alle talen dezelfde naam. De
+                    functie bestaat alleen in DocGeo: in DocCells alleen geeft
+                    ze <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Kringverwijzing</h2>
+            <p>
+                Een object dat door <code>GEO</code> gelezen wordt, kan niet
+                afhangen van een cel die van dat object afhangt. Als
+                <code>A1</code> <code>=GEO("m")+1</code> bevat, wordt het
+                herdefiniëren van m met de regel
+                <code>m = Blad1!A1</code> geweigerd: „Kringverwijzing:
+                Blad1!A1”.
+            </p>
+            <p>
+                Evenzo wordt een celformule die een kring met de figuur zou
+                sluiten met deze melding ongedaan gemaakt, en krijgen de cellen
+                hun vorige inhoud terug. In een bestand dat toch een kring
+                bevat, is de lezing die hem sluit ongedefinieerd.
+            </p>
+
+            <h2 id="enregistrer">Ongedaan maken en opslaan</h2>
+            <ul>
+                <li>
+                    De cellen hebben hun eigen ongedaan maken: <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> in de cellen, of de menu’s van het rekenblad.
+                    De knoppen <i data-i="undo"></i> <i data-i="redo"></i> van
+                    DocGeo maken een invoer in het rekenblad niet ongedaan.
+                </li>
+                <li>
+                    De cellen, hun formules en hun opmaak worden met de figuur
+                    opgeslagen, in hetzelfde <code>.dgo</code>-bestand.
+                    <kbd>Ctrl</kbd> <kbd>S</kbd> in de cellen, of
+                    <strong>Bestand › Opslaan</strong>, slaat alles op.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Voor leerlingen</h2>
+            <p>
+                De speler van DocGeo toont, zoals een figuur
+                <a href="integration.html">ingesloten in een webpagina</a>, het
+                blad zonder menu’s of knoppen, met zijn formulebalk.
+            </p>
+            <ul>
+                <li>
+                    De leerling kan in de cellen typen, zoals in een invoerveld:
+                    de figuur volgt.
+                </li>
+                <li>
+                    De knop om opnieuw in te stellen geeft de cellen terug zoals
+                    ze opgeslagen waren.
+                </li>
+                <li>
+                    Deze invoer hoort niet bij het antwoord van de leerling dat
+                    een insluitende pagina bewaart: alleen de objecten van de
+                    figuur.
+                </li>
+            </ul>
+            <p>
+                Het rekenblad is een aparte toepassing, die alleen geladen wordt
+                als het getoonde tabblad er een heeft. Op een site met een eigen
+                kopie van DocGeo moet de map <code>doccells</code> naast de map
+                van DocGeo gepubliceerd zijn; anders toont de rekenbladweergave
+                „⚠ DocCells”, en de rest van de figuur werkt.
+            </p>
+        </main>
+    </body>
+</html>

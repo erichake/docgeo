@@ -68,6 +68,35 @@ dans une iframe et l'appelle par `contentWindow.docCells`.
 3. **Une cellule lit la figure** par une formule DocCells `=GEO("AB")`
    (étape 3, côté DocCells).
 
+Décisions du 2026-11-20, après les étapes 1 à 5 :
+
+4. **Une seule feuille.** DocGeo ne montre que la première feuille du
+   classeur, sans barre d'onglets de feuilles : les onglets tableur de
+   DocGeo en tiennent lieu. Le mode intégré de DocCells ne doit alors
+   offrir aucun moyen d'en créer une autre (rien n'est publié : aucune
+   archive à plusieurs feuilles à reprendre).
+5. **Les barres de DocCells à la place de celles de DocGeo** (barre de
+   menus et barre de boutons), à la même hauteur, quand la vue tableur est
+   active (onglet tableur, ou clic dans la vue tableur d'une page mixte),
+   et non plus en haut de la colonne. Mécanisme envisagé : DocCells
+   dessine ses barres, vivantes, dans des éléments fournis par l'hôte de
+   même origine (portail React, dans un shadow root), et non une copie
+   par `postMessage`. Sa faisabilité est vérifiée d'abord par un essai
+   (étape 6).
+
+Décisions du 2026-11-20, après l'étape 8 :
+
+6. **Un menu DocGeo réduit** quand la vue tableur est active, plutôt que
+   des boutons ajoutés, qui surchargeraient l'interface (fait, voir
+   « Étape 8 : ce qui est fait »).
+7. La palette et les propriétés ouvertes restent ouvertes quand la vue
+   tableur devient active.
+8. **Menus de DocCells en 13 px**, comme ceux de DocGeo (étape 9).
+9. **Un seul voile** : celui de DocGeo a le même fond que celui du
+   dialogue de DocCells ouvert (étapes 9 et 10).
+10. L'éditeur intégré (`editor.html?embed`), qui n'a pas de barre de
+    menus, garde les barres de DocCells dans l'iframe.
+
 ## Modèle
 
 - **Un classeur DocCells par page au plus**, montré par **une vue tableur au
@@ -291,6 +320,149 @@ qui est dit plus haut.
     tableur.
   - Revue des limites ci-dessous avec l'auteur.
   - Liste de ce que le manuel devra couvrir (sans l'écrire).
+- [x] **Étape 6 (DocCells) — essai : les barres de DocCells dans la page
+  de l'hôte.** Un essai, pas une fonction livrée : il dit si la
+  décision 5 est faisable par un portail, et à quel prix.
+  - **Ce qui est essayé.**
+    - Accès synchrone provisoire `mountChrome({ menus, toolbar })`, qui
+      reçoit deux éléments de la page hôte, et `unmountChrome()`, qui rend
+      les barres à l'iframe.
+    - La barre de menus de DocCells (`StandaloneMenuBar`) et la barre de
+      boutons de FortuneSheet y sont dessinées par `createPortal`, dans
+      un shadow root, avec les styles de DocCells recopiés.
+    - La barre de boutons est dessinée par le `Workbook` de FortuneSheet :
+      la sortir demande un correctif `postinstall`, comme
+      `scripts/patch-fortune-html-safety.cjs`.
+  - **Page hôte d'essai** dans les tests navigateur de DocCells, pilotée
+    par Playwright avec `page.route`, comme
+    `tests/browser/embedMode.browser.mjs`. Pas de serveur de
+    développement, pas de port.
+    - Elle ouvre `index.html?embed` dans une iframe et a, en haut, une
+      bande de la hauteur des barres de DocGeo.
+    - Cette bande contient un faux menu « Fichier » de l'hôte suivi de
+      l'élément `menus`, puis l'élément `toolbar` en dessous.
+    - Elle a aussi une fausse « figure » (une zone cliquable et un champ
+      de saisie) à côté de l'iframe.
+  - **À vérifier**, une réponse par point, avec une capture :
+    1. apparence identique à celle des barres dans l'iframe (styles,
+       icônes, polices) ;
+    2. sur une sélection : Gras, couleur du texte et du fond, police,
+       format des nombres ; l'état des boutons suit la cellule
+       sélectionnée (Gras actif…) ;
+    3. Gras **pendant la saisie** d'une cellule : la saisie est-elle
+       gardée, la cellule garde-t-elle le focus ? ;
+    4. un menu ouvert, puis un clic dans la grille, puis un clic dans la
+       « figure » : le menu se ferme-t-il chaque fois ? ;
+    5. listes déroulantes et palettes placées sous leur bouton ;
+    6. dialogues ouverts depuis les barres (image, validation, mise en
+       forme conditionnelle…) : où apparaissent-ils ? ;
+    7. raccourcis clavier dans la grille (Cmd-B, Cmd-Z) ;
+    8. `unmountChrome` puis `mountChrome` : barres rendues à l'iframe puis
+       ressorties, sans perte d'état.
+  - **Résultat** : rapport dans ce mémo (« Point de reprise », « Étape
+    6 ») : ce qui marche, ce qui casse et comment le réparer, la taille
+    du correctif de FortuneSheet, et un verdict (portail, découpe de
+    l'iframe en L par `clip-path`, ou abandon). Les étapes suivantes
+    sont écrites d'après lui, avec l'auteur.
+  - Le code de l'essai n'est ni commité ni construit dans DocTools (pas de
+    `npm run build:doctools`) : l'auteur décide de son sort.
+- [x] **Étape 7 (DocCells) — les barres dans l'hôte, en vrai, et la
+  feuille unique.** Elle part du code de l'essai (étape 6), gardé tel
+  quel dans l'arbre de travail de DocCells, et le termine.
+  - **Correctif de FortuneSheet** branché dans `postinstall`, à côté de
+    `patch-fortune-html-safety.cjs`, et vérifié après une réinstallation
+    (`npm ci`).
+  - **Hauteurs imposées par l'hôte** : les barres de DocGeo ne bougent
+    pas, ce sont celles de DocCells qui s'y logent. `mountChrome` dessine
+    chaque barre à la hauteur de l'élément reçu, contenu centré
+    verticalement (pour DocGeo : barre de menus 32 px, barre de boutons
+    48 px). Rien de propre à DocGeo dans DocCells : c'est la hauteur de
+    l'élément qui compte.
+  - **« More »** : `ResizeObserver` sur l'élément de la barre de boutons,
+    qui recalcule les boutons rangés quand sa largeur change.
+  - **Dialogues** : événement `dialog` `{ open: true | false }`, émis à
+    l'ouverture et à la fermeture de tout dialogue de DocCells ou de
+    FortuneSheet, pour que l'hôte pose son propre voile pendant ce temps.
+  - **Styles** : une seule feuille construite dans le document hôte,
+    partagée par les deux shadow roots (`adoptedStyleSheets`).
+  - **Points non vérifiés par l'essai** : liste près du bord droit de la
+    fenêtre hôte, sous-menus « More formats », info-bulles, navigation au
+    clavier dans les barres. Réparer ce qui ne va pas.
+  - **Feuille unique** : paramètre d'URL du mode intégré (`&sheetTabs=0`
+    ou autre nom, au choix de DocCells). Il montre la première feuille,
+    masque la barre d'onglets de feuilles et le zoom, et retire tout
+    moyen de créer une feuille (menus, import d'un fichier à plusieurs
+    feuilles, raccourcis).
+  - **`mode=student`** : sans barre de menus ni barre de boutons
+    (barre de formule gardée). C'est ce que montre le lecteur de DocGeo,
+    qui n'a pas de barres à échanger.
+  - `mountChrome`, `unmountChrome`, `dialog` et le paramètre de feuille
+    unique décrits dans `EMBED.md` de DocCells, et dans le protocole
+    `postMessage` pour ce qui peut y passer (le paramètre et l'événement ;
+    `mountChrome` demande l'accès synchrone, donc la même origine).
+  - Tests, puis `npm run build:doctools`. Commit sur demande de l'auteur.
+- [x] **Étape 8 (DocGeo) — échange des barres.**
+  - DocGeo ouvre DocCells avec la feuille unique.
+  - **Éditeur seulement** : le lecteur n'a pas de barres. Le code va dans
+    `src/editor/`, le moteur ne fait que signaler quelle vue est active.
+  - **Vue tableur active** : dans un onglet tableur, toujours ; dans une
+    page mixte, dès qu'on clique ou qu'on tape dans les cellules, jusqu'au
+    clic dans une vue graphique, dans le panneau Construction ou sur un
+    autre onglet. (Aujourd'hui la vue active n'est jamais la vue tableur,
+    sauf onglet tableur : à revoir.)
+  - **Échange** : quand la vue tableur devient active, la barre de menus
+    de DocGeo garde son menu Fichier, suivi des menus de DocCells, et la
+    barre de boutons de DocGeo est remplacée par celle de DocCells ;
+    l'inverse quand elle cesse de l'être. Les deux barres gardent leur
+    hauteur : rien ne bouge en dessous. `mountChrome` une fois, au premier
+    besoin, puis on montre ou on cache les éléments. Pas de
+    `unmountChrome` à chaque échange (FortuneSheet recrée alors sa barre).
+  - L'iframe, qui n'a plus ses barres, a sa grille en haut de la colonne.
+  - **Voile** de DocGeo sur toute sa page pendant un dialogue de DocCells.
+  - **À proposer à l'auteur pendant l'étape** : ce qui manque de DocGeo
+    quand ses autres menus sont cachés, par exemple rouvrir le panneau
+    Construction dans un onglet tableur.
+  - Tests navigateur : échange des barres au clic dans une page mixte,
+    hauteur inchangée de la vue graphique, Gras sur une cellule depuis la
+    barre de DocGeo, Fichier > Enregistrer depuis une vue tableur active.
+    Poids du moteur et du lecteur mesurés.
+
+- [x] **Étape 9 (DocCells) — taille des menus et fond du voile donnés à
+  l'hôte.** Rien de propre à DocGeo : comme pour la hauteur, c'est
+  l'élément reçu qui compte.
+  - **Taille du texte** : la barre de menus montée par `mountChrome`
+    prend la taille de police de l'élément `menus` (calculée, donc
+    héritée de la page hôte), pour ses boutons, leurs listes et leurs
+    sous-menus. Dans l'iframe, et dans DocCells seul, rien ne change
+    (15 px). DocGeo donne 13 px.
+    - Aujourd'hui `.dc-menu-root-button` a `font-size: 15px`
+      (`StandaloneMenuBar.css`), et `.dc-chrome` reçoit les 16 px du
+      document de l'iframe (`copyInherited` de `chromeMount.js`).
+  - **Fond du voile** : l'événement `dialog` porte, avec `open: true`, le
+    voile du dialogue au premier plan, `veil: { background,
+    backdropFilter }` (valeurs CSS calculées de son voile), ou `veil:
+    null` s'il n'en a pas (recherche / remplacement). Un nouvel événement
+    `dialog` est émis quand le dialogue au premier plan change de voile
+    sans que tous soient fermés.
+    - Voiles relevés le 2026-11-20 : `rgba(32, 33, 36, 0.38)` pour la
+      plupart des dialogues de DocCells, `rgba(31, 35, 41, 0.48)` avec
+      `blur(2px)` pour le format des nombres, `rgba(15, 23, 42, …)` pour
+      « À propos », blanc à 50 % pour les dialogues de FortuneSheet.
+      DocCells peut aussi les unifier : décision qui lui appartient.
+  - Décrit dans `EMBED.md` de DocCells (sections 6 et 14) et dans le
+    protocole `postMessage` (le voile y passe).
+  - Tests, puis `npm run build:doctools`. Commit sur demande de l'auteur.
+- [x] **Étape 10 (DocGeo) — le voile et les menus harmonisés.**
+  - Le voile de DocGeo prend `veil.background` et `veil.backdropFilter`
+    de l'événement `dialog` (transparent si `veil` est `null`).
+  - Rien à faire pour la taille : `.dge-sheet-menus` hérite des 13 px de
+    `.dge-menubar` ; vérifier les menus de DocCells en 13 px, comme les
+    menus de DocGeo et leurs listes.
+  - Tests navigateur : couleur du voile égale à celle du voile du
+    dialogue de DocCells (« Couleurs alternées », un dialogue de
+    FortuneSheet, la recherche), taille du texte des menus de DocCells.
+    Poids du moteur et du lecteur mesurés (inchangés : tout est dans
+    l'éditeur).
 
 ## Limites de la v1
 
@@ -303,11 +475,404 @@ qui est dit plus haut.
 
 ## Point de reprise
 
-État au 2026-11-20 : étapes 1, 2, 4 et 5 faites dans DocGeo, étape 3 faite
-dans DocCells (rien n'est commité, ni dans DocGeo ni dans DocCells ; DocCells
-construit dans `doctools_MAIN/public/apps/doccells`). Toutes les étapes sont
-faites : restent les décisions de l'auteur sur les limites (ci-dessous),
-le commit et le manuel.
+État au 2026-11-21 : **toutes les étapes sont faites et commitées**
+(DocGeo : étapes 1 à 5 dans `5596d9f`, étapes 8 et 10 et le manuel
+ensuite ; DocCells jusqu'à `2564c33`, construit dans
+`doctools_MAIN/public/apps/doccells`). Restent la hauteur des lignes des
+listes (« Étape 10 », ci-dessous) et les décisions de l'auteur sur les
+limites de la v1.
+
+### Étape 10 : ce qui est fait
+
+- **Voile** (`mountSheetBars`, `src/editor/main.ts`) : à chaque événement
+  `dialog`, le voile de DocGeo prend `veil.background` et
+  `veil.backdropFilter` (transparent et sans filtre si `veil` est `null`
+  ou absent). « À propos » reste sans voile de DocGeo, comme à l'étape 8.
+  Vérifié à la main (Playwright) : « Couleurs alternées »
+  `rgba(32, 33, 36, 0.38)`, sur la figure comme sur l'iframe ; format des
+  nombres `rgba(31, 35, 41, 0.48)` et `blur(2px)` ; recherche (Cmd-F) :
+  voile transparent ; dialogue fermé : voile retiré.
+- **Menus** : rien à changer, les menus de DocCells héritent des 13 px de
+  la barre de menus. Vérifié : boutons des menus, listes et sous-menus en
+  13 px.
+- **À voir avec l'auteur** : les lignes des listes de DocCells font
+  38 px, celles de DocGeo 32 px, et leurs icônes 22 px ; l'écart se voit
+  quand on passe d'un menu à l'autre, sans gêner. À harmoniser dans
+  DocCells (hauteur des lignes donnée par l'hôte, comme la taille du
+  texte) si l'auteur le souhaite.
+- **Tests** (`tests/browser/sheet.test.ts`, même test que l'étape 8) :
+  fond du voile égal à celui du voile de « Couleurs alternées » dans
+  l'iframe, voile retiré à la fermeture du dialogue, menus de DocCells
+  de la même taille que ceux de DocGeo. Suite navigateur complète :
+  1 588/1 588.
+- **Poids** : moteur et lecteur inchangés ; éditeur 329 524 → 329 637
+  octets (+113).
+- **Correction signalée par l'auteur** : la barre de menus réunit deux
+  systèmes de menus (DocGeo et DocCells), qui s'ignoraient. Un menu de
+  DocCells s'ouvrait par-dessus un menu ouvert de DocGeo (le voile des
+  menus de DocGeo est sous la barre), et le survol ne passait pas de l'un
+  à l'autre.
+  - `menuBar` (`src/editor/menus.ts`) reçoit l'élément des menus de
+    DocCells (`inner`) : un `pointerover` sur un de ses titres ferme le
+    menu ouvert de DocGeo et ouvre celui-là (par un `click` sur son
+    bouton) ; un `pointerdown` dans cet élément ferme le menu de DocGeo ;
+    le survol d'un titre de DocGeo, un menu de DocCells ouvert, le ferme
+    (`click` sur son bouton) et ouvre celui de DocGeo. Le menu ouvert de
+    DocCells est reconnu par son `aria-expanded="true"`, l'attribut ARIA
+    standard des titres de menus : rien d'autre de DocCells n'est lu.
+  - Comme entre deux menus de DocGeo, un clic sur un titre déjà ouvert
+    par le survol le referme.
+  - Non fait : les flèches du clavier ne passent pas d'une barre à
+    l'autre (chacune reste dans ses menus ; Tab passe de l'une à
+    l'autre).
+  - Vérifié avec la vraie souris (Playwright), page mixte et onglet
+    tableur : jamais deux menus ouverts. Test : un menu de DocGeo, survol
+    de « Format » de DocCells, survol de « Fichier », fermeture. Suite
+    navigateur complète : 1 588/1 588. Éditeur 329 637 → 329 909 octets
+    (+272), moteur et lecteur inchangés.
+
+### Étape 9 : ce qui est fait (dans DocCells)
+
+Décrit dans `EMBED.md` de DocCells : section 6 (`veil` de l'événement
+`dialog`, exemple de la section 14) et section 14 (« Taille du texte »).
+
+- **Taille du texte des menus** (`chromeMount.js`) : la barre de menus
+  sortie ne recopie plus la taille du texte du document de l'iframe ;
+  elle hérite de celle de l'élément `menus` à travers le shadow root, et
+  ses boutons, listes, sous-menus et raccourcis la prennent
+  (`font-size: inherit`, règles propres aux barres sorties). Elle suit
+  donc aussi un changement de taille de la page hôte, sans nouveau
+  `mountChrome`. Dans l'iframe et dans DocCells seul : 15 px, listes
+  14 px, inchangés. Pour DocGeo, `.dge-sheet-menus` hérite des 13 px de
+  `.dge-menubar` : rien à faire.
+  - Les raccourcis (13 px dans l'iframe) prennent aussi la taille de
+    l'hôte, comme les `kbd` de DocGeo.
+  - Non changé : hauteur des lignes des listes (38 px, contre 32 px chez
+    DocGeo) et icônes de 22 px. À voir avec l'auteur à l'étape 10 si
+    l'écart se voit.
+- **Voile** (`dialogWatch.js`) : avec `open: true`, l'événement `dialog`
+  porte `veil: { background, backdropFilter }` (valeurs calculées), ou
+  `veil: null`. Le voile d'un dialogue est l'élément le plus extérieur,
+  parmi lui et ses ancêtres, placé (`fixed` ou `absolute`) et qui a un fond
+  ou un `backdrop-filter` ; la recherche de FortuneSheet n'en a pas. Le
+  premier plan est le voile de plus grand `z-index`. Un nouvel événement
+  `{ open: true, veil }` est émis quand ce voile change, dialogues
+  ouverts ; `open: false` n'a pas de `veil`. Passe tel quel par le
+  protocole `postMessage`.
+  - Voiles non unifiés (décision laissée à l'auteur) : `rgba(32, 33, 36,
+    0.38)` pour la plupart des dialogues ; format des nombres
+    `rgba(31, 35, 41, 0.48)` + `blur(2px)` ; noms définis
+    `rgba(15, 23, 42, 0.38)` ; « À propos » `rgba(15, 23, 42, 0.35)` ;
+    impression `rgb(238, 241, 244)` **opaque** (aperçu plein écran : le
+    voile de DocGeo deviendra opaque aussi) ; FortuneSheet
+    `rgba(255, 255, 255, 0.5)`.
+  - « À propos » a aussi son `veil` (le sien, déjà sur toute la page
+    hôte) : DocGeo, qui ne pose pas de voile pour lui (étape 8), doit
+    continuer à l'ignorer pour ne pas le doubler.
+- **Tests** (DocCells) : `chromePortal.browser.mjs` **37/37** (4
+  nouvelles vérifications : menus sortis en 13 px hérités puis 11 px,
+  boutons, listes, sous-menus et raccourcis ; menus rendus à l'iframe en
+  15 / 14 px ; `veil` égal au voile dessiné pour « Couleurs alternées »,
+  le format des nombres (flou) et « À propos », identique par le
+  protocole ; recherche `veil: null`, puis alerte de FortuneSheet
+  par-dessus : nouvel événement avec son voile, puis `null`, puis
+  fermé). La comparaison « barre de menus identique » se fait avec
+  l'élément `menus` à 15 px. `embedMode.browser.mjs` 44/44, tests Node
+  85/85, ESLint propre sur les fichiers modifiés.
+- **Poids** : bundle principal de DocCells 5 686 871 → 5 687 860 octets
+  (+989). DocGeo ne change pas.
+- **Pour l'étape 10** : `docCells.on("dialog", ({ open, veil }) => …)`,
+  `veil?.background ?? "transparent"`, `veil?.backdropFilter ?? "none"` ;
+  mettre à jour le voile à chaque événement `open: true`, pas seulement au
+  premier.
+
+### Étape 8 : ce qui est fait
+
+- **Feuille unique** : le lecteur et l'éditeur ouvrent
+  `../doccells/index.html?embed&singleSheet&lang=…` (le lecteur ajoute
+  toujours `&mode=student`).
+- **Moteur** (`src/sheet.ts`) : un `pointerdown` ou un `keydown` dans la
+  fenêtre de DocCells (écoutés en capture) fait de la vue tableur la vue
+  active (`c.active`) de la figure montrée et appelle
+  `dgpad.sheetActivated`. `dgpad.sheetReady(cells)` est appelé quand
+  DocCells est prêt. Rien d'autre : le lecteur n'a pas de barres.
+- **Éditeur** (`src/editor/main.ts`) :
+  - `mountChrome` une fois, à `sheetReady` : la grille de l'iframe est
+    donc en haut de la colonne dès que DocCells est prêt, que la vue
+    tableur soit active ou non. Deux éléments : `.dge-sheet-menus`, dans
+    la barre de menus après les menus de DocGeo (32 px), et
+    `.dge-sheet-bar`, placé comme `.dge-bar` (48 px). Pas
+    d'`unmountChrome`.
+  - **Échange** : classe `dge-sheet-on` du `body` quand la vue active est
+    la vue tableur (`showSheetBars`, appelé par `showActiveView`, qui
+    l'est aussi maintenant à l'ouverture d'une page). Elle cache
+    `.dge-bar` et les menus de DocGeo sauf Fichier, et montre les deux
+    éléments de DocCells. Rien ne bouge en dessous (vérifié : vue
+    graphique au pixel près, barre de DocCells à la place exacte de
+    `.dge-bar`).
+  - **Sortie** : clic dans une vue graphique (déjà fait par le moteur),
+    dans le panneau Construction, ou ligne saisie (`leaveSheet` : la
+    première vue graphique devient active), ou autre onglet. Dans un
+    onglet tableur, rien n'en sort.
+  - **Vue tableur active** : « Supprimer la vue » est désactivé (il aurait
+    supprimé la vue tableur) ; Déplacer la vue à gauche / droite déplace
+    la colonne tableur ; une ligne saisie va dans la vue graphique.
+  - **Clavier** : les flèches de la barre de menus sautent les menus
+    cachés (`menus.ts`).
+  - **Voile** : à l'événement `dialog`, `dge-sheet-dialog` montre un voile
+    transparent sur toute la page (z-index 21) et passe l'iframe
+    au-dessus (22). Pas de voile pour « À propos », dessiné dans la barre
+    de menus sortie, qui a déjà le sien sur toute la page (reconnu par un
+    `[aria-modal="true"]` dans le shadow root des menus).
+  - **Mode intégré de l'éditeur** (`editor.html?embed`) : il n'a pas de
+    barre de menus ; rien n'est échangé, DocCells garde ses barres dans
+    l'iframe, comme avant.
+- **Tests** (`tests/browser/sheet.test.ts`, « DocCells' bars in the
+  editor's ») : l'éditeur doit être une fenêtre de premier niveau pour
+  avoir sa barre de menus, le test l'ouvre donc par `window.open`. Échange
+  au `pointerdown` dans DocCells, menus et barres montrés ou cachés,
+  hauteur et place inchangées de la vue graphique et de la barre ; Gras
+  sur A1 depuis la barre de DocGeo ; Fichier > Enregistrer depuis la vue
+  tableur active (`showSaveFilePicker` simulé), le fichier contient le
+  Gras ; retour par la vue graphique puis par le panneau Construction ;
+  onglet tableur ; dialogue « Couleurs alternées » : voile sur la page,
+  iframe au-dessus. Suite complète : tout passe (1 588 tests navigateur,
+  284 unitaires) ; à un premier passage, `fit.test.ts` (pincement) et
+  `embed.test.ts` (« circle radius… is part of the state », délai
+  dépassé) ont échoué sous charge, puis passé seuls et à la relance
+  complète.
+- **Vérifié aussi à la main** (Playwright, éditeur réel, souris et
+  clavier) : saisie au clavier dans une cellule, Gras par la souris,
+  « À propos » (pas de voile de DocGeo), clic sur le voile sans effet,
+  flèches dans la barre de menus.
+- **Poids** : moteur 375 132 → 375 363 octets (**+231**, +77 gzip) ;
+  lecteur `main` inchangé (15 830) ; éditeur 327 914 → 329 341 (+1,4 Ko).
+  Le chantier compte **+6,0 Ko** au moteur (369 321 → 375 363), pour 8 Ko
+  prévus.
+- **Propositions faites à l'auteur**, tranchées par les décisions 6 à 10
+  (la palette ou les propriétés ouvertes, qui restent ouvertes et
+  couvrent la droite de la grille, sont gardées telles quelles).
+- **Menu « DocGeo »** (décision 6), ajouté après l'étape :
+  - Second menu de la barre, montré seulement quand la vue tableur est
+    active, à la place des autres menus de DocGeo : Historique de la
+    construction, Palette d'outils, Propriétés (les bascules du menu
+    Affichage), puis Manuel d'utilisation.
+  - Son nom est « DocGeo » dans toutes les langues : c'est un nom, et
+    « Affichage » ferait doublon avec celui de DocCells, juste à côté.
+  - Vérifié : dans un onglet tableur, il ferme et rouvre le panneau
+    Construction, la grille suit. Test mis à jour (menus montrés et
+    cachés) ; suite navigateur complète : 1 588/1 588.
+  - Poids : éditeur 329 341 → 329 524 octets (+183) ; moteur et lecteur
+    inchangés.
+
+### Étape 7 : ce qui est fait (dans DocCells)
+
+Décrit dans `EMBED.md` de DocCells : section 1 (`&singleSheet`,
+`mode=student`), section 2 (`mountChrome`, `unmountChrome`), section 6
+(événement `dialog`), section 14 (« Barres dans la page hôte »).
+
+- **Correctif de FortuneSheet** `scripts/patch-fortune-chrome-portal.cjs`,
+  dernier de `postinstall`. Vérifié par un `npm ci` dans une copie du
+  dépôt : il s'applique, et les bundles obtenus sont identiques octet pour
+  octet à ceux du `node_modules` de travail. Sept modifications du bundle
+  ESM (les quatre de l'essai, plus 5 à 7 ci-dessous).
+- **Hauteurs imposées par l'hôte** : chaque barre prend la hauteur de
+  l'élément reçu, contenu centré (règles du shadow root, rien de propre à
+  DocGeo). Vérifié à 32 et 48 px, écart au centre ≤ 1 px.
+- **« More »** (correctif 5) : `ResizeObserver` (de la fenêtre de
+  l'élément) sur la barre ; le rangement est recalculé à chaque largeur, y
+  compris pour des barres montées dans une bande masquée puis montrée
+  (cas de l'étape 8 : `mountChrome` une fois, puis montrer / cacher).
+  Remarque : à 1 300 px, « More » apparaît (Formule rapide et Filtre y
+  vont). L'essai comptait 37 éléments sans « More » parce que FortuneSheet
+  mesurait sa barre avant que DocCells y ajoute ses 6 boutons : la barre
+  débordait sans qu'on le voie.
+- **Dialogues** : événement `dialog` `{ open }` (accès synchrone et
+  protocole), `true` au premier dialogue ouvert, `false` quand aucun ne
+  l'est plus. Observation du DOM (`src/features/embed/dialogWatch.js`) :
+  dialogues de DocCells (`aria-modal`), voile des dialogues et alertes de
+  FortuneSheet, recherche / remplacement. Vérifié sur 6 dialogues, dont la
+  recherche (Cmd-F) et « À propos » (dans la barre sortie).
+- **Styles** : une feuille construite dans le document hôte, adoptée par les
+  deux shadow roots (125 Ko de CSS une fois au lieu de deux), refaite à
+  chaque `mountChrome` (environ 24 ms, styles et premier dessin compris).
+- **Points non vérifiés par l'essai** :
+  - listes près du bord droit : `Combo` compare à la largeur de la fenêtre
+    qui les montre (correctif 6) ; Format et Bordures placées à 65 px du
+    bord : listes dans la fenêtre ;
+  - sous-menus (correctif 7) : les styles de bordure sont placés contre le
+    bord de la fenêtre hôte. « More formats » de FortuneSheet est masqué
+    par DocCells, qui le remplace par sa commande « Format personnalisé »
+    (un dialogue) : vérifiée au bord droit ;
+  - info-bulles : visibles, juste sous la barre (3 px), au-dessus de
+    l'iframe ;
+  - clavier : Tab depuis « Fichier » de l'hôte entre dans la barre de
+    menus, Entrée ouvre un menu, Tab en parcourt les commandes, Échap
+    ferme, Tab continue jusqu'aux boutons. Corrigé : Échap ferme aussi
+    « À propos » quand le focus est dans la page hôte. Comme dans
+    l'iframe, Entrée sur un bouton de FortuneSheet (des `div`) ne fait
+    rien.
+- **Feuille unique : `&singleSheet`** (`=0`, `false`, `no`, `off` le
+  désactivent). `load` montre la première feuille (ordre des onglets) ;
+  barre d'onglets et zoom masqués (`showSheetTabs: false`). Plus aucun
+  moyen de créer une feuille : le « + », la liste et le menu contextuel des
+  onglets sont dans cette barre ; ni les menus de DocCells, ni le menu
+  contextuel de la grille, ni un raccourci n'en créent (vérifié), et le
+  mode intégré n'ouvre pas de fichier. Les autres feuilles d'une archive
+  restent dans le classeur et dans `save()`, non montrées. Le zoom au
+  clavier ou à la molette de FortuneSheet reste possible.
+- **`mode=student`** (avec `?embed` seulement ; DocCells seul n'est pas
+  changé) : ni barre de menus ni barre de boutons, barre de formule
+  gardée, grille en haut (49 px, comme avec les barres sorties) ;
+  raccourcis de la grille gardés ; `mountChrome` renvoie `false`.
+- **Tests** (DocCells) :
+  - `tests/browser/chromePortal.browser.mjs` (le test de l'essai,
+    complété) : **33/33** ;
+  - `embedMode.browser.mjs` 44/44 ; recalcul sans serveur du skill de
+    tests 8/8 ; tests Node 85/85 ; ESLint propre sur le code modifié (la
+    seule erreur, `Buffer` dans `vite.config.js`, est antérieure). Un test
+    Node (`change` après suppression d'une feuille, attente de 10 ms) a
+    échoué pendant qu'un build tournait en parallèle et passe sinon :
+    instable sous charge, sans lien.
+- **Poids** : bundle principal de DocCells 5 681 953 (avant l'essai) →
+  5 686 871 octets (+4,9 Ko, dont +2,5 Ko pour l'essai). DocGeo ne change
+  pas.
+- **Pour l'étape 8** :
+  - URL : `../doccells/index.html?embed&singleSheet` (éditeur) ; le
+    lecteur garde `&mode=student`, qui n'a plus de barres, et peut ajouter
+    `&singleSheet` ;
+  - `mountChrome` une fois, puis montrer / cacher les éléments : la barre
+    de boutons se recalcule toute seule quand son élément réapparaît ;
+  - les éléments doivent avoir leur hauteur (32 et 48 px) ;
+  - `docCells.on("dialog", …)` pour le voile.
+- **Manuel** : rien de nouveau côté DocGeo à ce stade (l'échange des barres
+  viendra avec l'étape 8).
+
+### Étape 6 : rapport de l'essai (dans DocCells)
+
+**Verdict : le portail marche.** Les huit points passent, après quatre
+corrections faites pendant l'essai. Pas besoin de découper l'iframe en L
+par `clip-path`. Il reste des choses à régler avant une vraie fonction (voir
+« À régler »).
+
+**Code de l'essai** (DocCells, dans l'arbre de travail, ni commité ni
+construit dans DocTools ; `node_modules` patché à la main, le script n'est
+pas encore dans `postinstall`) :
+
+- `src/features/embed/chromeMount.js` (150 lignes) :
+  `docCells.mountChrome({ menus, toolbar })` et `unmountChrome()`. Chaque
+  élément reçoit un shadow root ouvert avec une copie des styles de
+  DocCells : le texte de toutes ses feuilles, adresses `url()` rendues
+  absolues, `body.x` réécrit en `.dc-chrome.x`. Les règles `:root` et `body`
+  ne s'appliquent pas dans un shadow root : police, taille, couleur et
+  interligne sont recopiés de l'iframe sur l'élément de montage. Il exporte
+  aussi `queryChrome`, `queryChromeAll` et `observeChrome`, qui cherchent
+  dans les deux barres puis dans le document, et `toggleChromeClass`.
+- Correctif de FortuneSheet `scripts/patch-fortune-chrome-portal.cjs`
+  (bundle ESM seul, celui que lit Vite ; environ 50 lignes ajoutées au
+  bundle, 4 endroits) :
+  1. réglage `doccellsToolbarContainer` du `Workbook` : la barre de
+     boutons y est dessinée par `createPortal`, avec une copie des symboles
+     SVG des icônes (un `<use href="#id">` ne voit que les symboles de son
+     propre arbre) ;
+  2. `useOutsideClick` (fermeture des listes et palettes) écoute aussi le
+     document hôte. Il reconnaît un clic dans le shadow root par
+     `composedPath`, car dans le document hôte la cible est l'élément
+     porteur ;
+  3. bouton Image : le champ de fichier est pris dans le bouton
+     (`showImgChooser` le cherchait dans le document de DocCells, et le
+     bouton ne faisait plus rien) ;
+  4. la liste « More » est dessinée dans l'élément de la barre (elle
+     s'ouvrait dans l'iframe, loin de son bouton).
+- DocCells (+83/−37 lignes dans 5 fichiers) : `App.jsx` suit l'état des
+  barres (`flushSync`, pour que les portails soient démontés avant qu'on
+  vide les shadow roots) ; `StandaloneMenuBar` dessine sa barre par
+  `createPortal`, et ferme ses menus sur un clic ou Échap dans l'un ou
+  l'autre document ; les commandes des menus (`standaloneMenuCommands.js`)
+  et les boutons ajoutés par DocCells (`useFortuneToolbarButtons.js`)
+  cherchent la barre par `queryChrome` et la regardent par
+  `observeChrome`, et les boutons sont remis quand la barre change de
+  place.
+- Un `mousedown` dans la barre de boutons hôte est annulé (sauf dans un
+  champ de saisie) : le focus reste dans l'iframe.
+- Test : `tests/browser/chromePortal.browser.mjs` (Playwright, build servi
+  par `page.route`, sans serveur ni port). Page hôte avec une bande de
+  32 px (faux menu « Fichier » puis l'élément `menus`) et une de 48 px
+  (`toolbar`), une fausse figure (zone et champ) à gauche de l'iframe.
+  Résultat : **22/22**, captures `SHOTS`.
+
+**Réponses aux huit points :**
+
+1. **Apparence identique** : mêmes tailles, positions, polices, couleurs
+   et icônes, élément par élément, pour les deux barres. Sur 1 300 px de
+   large, la barre hôte montre 37 éléments sans « More », contre 25 sur les
+   1 000 px de l'iframe. **Hauteurs** : barre de menus de DocCells 37 px
+   (DocGeo 32), barre de boutons 41 px (DocGeo 48). Quand l'iframe n'a plus
+   ses barres, sa grille remonte de 127 à 49 px de son bord.
+2. **Sélection** : Gras, couleur du texte, couleur du fond, police (Arial)
+   et format (pourcentage) s'appliquent. L'état de Gras suit la cellule
+   sélectionnée. Les menus qui passent par la barre (alignement, formats)
+   marchent aussi, sans laisser de liste ouverte.
+3. **Gras pendant la saisie** : avec la barre hôte, la saisie est gardée et
+   la cellule garde le focus (`abc`, Gras, `def` donne `abcdef`). C'est
+   mieux que la barre dans l'iframe, où le bouton prend le focus et la
+   suite de la saisie est perdue (`abc`). Dans les deux cas, FortuneSheet
+   ne met rien en gras pendant une saisie sans sélection de texte.
+4. **Fermeture** : un menu ouvert se ferme sur un clic dans la grille, dans
+   la figure, dans son champ et sur « Fichier », et sur Échap. Une palette
+   se ferme sur un clic dans la grille ou dans la figure, et reste ouverte
+   sur un clic dedans. (Corrections 2 et `StandaloneMenuBar`.)
+5. **Listes et palettes** : toutes sont placées 2 à 4 px sous leur bouton,
+   par-dessus l'iframe et la figure (Format, Police, Taille, couleurs,
+   Bordures, Fusion, Alignement, Rotation).
+6. **Dialogues** : ceux de DocCells (mise en forme conditionnelle,
+   graphique, liste déroulante, bouton Graphique) s'ouvrent dans l'iframe,
+   et leur voile ne couvre que l'iframe. « À propos » est dans la barre de
+   menus : il couvre toute la page hôte. Le bouton Image ouvre le sélecteur
+   de fichier (correction 3).
+7. **Raccourcis** dans la grille : Cmd-B puis Cmd-Z marchent, et le bouton
+   Gras suit.
+8. **`unmountChrome` puis `mountChrome`** : les barres reviennent dans
+   l'iframe avec les boutons ajoutés par DocCells, puis ressortent. Le
+   classeur, la sélection et l'historique d'annulation sont gardés, et Gras
+   marche ensuite. FortuneSheet recrée sa barre (son état local, comme la
+   couleur personnalisée, repart de zéro).
+
+**Mesures** : `mountChrome` prend 11 à 25 ms (copie des styles et premier
+dessin des deux barres). Il recopie 125 Ko de CSS dans chaque shadow root.
+Le bundle de DocCells passe de 5 681 953 à 5 684 505 octets (+2,5 Ko).
+DocGeo ne change pas.
+
+**Non-régression** (DocCells) : ESLint propre ; tests Node 85/85 ;
+`embedMode.browser.mjs` 44/44 ; variante sans serveur du skill de tests
+8/8.
+
+**À régler avant une vraie fonction :**
+
+- **Hauteurs** : DocGeo adopte celles de DocCells (37 et 41 px), ou
+  l'hôte impose les siennes (option de `mountChrome`, règles ajoutées au
+  shadow root).
+- **« More »** : FortuneSheet ne recalcule les boutons rangés dans
+  « More » que quand la largeur de sa grille change, pas celle de la bande
+  hôte. Il faut un `ResizeObserver` sur l'élément de la barre (correctif),
+  sinon une fenêtre redimensionnée laisse la barre déborder ou rester
+  rangée.
+- **Dialogues** : leur voile ne couvre que l'iframe. Pendant un dialogue,
+  les barres et la figure restent cliquables. Il faudrait que DocGeo pose
+  un voile, ou que DocCells signale l'ouverture et la fermeture des
+  dialogues.
+- **Styles** : 2 × 125 Ko copiés. Mieux vaut une seule feuille construite
+  dans le document hôte et partagée (`adoptedStyleSheets`). La copie est
+  faite au montage : en développement, un rechargement à chaud du CSS ne
+  l'atteint pas.
+- **Non vérifié** : listes près du bord droit de la fenêtre hôte (le
+  `Combo` compare à `window.innerWidth` de l'iframe), sous-menus « More
+  formats » (placés d'après le cadre du classeur dans l'iframe), info-bulles
+  des boutons, navigation au clavier (Tab) dans les barres, mode
+  `mode=student`.
+- **Correctif** : il ne patche que le bundle ESM et n'est pas encore dans
+  `postinstall`. Une réinstallation l'efface, et sans lui `mountChrome`
+  laisse la barre de boutons dans l'iframe.
 
 ### Étape 5 : ce qui est fait
 
@@ -580,8 +1145,8 @@ l'hôte : `GEO` »), avec ce qui suit pour l'étape 4.
 ### Remarques pour la suite
 
 - `?lang=` transmis à DocCells (étape 5).
-- Le lecteur ouvre DocCells en `mode=student`, qui montre encore ses
-  menus Édition, Affichage, Insertion…
+- Le lecteur ouvre DocCells en `mode=student`, qui ne montre plus ni menus
+  ni barre de boutons (étape 7).
 - Dans l'éditeur, la palette d'outils ouverte couvre la droite de la vue
   tableur comme celle d'une vue graphique ; dans un onglet tableur, la
   palette et la zone de saisie restent (un objet saisi y est calculé,
@@ -598,7 +1163,23 @@ l'hôte : `GEO` »), avec ce qui suit pour l'étape 4.
   fois dans la suite complète, sous charge, et passe seul et à la
   relance : instable, sans lien avec ce chantier.
 
-### Manuel (à écrire plus tard, rien n'est fait)
+### Manuel (fait le 2026-11-21)
+
+Page `tableur.html` dans les 12 langues (groupe « Construire », après
+les macros), capture `tableur.webp` (`spreadsheet` de
+`tools/manual/shots.mjs` : triangle, cellules `GEO`, somme relue par la
+figure, vue tableur active). Ajouts dans `interface.html` (menu Fichier,
+menu DocGeo, « Plusieurs vues »), `demarrage.html` (classeurs),
+`formules.html` (« Lire une cellule du tableur », `#cellules`),
+`integration.html`, `index.html`, `formats.html` et `faq.html`. Ce qui
+était prévu :
+
+
+- Les barres de DocCells à la place de celles de DocGeo quand on clique
+  dans les cellules (Fichier reste, et le menu DocGeo : Construction,
+  palette, propriétés, manuel), retour en cliquant dans la figure ou
+  dans le panneau Construction ; onglet tableur ; une seule feuille par
+  vue tableur (plusieurs feuilles : plusieurs onglets tableur).
 
 - Fichier > Nouvel onglet tableur ; Fichier > Vue > Nouvelle vue tableur,
   Supprimer la vue tableur (`interface.html`, section « Plusieurs

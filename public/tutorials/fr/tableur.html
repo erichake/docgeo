@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Le tableur — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Le tableur</h1>
+            <p class="lead">
+                Un onglet de DocGeo peut contenir une feuille de calcul de
+                DocCells, le tableur de DocTools : à côté de la figure, ou seule
+                dans son onglet. La figure et les cellules se lisent l’une
+                l’autre, en direct.
+            </p>
+
+            <figure>
+                <img
+                    src="img/tableur.webp"
+                    alt="Un triangle et, à droite, une feuille dont les cellules lisent ses côtés ; les menus et les boutons du tableur dans les barres de DocGeo"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>Dans l’exemple ci-dessus :</p>
+            <ul>
+                <li>
+                    les cellules B1 à B3 lisent les longueurs des côtés a, b et
+                    c du triangle : <code>=GEO("a")</code>… ;
+                </li>
+                <li>B4 en fait la somme : <code>=B1+B2+B3</code> ;</li>
+                <li>
+                    la figure relit cette somme par la ligne
+                    <code>s = Feuille1!B4</code>.
+                </li>
+            </ul>
+            <p>
+                Quand on déplace A, B ou C, les cellules et <code>s</code>
+                suivent pendant le mouvement.
+            </p>
+
+            <h2 id="ajouter">Ajouter un tableur</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>À côté de la figure</td>
+                            <td>
+                                <strong
+                                    >Fichier › Vue › Nouvelle vue
+                                    tableur</strong
+                                >
+                                : une colonne de plus, à droite, avec une
+                                feuille vide ; les colonnes prennent la même
+                                largeur (<a href="interface.html#vues"
+                                    >plusieurs vues</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dans son propre onglet</td>
+                            <td>
+                                <strong>Fichier › Nouvel onglet tableur</strong>
+                                : un onglet « Tableur 1 », « Tableur 2 »…, qui
+                                ne contient qu’une feuille (<a
+                                    href="demarrage.html#classeur"
+                                    >classeurs</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Redimensionner, déplacer</td>
+                            <td>
+                                tirer la séparation des colonnes ;
+                                <strong
+                                    >Fichier › Vue › Déplacer la vue à
+                                    gauche</strong
+                                >
+                                ou <strong>à droite</strong>, quand la vue
+                                tableur est active
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer</td>
+                            <td>
+                                <strong
+                                    >Fichier › Vue › Supprimer la vue
+                                    tableur</strong
+                                >
+                                : la vue et ses cellules disparaissent, la
+                                figure reprend la place. Un onglet tableur se
+                                supprime comme tout onglet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    Un onglet a au plus une vue tableur :
+                    <strong>Nouvelle vue tableur</strong> est grisé quand il en
+                    a déjà une.
+                </li>
+                <li>
+                    Une vue tableur montre une seule feuille, nommée « Feuille1
+                    », sans onglets de feuilles. Pour travailler sur plusieurs
+                    feuilles, on crée plusieurs onglets tableur, qui se lisent
+                    entre eux (<a href="#autre-onglet">voir plus bas</a>).
+                </li>
+                <li>
+                    Ajouter ou supprimer une vue tableur s’annule, comme les
+                    autres actions sur les vues.
+                </li>
+            </ul>
+
+            <h2 id="barres">Les menus et les boutons du tableur</h2>
+            <p>
+                Un clic ou une frappe dans les cellules rend la vue tableur
+                active. Les barres de DocGeo font alors place à celles du
+                tableur, à la même hauteur : rien ne bouge en dessous.
+            </p>
+            <ul>
+                <li>
+                    La barre de menus garde <strong>Fichier</strong>, suivi du
+                    menu <strong>DocGeo</strong>, puis des menus du tableur
+                    (Édition, Affichage, Insertion, Format, Données, Outils).
+                </li>
+                <li>
+                    La barre de boutons du tableur (format des nombres, police,
+                    gras, couleurs, bordures, alignement…) remplace la barre
+                    d’actions de DocGeo.
+                </li>
+                <li>
+                    Le menu <strong>DocGeo</strong> donne ce qui reste utile :
+                    Historique de la construction, Palette d’outils, Propriétés,
+                    et le Manuel d’utilisation.
+                </li>
+                <li>
+                    On revient aux barres de DocGeo en cliquant dans la figure,
+                    dans le panneau « Construction », en y saisissant une ligne,
+                    ou en changeant d’onglet. Dans un onglet tableur, les barres
+                    du tableur restent.
+                </li>
+                <li>
+                    Un dialogue du tableur (mise en forme conditionnelle, format
+                    des nombres…) voile toute la fenêtre de DocGeo, jusqu’à sa
+                    fermeture.
+                </li>
+            </ul>
+            <p>
+                Le panneau « Construction » reste disponible dans un onglet
+                tableur (<strong>DocGeo › Historique de la construction</strong
+                >) : un objet qu’on y saisit est calculé sans être dessiné, et
+                les cellules de cet onglet peuvent le lire.
+            </p>
+            <p>
+                Quand DocGeo est intégré à une autre page, comme DocTools, il
+                n’a pas de barre de menus : le tableur garde ses barres en haut
+                de sa colonne.
+            </p>
+
+            <h2 id="cellules">La figure lit les cellules</h2>
+            <p>
+                Une formule de la figure désigne une cellule par le nom de la
+                feuille, un point d’exclamation et l’adresse de la cellule,
+                comme dans un tableur.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Écriture</th>
+                            <th>Valeur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Feuille1!B3</code></td>
+                            <td>la cellule B3</td>
+                        </tr>
+                        <tr>
+                            <td><code>Feuille1!B2:B21</code></td>
+                            <td>
+                                une plage d’une ligne ou d’une colonne : une
+                                liste de valeurs
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Feuille1!A1:C3</code></td>
+                            <td>
+                                un rectangle : une liste de lignes, chacune une
+                                liste
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>'Tableur 1'!Feuille1!B3</code></td>
+                            <td>
+                                la cellule B3 de la feuille d’un autre onglet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>A = (Feuille1!B1, Feuille1!B2)
+r = Feuille1!B3
+L = Feuille1!A1:A10</code></pre>
+            <ul>
+                <li>
+                    L’adresse s’écrit en lettres puis en chiffres
+                    (<code>B3</code>, <code>AA12</code>), sans <code>$</code>.
+                </li>
+                <li>
+                    Un nombre, un texte ou un booléen est lu tel quel ; une date
+                    est lue comme un nombre. Une cellule vide ou en erreur
+                    (<code>#DIV/0!</code>…) donne une valeur indéfinie : l’objet
+                    qui la lit n’est pas dessiné.
+                </li>
+                <li>
+                    Dès qu’une cellule change, par une saisie ou par le calcul
+                    du tableur, les objets qui la lisent sont recalculés et
+                    redessinés.
+                </li>
+                <li>
+                    Une référence n’est qu’un morceau de formule : elle ne crée
+                    aucun objet. Un point lu dans les cellules, comme A
+                    ci-dessus, est calculé : il ne se déplace pas à la souris.
+                    Pour le déplacer, on change les cellules.
+                </li>
+            </ul>
+
+            <h3 id="autre-onglet">Les cellules d’un autre onglet</h3>
+            <p>
+                Le nom de l’onglet vient d’abord, entre apostrophes s’il
+                contient une espace ou un signe, comme pour
+                <a href="formules.html#autres-pages">lire un autre onglet</a> :
+                <code>'Tableur 1'!Feuille1!B3</code>. Ses cellules y sont lues
+                telles qu’elles étaient calculées quand on a quitté cet onglet.
+            </p>
+
+            <h2 id="geo">Les cellules lisent la figure : GEO</h2>
+            <p>
+                Dans une cellule, la fonction <code>GEO</code> lit la valeur
+                d’un objet de la figure, désigné par son nom, entre guillemets.
+            </p>
+            <pre><code>=GEO("c")
+=GEO("'Figure 1'!c")
+=2*GEO("r")+1</code></pre>
+            <ul>
+                <li>
+                    La valeur est celle que lirait une formule de la figure en
+                    nommant l’objet : longueur d’un segment, valeur d’une
+                    expression ou d’un curseur, texte, état d’une case à cocher…
+                    Elle suit la figure pendant qu’on la manipule.
+                </li>
+                <li>
+                    Un point ou une liste ne se lisent pas : on crée d’abord une
+                    expression, par exemple <code>xA = x(A)</code>, puis
+                    <code>=GEO("xA")</code>.
+                </li>
+                <li>
+                    Un objet inconnu, indéfini, ou qui n’est ni un nombre, ni un
+                    texte, ni un booléen donne <code>#N/A</code>. Le nom doit
+                    être écrit dans la formule : <code>=GEO(A1)</code> donne
+                    <code>#VALUE!</code>.
+                </li>
+                <li>
+                    <code>GEO("'Figure 1'!c")</code> lit l’objet c d’un autre
+                    onglet : c’est ainsi qu’un onglet tableur lit une figure.
+                </li>
+                <li>
+                    <code>GEO</code> porte le même nom dans toutes les langues.
+                    Elle n’existe que dans DocGeo : dans DocCells seul, elle
+                    donne <code>#N/A</code>.
+                </li>
+            </ul>
+
+            <h2 id="circulaire">Référence circulaire</h2>
+            <p>
+                Un objet lu par <code>GEO</code> ne peut pas dépendre d’une
+                cellule qui dépend de lui. Si <code>A1</code> contient
+                <code>=GEO("m")+1</code>, redéfinir m par la ligne
+                <code>m = Feuille1!A1</code> est refusé : « Référence circulaire
+                : Feuille1!A1 ».
+            </p>
+            <p>
+                De même, une formule de cellule qui fermerait une boucle avec la
+                figure est annulée avec ce message, et les cellules reprennent
+                leur contenu précédent. Dans un fichier qui contient malgré tout
+                une boucle, la lecture qui la ferme est indéfinie.
+            </p>
+
+            <h2 id="enregistrer">Annuler et enregistrer</h2>
+            <ul>
+                <li>
+                    Les cellules ont leur propre annulation : <kbd>Ctrl</kbd>
+                    <kbd>Z</kbd> dans les cellules, ou le menu Édition du
+                    tableur. Les boutons <i data-i="undo"></i>
+                    <i data-i="redo"></i> de DocGeo ne défont pas une saisie
+                    dans le tableur.
+                </li>
+                <li>
+                    Les cellules, leurs formules et leur mise en forme sont
+                    enregistrées avec la figure, dans le même fichier
+                    <code>.dgo</code>. <kbd>Ctrl</kbd> <kbd>S</kbd> dans les
+                    cellules, ou <strong>Fichier › Enregistrer</strong>,
+                    enregistre le tout.
+                </li>
+            </ul>
+
+            <h2 id="eleves">Pour les élèves</h2>
+            <p>
+                Le lecteur de DocGeo, comme une figure
+                <a href="integration.html">intégrée dans une page web</a>,
+                montre la feuille sans ses menus ni ses boutons, avec sa barre
+                de formule.
+            </p>
+            <ul>
+                <li>
+                    L’élève peut saisir dans les cellules, comme dans un champ
+                    de saisie : la figure suit.
+                </li>
+                <li>
+                    Le bouton de réinitialisation rend les cellules telles
+                    qu’elles étaient enregistrées.
+                </li>
+                <li>
+                    Ces saisies ne font pas partie de la réponse de l’élève
+                    gardée par une page qui intègre la figure : seuls les objets
+                    de la figure le sont.
+                </li>
+            </ul>
+            <p>
+                Le tableur est une application à part, qui n’est chargée que si
+                l’onglet montré en a un. Sur un site qui héberge sa propre copie
+                de DocGeo, le dossier <code>doccells</code> doit être publié à
+                côté du dossier de DocGeo ; sinon, la vue tableur affiche « ⚠
+                DocCells », et le reste de la figure fonctionne.
+            </p>
+        </main>
+    </body>
+</html>
