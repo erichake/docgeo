@@ -356,6 +356,8 @@ $("head").append(`<style>
     @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
     .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-menu-height: 0px; --dge-bar-height: calc(48px + var(--dge-menu-height)); --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height) - var(--docgeo-tabs, 0px)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
     .dge-editor.dge-menus { --dge-menu-height: 32px; }
+    /* Read by DocCells' menus too. */
+    .dge-menubar, .dge-menu-popup { --dc-menu-color: #1f2937; --dc-menu-title-radius: 6px; --dc-menu-list-padding: 4px; --dc-menu-list-min-width: 220px; --dc-menu-list-border: 1px solid #d1d5db; --dc-menu-list-shadow: 0 6px 20px rgb(0 0 0 / 0.14); --dc-menu-item-height: 32px; --dc-menu-item-padding: 6px 12px 6px 4px; --dc-menu-item-radius: 5px; --dc-menu-item-hover-background: #2563eb; --dc-menu-item-hover-color: #fff; --dc-menu-shortcut-opacity: 0.6; --dc-menu-divider-margin: 4px 8px; }
     .dge-editor .docgeo-tabs > button { transition: transform 0.15s; }
     .docgeo-tabs > button.dge-dragged { z-index: 1; transition: none; box-shadow: 0 2px 8px rgb(0 0 0 / 0.18); }
     .docgeo-tabs > .dge-tabs-button { width: 34px; padding: 0; justify-content: center; border: 0; margin: 0; color: #444; }
@@ -453,7 +455,7 @@ $("head").append(`<style>
     .dge-filters button span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .dge-filters button span:last-child { font-size: 15px; line-height: 1; }
     .dge-filters button:hover { border-color: #2563eb; }
-    .dge-menu-popup.dge-filter-menu { position: fixed; inset: auto; max-height: calc(100dvh - 16px); overflow-y: auto; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 13; }
+    .dge-menu-popup.dge-filter-menu { position: fixed; inset: auto; max-height: calc(100dvh - 16px); overflow-y: auto; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--dc-menu-color); z-index: 13; }
     .dge-filter-menu small { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; font-variant-numeric: tabular-nums; }
     .dge-entry { container-type: inline-size; }
     @container (max-width: 270px) { .dge-steps .dge-end-step { display: none; } }
@@ -479,28 +481,30 @@ $("head").append(`<style>
     .dge-action.dge-on:hover { background: #cfdefb; }
     .dge-bar-middle { flex: 1; display: flex; justify-content: center; min-width: 0; }
     .dge-bar .dge-bar-end { padding-inline-start: 0; border: 0; }
-    .dge-menubar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-menu-height); box-sizing: border-box; display: flex; align-items: stretch; padding: 3px 8px; background: #fff; border-block-end: 1px solid #e2e8f0; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 20; }
+    .dge-menubar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-menu-height); box-sizing: border-box; display: flex; align-items: stretch; padding: 3px 8px; background: #fff; border-block-end: 1px solid #e2e8f0; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--dc-menu-color); z-index: 20; }
     .dge-menubar > div { position: relative; display: flex; }
-    .dge-menubar > div > button { padding: 0 10px; border: 0; border-radius: 6px; background: none; font: inherit; color: inherit; }
+    .dge-menubar > div > button { padding: 0 10px; border: 0; border-radius: var(--dc-menu-title-radius); background: none; font: inherit; color: inherit; }
     .dge-menubar > div > button:hover, .dge-menubar > div > button.dge-open { background: #eef2f7; }
     .dge-menubar > div > button:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
-    .dge-menu-popup { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; flex-direction: column; min-width: 220px; padding: 4px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); outline: none; }
-    .dge-menu-popup button { display: flex; align-items: center; min-height: 32px; padding: 6px 12px 6px 4px; border: 0; border-radius: 5px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; }
+    .dge-menu-popup { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; flex-direction: column; min-width: var(--dc-menu-list-min-width); padding: var(--dc-menu-list-padding); border: var(--dc-menu-list-border); border-radius: 8px; background: #fff; box-shadow: var(--dc-menu-list-shadow); outline: none; }
+    .dge-menu-popup button { display: flex; align-items: center; min-height: var(--dc-menu-item-height); padding: var(--dc-menu-item-padding); border: 0; border-radius: var(--dc-menu-item-radius); background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; }
     .dge-menu-popup button::before { content: ""; width: 20px; flex: none; text-align: center; }
     .dge-menu-popup button[aria-checked="true"]::before { content: "✓"; }
-    .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) { background: #2563eb; color: #fff; outline: none; }
+    .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) { background: var(--dc-menu-item-hover-background); color: var(--dc-menu-item-hover-color); outline: none; }
     .dge-menu-popup button:disabled { opacity: 0.4; }
-    .dge-menu-popup kbd { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; }
-    .dge-menu-popup hr { margin: 4px 8px; border: 0; border-block-start: 1px solid #e5e7eb; }
+    .dge-menu-popup kbd { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: var(--dc-menu-shortcut-opacity); }
+    .dge-menu-popup hr { margin: var(--dc-menu-divider-margin); border: 0; border-block-start: 1px solid #e5e7eb; }
     .dge-menubar > .dge-sheet-menus, .dge-sheet-bar, .dge-sheet-veil { display: none; }
-    .dge-sheet-on .dge-menubar > .dge-sheet-menus { display: block; flex: 1; min-width: 0; margin-block: -3px; }
+    .dge-sheet-on .dge-menubar > .dge-sheet-menus { display: block; flex: 1; min-width: 0; }
+    /* Its titles as high as the editor's, above its bar's border. */
+    .dge-sheet-menus { margin-block-end: -1px; --dc-menu-list-offset: 4px; --dc-menu-icon-size: 18px; }
     .dge-sheet-bar { position: fixed; inset-block-start: var(--dge-menu-height); inset-inline: 0; height: calc(var(--dge-bar-height) - var(--dge-menu-height)); z-index: 11; }
     .dge-sheet-on .dge-sheet-bar { display: block; }
     body:not(.dge-sheet-on) .dge-menubar > div:not([class]):nth-child(2), .dge-sheet-on .dge-menubar > div:not([class]):nth-child(n + 3), .dge-sheet-on .dge-bar { display: none; }
     .dge-sheet-dialog .dge-sheet-veil { display: block; position: fixed; inset: 0; z-index: 21; }
     .dge-sheet-dialog .docgeo-sheet { z-index: 22; }
     .dge-menubar > .dge-menu-subpopup { position: fixed; inset-inline: auto; display: flex; max-height: calc(100dvh - 16px); overflow-y: auto; }
-    .dge-menu-sub::after { content: "›"; margin-inline-start: auto; padding-inline-start: 24px; font-size: 16px; line-height: 1; opacity: 0.6; }
+    .dge-menu-sub::after { content: "›"; margin-inline-start: auto; padding-inline-start: 24px; font-size: 16px; line-height: 1; opacity: var(--dc-menu-shortcut-opacity); }
     .dge-menu-sub:dir(rtl)::after { content: "‹"; }
     .dge-menu-subpopup > * { flex: none; }
     .dge-menu-popup .dge-menu-icon > .dge-tool-icon:last-child { width: 28px; height: 28px; margin-inline: 2px 10px; }
@@ -508,7 +512,7 @@ $("head").append(`<style>
     .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) .dge-tool-icon { border-color: #fff; }
     .dge-menu-popup button.dge-menu-sub.dge-open:not(:hover, :focus-visible) { background: #eef2f7; }
     .dge-menu-veil { position: fixed; inset: 0; z-index: 19; }
-    .dge-menu-popup.dge-context-menu { position: fixed; inset: auto; display: flex; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 20; }
+    .dge-menu-popup.dge-context-menu { position: fixed; inset: auto; display: flex; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--dc-menu-color); z-index: 20; }
     .dge-menu-popup.dge-context-menu button.dge-menu-icon::before { display: block; }
     .dge-context-menu .dge-page-swatch { order: 0; width: 12px; height: 12px; margin-inline: auto 0; border-radius: 3px; }
     .dge-context-menu .dge-menu-icon > span:first-child { padding-inline-end: 24px; }

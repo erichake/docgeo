@@ -103,6 +103,10 @@ const throttle: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
     });
 };
 
+// The mouse moved to (x, y) in the last window the tests opened.
+const hover: BrowserCommand<[x: number, y: number]> = async ({ page }, x, y) =>
+    page.context().pages().at(-1)!.mouse.move(x, y);
+
 export default defineConfig({
     plugins: [
         serveDocCells(),
@@ -127,7 +131,7 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: "chromium" }],
-            commands: { drag, pinch, throttle },
+            commands: { drag, hover, pinch, throttle },
         },
     },
 });

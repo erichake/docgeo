@@ -460,6 +460,40 @@ describe("DocCells' bars in the editor's", () => {
                     .shadowRoot!.querySelector("button")!,
             ),
         ).toBe(fontSize(page.querySelector(".dge-menubar > div > button")!));
+        // DocCells' menus as the editor's: font, rows, hovered row.
+        const looks = async (root: HTMLElement, rows: string) => {
+            root.click();
+            const row = await until(() =>
+                [
+                    ...(
+                        root.getRootNode() as ParentNode
+                    ).querySelectorAll<HTMLElement>(rows),
+                ].find((row) => row.getClientRects().length),
+            );
+            const { left, top, height } = row.getBoundingClientRect();
+            await commands.hover(left + 20, top + height / 2);
+            const style = popup.getComputedStyle(row);
+            const look = [
+                style.fontFamily,
+                height,
+                style.backgroundColor,
+                style.color,
+            ];
+            await commands.hover(600, 600);
+            root.click();
+            return look;
+        };
+        const geo = await looks(roots[0], ".dge-menu-popup > button");
+        expect(geo[2]).toBe("rgb(37, 99, 235)");
+        // DocCells' menu bar mounted again, on the sheet tab.
+        const edit = page
+            .querySelector(".dge-sheet-menus")!
+            .shadowRoot!.querySelector<HTMLElement>("[aria-expanded]")!;
+        expect(await looks(edit, ".dc-menu-item")).toEqual(geo);
+        const title = ({ top, height }: DOMRect) => [top, height];
+        expect(title(edit.getBoundingClientRect())).toEqual(
+            title(roots[0].getBoundingClientRect()),
+        );
     });
 });
 
@@ -494,6 +528,7 @@ describe("cells read by the shown figure", () => {
 declare module "vitest/browser" {
     interface BrowserCommands {
         throttle: (rate: number) => Promise<void>;
+        hover: (x: number, y: number) => Promise<void>;
     }
 }
 

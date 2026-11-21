@@ -464,6 +464,72 @@ qui est dit plus haut.
     Poids du moteur et du lecteur mesurés (inchangés : tout est dans
     l'éditeur).
 
+- [x] **Étape 11 (DocCells) — l'apparence des menus donnée par l'hôte.**
+  Décision de l'auteur (2026-11-21) : les menus de DocCells sortis dans
+  DocGeo doivent avoir l'apparence de ceux de DocGeo (police, hauteur
+  des lignes, survol…) ; changer celle de DocCells ne pose pas de
+  problème. Comme pour la taille du texte (étape 9), rien de propre à
+  DocGeo dans DocCells : la barre de menus montée par `mountChrome`
+  prend ce que lui donne l'élément `menus`. Dans l'iframe et dans
+  DocCells seul, rien ne change.
+  - **Écarts relevés** (`StandaloneMenuBar.css` contre les menus de
+    DocGeo, `src/editor/main.ts`, règles `.dge-menubar` et
+    `.dge-menu-popup`) :
+
+    | | DocGeo | DocCells sorti |
+    | --- | --- | --- |
+    | Police | `system-ui, -apple-system, "Segoe UI", sans-serif` | `Inter, Roboto, Arial, Helvetica, sans-serif` (`.dc-chrome`) |
+    | Couleur du texte | `#1f2937` | `#202124` |
+    | Titre de menu | `padding: 0 10px`, arrondi 6 px, survol `#eef2f7` | `padding: 0 10px`, arrondi 4 px, survol `#eef2f7` |
+    | Liste | `padding: 4px`, `min-width: 220px`, bord `#d1d5db`, arrondi 8 px, ombre `0 6px 20px rgb(0 0 0 / 0.14)` | `padding: 8px 0`, `min-width: 288px` |
+    | Ligne (`.dc-menu-item`) | `min-height: 32px`, `padding: 6px 12px 6px 4px`, arrondi 5 px | `min-height: 38px`, `padding: 0 12px 0 14px`, arrondi 0 |
+    | Survol d'une ligne | fond `#2563eb`, texte blanc | fond `#f1f3f4` |
+    | Ligne désactivée | `opacity: 0.4` | couleur `#a6a8ad` |
+    | Icônes (`.dc-menu-icon`) | aucune ; 20 px quand il y en a | 22 px |
+    | Raccourcis | taille du texte, `opacity: 0.6` | `#9aa0a6` |
+    | Séparateur | `margin: 4px 8px`, `#e5e7eb` | — |
+
+  - **Police** : la barre sortie hérite de la famille de police de
+    l'élément `menus`, comme de sa taille (`font-family: inherit` au lieu
+    d'`Inter…` sur `.dc-chrome` sorti), pour ses titres, listes,
+    sous-menus et raccourcis.
+  - **Le reste** : des propriétés CSS personnalisées, lues sur l'élément
+    `menus` (elles traversent le shadow root), chacune avec la valeur
+    actuelle de DocCells par défaut. Par exemple `--dc-menu-color`,
+    `--dc-menu-item-height`, `--dc-menu-item-radius`,
+    `--dc-menu-item-hover-background`, `--dc-menu-item-hover-color`,
+    `--dc-menu-list-padding`, `--dc-menu-list-min-width`,
+    `--dc-menu-list-border`, `--dc-menu-list-shadow`,
+    `--dc-menu-icon-size`, `--dc-menu-disabled-opacity`. Noms et liste au
+    choix de DocCells, à garder courts : ce qui n'a pas d'écart visible
+    n'a pas besoin de variable.
+  - **Survol bleu** : texte, icônes (`currentColor` ou équivalent),
+    chevrons de sous-menus et raccourcis doivent rester lisibles sur le
+    fond de survol choisi par l'hôte (blanc sur `#2563eb` pour DocGeo).
+  - **Icônes** : gardées, à la taille donnée par l'hôte ; vérifier
+    qu'à 32 px de ligne elles ne débordent pas (DocGeo donnera 18 px).
+  - Décrit dans `EMBED.md` de DocCells (section 14, à côté de « Taille du
+    texte »).
+  - Tests : la barre sortie avec et sans variables (valeurs de DocCells
+    par défaut), police héritée, hauteur d'une ligne, couleur au survol ;
+    l'iframe inchangée. Puis `npm run build:doctools`. Commit sur demande
+    de l'auteur.
+- [x] **Étape 12 (DocGeo) — les menus de DocCells à l'image de ceux de
+  DocGeo.**
+  - `.dge-sheet-menus` donne les variables de l'étape 11 avec les valeurs
+    de DocGeo (tableau ci-dessus) ; la police est déjà héritée de
+    `.dge-menubar`. Si possible, une seule source pour ces valeurs
+    (variables CSS de l'éditeur reprises par `.dge-menu-popup` et par
+    `.dge-sheet-menus`), pour qu'elles ne divergent plus.
+  - Vérifier côte à côte, menus ouverts : Fichier et Format, DocGeo et
+    Édition (capture avant / après pour l'auteur) ; titres de la barre
+    alignés et de même police.
+  - Test (`tests/browser/sheet.test.ts`, celui de l'étape 10) : police,
+    hauteur d'une ligne et fond au survol d'un menu de DocCells égaux à
+    ceux d'un menu de DocGeo. Poids du moteur et du lecteur inchangés.
+  - Capture `tableur.webp` du manuel à refaire
+    (`npm run manual -- shots tableur.webp`).
+
 ## Limites de la v1
 
 - Saisies de l'élève dans les cellules absentes de l'état élève.
@@ -475,12 +541,118 @@ qui est dit plus haut.
 
 ## Point de reprise
 
-État au 2026-11-21 : **toutes les étapes sont faites et commitées**
-(DocGeo : étapes 1 à 5 dans `5596d9f`, étapes 8 et 10 et le manuel
-ensuite ; DocCells jusqu'à `2564c33`, construit dans
-`doctools_MAIN/public/apps/doccells`). Restent la hauteur des lignes des
-listes (« Étape 10 », ci-dessous) et les décisions de l'auteur sur les
-limites de la v1.
+État au 2026-11-21 : étapes 1 à 10 faites et commitées (DocGeo : étapes
+1 à 5 dans `5596d9f`, étapes 8 et 10 et le manuel ensuite ; DocCells
+jusqu'à `2564c33`). Ajoutées le 2026-11-21 : **étapes 11 (DocCells) et 12
+(DocGeo)**, l'apparence des menus de DocCells sortis dans DocGeo (police,
+hauteur des lignes, survol…) alignée sur celle des menus de DocGeo.
+**Étape 11 faite** (DocCells, non commitée, construite dans
+`doctools_MAIN/public/apps/doccells`). **Étape 12 faite** (DocGeo, non
+commitée). Restent les décisions de l'auteur sur les limites de la v1.
+
+### Étape 12 : ce qui est fait
+
+- **Une seule source** (`src/editor/main.ts`) : l'apparence des menus de
+  DocGeo est donnée par des propriétés aux noms que lit DocCells
+  (`--dc-menu-color`, `--dc-menu-title-radius`, `--dc-menu-list-*`,
+  `--dc-menu-item-*`, `--dc-menu-shortcut-opacity`,
+  `--dc-menu-divider-margin`), posées sur `.dge-menubar` et
+  `.dge-menu-popup` (barre, menu contextuel, menu des filtres) et lues par
+  leurs règles. La barre de DocCells, dans `.dge-menubar`, en hérite.
+  Pas de seconde série `--dge-…` recopiée en `--dc-…` : essayée, elle
+  coûtait +1,6 Ko. Posées sur `.dge-menubar` et non sur `body`, elles
+  n'atteignent pas la barre de boutons de DocCells (`.dge-sheet-bar`).
+- **Propres à DocCells** (`.dge-sheet-menus`) : `--dc-menu-icon-size: 18px`
+  et `--dc-menu-list-offset: 4px`. `margin-block: -3px` est remplacé par
+  `margin-block-end: -1px` : les titres de DocCells ont la hauteur et la
+  position de ceux de DocGeo (25 px à 3 px du haut ; ils faisaient 30 px
+  à 0), le bord bas (invisible) de leur barre passant sous eux. Les
+  listes des deux tombent à 32 px du haut, alignées sur leur titre.
+- **Vérifié** (Playwright, captures avant / après de Fichier, DocGeo,
+  Format et Édition, menus ouverts) : même police, lignes de 32 px,
+  survol `#2563eb` texte blanc, icônes de 18 px, sous-menu aligné sur sa
+  ligne, titres alignés. Restent, voulus : les icônes et les chevrons
+  `▶` de DocCells (`›` dans DocGeo), le fond de la ligne dont le
+  sous-menu est ouvert (étape 11).
+- **Test** (`tests/browser/sheet.test.ts`, celui de l'étape 10) : police,
+  hauteur, fond et couleur d'une ligne survolée (vraie souris : commande
+  `hover` de `vitest.browser.config.ts`, qui la déplace dans la fenêtre
+  ouverte par le test) égaux dans un menu de DocGeo et un de DocCells,
+  titres de même hauteur et position. Il échoue sans le changement. La
+  barre de DocCells est remontée au passage à l'onglet tableur : ses
+  titres sont relus. Suite navigateur complète : 1 588/1 588.
+- **Capture** `tableur.webp` refaite dans les 12 langues.
+- **Poids** : éditeur 329 909 → 330 903 octets (+994) ; moteur et lecteur
+  inchangés.
+
+### Étape 11 : ce qui est fait (dans DocCells)
+
+Décrit dans `EMBED.md` de DocCells, section 14 (« Police », « Apparence
+des menus », avec le tableau des propriétés et l'exemple des valeurs de
+DocGeo).
+
+- **Police** (`chromeMount.js`) : la barre de menus sortie ne recopie plus
+  la famille de police du document de l'iframe ; `.dc-menu-bar` sortie a
+  `font-family: inherit`. Titres, listes, sous-menus et raccourcis
+  prennent celle de l'élément `menus` (pour DocGeo, celle de
+  `.dge-menubar`, déjà héritée : rien à faire). La barre de boutons et
+  « À propos » gardent Inter.
+- **Propriétés `--dc-menu-*`**, lues par `StandaloneMenuBar.css` (les
+  mêmes règles dans l'iframe, où personne ne les donne : valeurs de
+  DocCells par défaut). Posées sur `.dge-sheet-menus` (ou un ancêtre),
+  elles traversent le shadow root. Valeurs à donner pour DocGeo (le
+  tableau des écarts ci-dessus, `EMBED.md` en a l'exemple complet) :
+
+  ```css
+  --dc-menu-color: #1f2937;
+  --dc-menu-title-radius: 6px;
+  --dc-menu-list-padding: 4px;
+  --dc-menu-list-min-width: 220px;
+  --dc-menu-list-border: 1px solid #d1d5db;
+  --dc-menu-list-shadow: 0 6px 20px rgb(0 0 0 / 0.14);
+  --dc-menu-item-height: 32px;
+  --dc-menu-item-padding: 6px 12px 6px 4px;
+  --dc-menu-item-radius: 5px;
+  --dc-menu-item-hover-background: #2563eb;
+  --dc-menu-item-hover-color: #fff;
+  --dc-menu-icon-size: 18px;
+  --dc-menu-shortcut-opacity: 0.6;
+  --dc-menu-divider-margin: 4px 8px;
+  ```
+
+  - `--dc-menu-list-padding` est **une seule longueur avec unité** (tout
+    autour ; absente : `8px 0`), parce que le sous-menu s'en sert pour
+    aligner sa première ligne sur celle qui l'ouvre.
+  - `--dc-menu-list-offset` (écart entre le titre et sa liste, `1px`) :
+    inutile tant que `.dge-sheet-menus` garde `margin-block: -3px` (les
+    listes de DocGeo et de DocCells tombent alors toutes deux à 32 px du
+    haut). Si l'étape 12 retire cette marge pour que le survol des titres
+    de DocCells ait la hauteur de ceux de DocGeo (25 px au lieu de 31),
+    donner `--dc-menu-list-offset: 4px`.
+  - `--dc-menu-disabled-opacity` (`0.4`) : déjà la valeur de DocGeo.
+- **Survol** : avec `--dc-menu-item-hover-color`, texte, icônes, coche,
+  chevrons et raccourcis prennent la couleur donnée (blanc sur
+  `#2563eb`). La ligne qui ouvre un sous-menu garde le fond du survol
+  tant que la souris est dans le sous-menu (DocGeo la met en
+  `#eef2f7`) : écart gardé, pour ne pas ajouter deux variables.
+- **Icônes** : à la taille donnée (18 px), colonne de la même largeur ;
+  à 32 px de ligne elles restent dans la ligne (vérifié).
+- **Changé aussi dans DocCells seul**, sans écart visible (l'auteur
+  l'acceptait) : ligne désactivée en `opacity: 0.4` au lieu de la couleur
+  `#a6a8ad` (même gris sur blanc), sans fond au survol ; raccourcis et
+  chevrons dans la couleur du texte à `opacity: 0.45` au lieu de
+  `#9aa0a6` / `#8a8f98`, pour rester lisibles sur un survol foncé.
+- **Tests** (DocCells) : `chromePortal.browser.mjs` **41/41** (4
+  nouvelles vérifications : police héritée de l'élément `menus` ;
+  sans variables, apparence de DocCells ; avec les variables de DocGeo,
+  lignes de 32 px, survol bleu, texte, icônes, chevron et raccourcis
+  blancs, icônes de 18 px dans la ligne, sous-menu aligné, séparateurs ;
+  menus rendus à l'iframe en Inter et inchangés malgré les variables
+  posées sur l'élément de l'hôte). Captures `1-menus-default`,
+  `1-menus-docgeo`, `8-iframe-menus`. `embedMode.browser.mjs` 44/44,
+  tests Node 85/85, ESLint propre.
+- **Poids** : bundle principal de DocCells 5 687 733 → 5 687 803 octets
+  (+70), CSS 104 055 → 105 831 (+1 776). DocGeo ne change pas.
 
 ### Étape 10 : ce qui est fait
 
