@@ -30,9 +30,21 @@ export const DELETE_KEY = MAC ? "⌫" : "Del";
 
 // A menu bar as in an application, its menus' items enabled and checked as
 // the editor is when they open, and `end` at its end; then the veil behind
-// an open menu.
-export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
+// an open menu. `inner`, among `end`, holds another application's menu bar
+// in its shadow root (DocCells', see the editor's sheet bars): a single
+// menu is open in both, the pointer passing from one to the other as
+// within one. Its menus are known open by their buttons' aria-expanded.
+export function menuBar(
+    menus: Menu[],
+    end: DOMElement[],
+    inner?: DOMElement,
+): DOMElement[] {
     const bar = $.create("div").cls("dge-menubar").att("role", "menubar");
+    // Its button, the first so marked, before the menu's own items.
+    const innerOpen = () =>
+        inner
+            ?.dom()
+            .shadowRoot?.querySelector<HTMLElement>('[aria-expanded="true"]');
     // Pressed outside the menu, it closes and nothing else happens.
     const veil = $.create("div").cls("dge-menu-veil").hide();
     const roots: DOMElement[] = [];
@@ -196,6 +208,10 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
             "pointerenter",
             () => {
                 if (open >= 0 && open !== index) show(index, false);
+                else if (open < 0 && innerOpen()) {
+                    innerOpen()!.click();
+                    show(index, false);
+                }
             },
             false,
         );
@@ -204,6 +220,23 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
         bar.add($.create("div").add(root, popup));
     });
     veil.on("pointerdown", close, false);
+    inner?.on("pointerdown", close, false);
+    inner?.on(
+        "pointerover",
+        (event) => {
+            const root = event
+                .composedPath()
+                .find(
+                    (target) =>
+                        target instanceof HTMLElement &&
+                        target.hasAttribute("aria-expanded"),
+                ) as HTMLElement | undefined;
+            if (open < 0 || !root) return;
+            close();
+            root.click();
+        },
+        false,
+    );
 
     bar.on(
         "keydown",
@@ -232,13 +265,16 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 const { item } = subs[depth - 1];
                 closeSubs(depth - 1);
                 (item.dom() as HTMLElement).focus();
-            } else if ((key === forward || key === backward) && open >= 0)
-                show(
-                    (open + (key === forward ? 1 : menus.length - 1)) %
-                        menus.length,
-                    true,
-                );
-            else if (key === "ArrowDown" && open < 0 && rootIndex >= 0)
+            } else if ((key === forward || key === backward) && open >= 0) {
+                // Hidden menus skipped (see the editor's sheet bars).
+                let next = open;
+                do
+                    next =
+                        (next + (key === forward ? 1 : menus.length - 1)) %
+                        menus.length;
+                while (!roots[next].dom().getClientRects().length);
+                show(next, true);
+            } else if (key === "ArrowDown" && open < 0 && rootIndex >= 0)
                 show(rootIndex, true);
             else if ((key === "ArrowDown" || key === "ArrowUp") && popup) {
                 const list = items(popup);

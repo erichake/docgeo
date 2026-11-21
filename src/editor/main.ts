@@ -47,7 +47,7 @@ import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
 import { preferences } from "../preferences";
 import { finishSplash } from "../splash";
-import { cycles, restoreSheet, sheetArchive } from "../sheet";
+import { cycles, restoreSheet, sheetArchive, type DocCells } from "../sheet";
 import {
     vAdd,
     vIsFinite,
@@ -322,6 +322,8 @@ const studio = {
         showHint(message("circular_reference", ref), true);
         keepSheet(() => restoreSheet(scene(), wb!));
     },
+    sheetReady: (cells) => mountSheetBars(cells),
+    sheetActivated: () => showActiveView(),
 } as Studio;
 
 // The cells aren't undone with the figure (see TABLEUR.md): the step shown
@@ -490,6 +492,13 @@ $("head").append(`<style>
     .dge-menu-popup button:disabled { opacity: 0.4; }
     .dge-menu-popup kbd { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; }
     .dge-menu-popup hr { margin: 4px 8px; border: 0; border-block-start: 1px solid #e5e7eb; }
+    .dge-menubar > .dge-sheet-menus, .dge-sheet-bar, .dge-sheet-veil { display: none; }
+    .dge-sheet-on .dge-menubar > .dge-sheet-menus { display: block; flex: 1; min-width: 0; margin-block: -3px; }
+    .dge-sheet-bar { position: fixed; inset-block-start: var(--dge-menu-height); inset-inline: 0; height: calc(var(--dge-bar-height) - var(--dge-menu-height)); z-index: 11; }
+    .dge-sheet-on .dge-sheet-bar { display: block; }
+    body:not(.dge-sheet-on) .dge-menubar > div:not([class]):nth-child(2), .dge-sheet-on .dge-menubar > div:not([class]):nth-child(n + 3), .dge-sheet-on .dge-bar { display: none; }
+    .dge-sheet-dialog .dge-sheet-veil { display: block; position: fixed; inset: 0; z-index: 21; }
+    .dge-sheet-dialog .docgeo-sheet { z-index: 22; }
     .dge-menubar > .dge-menu-subpopup { position: fixed; inset-inline: auto; display: flex; max-height: calc(100dvh - 16px); overflow-y: auto; }
     .dge-menu-sub::after { content: "›"; margin-inline-start: auto; padding-inline-start: 24px; font-size: 16px; line-height: 1; opacity: 0.6; }
     .dge-menu-sub:dir(rtl)::after { content: "‹"; }
@@ -1170,6 +1179,11 @@ const toggle = (key: MessageKey, element: DOMElement) => ({
         element.getAtt("aria-pressed") === "true" ||
         element.getAtt("aria-expanded") === "true",
 });
+// DocCells' bars, in place of the editor's (see showSheetBars).
+const sheetMenus = $.create("div").cls("dge-sheet-menus");
+const sheetBar = $.create("div").cls("dge-sheet-bar");
+const sheetVeil = $.create("div").cls("dge-sheet-veil");
+
 const menus: Menu[] = [
     {
         label: message("menu_file"),
@@ -1248,8 +1262,9 @@ const menus: Menu[] = [
                         label: message("delete_view"),
                         run: () => void deleteView(),
                         enabled: () =>
+                            !scene().views[scene().active].sheet &&
                             scene().views.filter(({ sheet }) => !sheet).length >
-                            1,
+                                1,
                     },
                     null,
                     {
@@ -1307,6 +1322,18 @@ const menus: Menu[] = [
             ...(canInstall()
                 ? [null, { label: `${message("install_app")}…`, run: install }]
                 : []),
+        ],
+    },
+    // In place of the others while the sheet view is active (see
+    // showSheetBars), beside DocCells' own View menu: a name.
+    {
+        label: "DocGeo",
+        items: [
+            toggle("history", historyButton),
+            toggle("palette", paletteButton),
+            toggle("properties", propertiesButton),
+            null,
+            { label: message("help"), run: press(helpLink) },
         ],
     },
     {
@@ -1416,7 +1443,15 @@ $("body").add(
                 .cls("dge-bar-group dge-bar-end")
                 .add(undoButton, redoButton, helpLink),
         ),
-    ...(standalone ? menuBar(menus, ...(native ? [fileLabel] : [])) : []),
+    ...(standalone
+        ? menuBar(
+              menus,
+              [sheetMenus, ...(native ? [fileLabel] : [])],
+              sheetMenus,
+          )
+        : []),
+    sheetBar,
+    sheetVeil,
     framing.elements[1],
     properties.panel,
     resizeHandle(properties.panel, "right", () =>
@@ -2342,6 +2377,7 @@ async function enterLine(
     object: construction_object | null,
     as: Choice = "expression",
 ): Promise<boolean> {
+    leaveSheet();
     const c = scene();
     // Made in the view last pressed, not the one the pointer last crossed.
     c.view = c.active;
@@ -7218,8 +7254,7 @@ async function open(
     if (name !== null) published = null;
     studio.scene.flush();
     studio.scene.reveal();
-    showAxes();
-    showSpace();
+    showActiveView();
     planeAxes = null;
     planeFlaw = !studio.scene.space && offPlane(studio.scene) !== undefined;
     if (steps) ({ history, position, saved } = steps);
@@ -7731,7 +7766,8 @@ let shownActive: [construction, number] | null = null;
 let activated = false;
 $("body").on(
     "pointerdown",
-    () => {
+    ({ target }) => {
+        if (panel.dom().contains(target as Node)) leaveSheet();
         const c = scene();
         activated =
             c.views.length > 1 &&
@@ -7747,6 +7783,7 @@ function showActiveView(): void {
     shownActive = [c, c.active];
     showAxes();
     showSpace();
+    showSheetBars();
     c.views.forEach(({ svg }, n) =>
         svg
             .toggleClass(
@@ -7756,6 +7793,49 @@ function showActiveView(): void {
             .toggleClass("dge-right-view", n > 0),
     );
     properties.refresh();
+}
+
+// The editor's bars give way to DocCells' while the sheet view is active
+// (see TABLEUR.md): its menus after the File and DocGeo menus, its toolbar
+// in place of the editor's. Its dialogs veil the page as they veil it,
+// but for the one drawn in the bars, which veils it itself.
+let sheetBars = false;
+function mountSheetBars(cells: DocCells): void {
+    if (!standalone) return;
+    const menus = sheetMenus.dom();
+    sheetBars = cells.mountChrome({ menus, toolbar: sheetBar.dom() });
+    // The veil of the dialog in front, each time it changes.
+    cells.on("dialog", (event) => {
+        const { open, veil } = event as unknown as {
+            open: boolean;
+            veil?: { background: string; backdropFilter: string } | null;
+        };
+        $("body").toggleClass(
+            "dge-sheet-dialog",
+            open && !menus.shadowRoot?.querySelector('[aria-modal="true"]'),
+        );
+        sheetVeil
+            .stl("background", veil?.background ?? "transparent")
+            .stl("backdrop-filter", veil?.backdropFilter ?? "none");
+    });
+    showSheetBars();
+}
+function showSheetBars(): void {
+    const c = scene();
+    $("body").toggleClass(
+        "dge-sheet-on",
+        sheetBars && !!c.views[c.active].sheet,
+    );
+}
+
+// Pressed or typed in, the Construction panel leaves the sheet view for the
+// first graphic one.
+function leaveSheet(): void {
+    const c = scene();
+    const graphic = c.views.findIndex(({ sheet }) => !sheet);
+    if (!c.views[c.active].sheet || graphic < 0) return;
+    c.active = graphic;
+    showActiveView();
 }
 
 // Formulas read other pages by their names, which are unique.

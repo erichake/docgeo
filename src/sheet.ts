@@ -18,7 +18,7 @@ export type Archive = Record<string, unknown>;
 
 type Event = Record<string, never>;
 type HostValue = string | number | boolean | null;
-interface DocCells {
+export interface DocCells {
     load(workbook: Archive): Promise<unknown>;
     save(): Archive;
     on(event: string, listener: (event: Event) => void): unknown;
@@ -29,6 +29,7 @@ interface DocCells {
     setHostValues(updates: { name: string; v: HostValue }[]): {
         values: Event[];
     };
+    mountChrome(bars: { menus: Element; toolbar: Element }): boolean;
 }
 
 // Its message where DocCells can't be shown, in no language: it is a name.
@@ -66,7 +67,7 @@ export const cycles = new Map<string, string>();
 function createFrame(c: construction): DOMElement {
     const iframe = $.create("iframe").att(
         "src",
-        `../doccells/index.html?embed&lang=${LANG}${c.dgpad.editor ? "" : "&mode=student"}`,
+        `../doccells/index.html?embed&singleSheet&lang=${LANG}${c.dgpad.editor ? "" : "&mode=student"}`,
     );
     const element = iframe.dom() as HTMLIFrameElement;
     const box = $.create("div").cls("docgeo-sheet").add(iframe);
@@ -101,6 +102,16 @@ function createFrame(c: construction): DOMElement {
             shown?.dgpad.sheetRenamed?.(oldName, newName),
         );
         cells.on("values", (event) => receive([event]));
+        // Pressed or typed in, the sheet view becomes the active one.
+        const activate = () => {
+            const n = shown?.views.findIndex(({ sheet }) => sheet) ?? -1;
+            if (n < 0 || shown!.active === n) return;
+            shown!.active = n;
+            shown!.dgpad.sheetActivated?.();
+        };
+        for (const type of ["pointerdown", "keydown"])
+            element.contentWindow!.addEventListener(type, activate, true);
+        c.dgpad.sheetReady?.(cells);
         void sync();
     });
     return box;

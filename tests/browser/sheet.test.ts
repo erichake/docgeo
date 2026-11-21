@@ -281,6 +281,188 @@ describe("sheet views in the editor", () => {
     });
 });
 
+describe("DocCells' bars in the editor's", () => {
+    it("take their place while the sheet view is active", async () => {
+        // A window of its own: framed, the editor has no menu bar.
+        const popup = window.open(
+            `/editor.html?lang=fr&url=${location.origin}/tests/dgo/tableur.dgo`,
+            "_blank",
+            "width=1200,height=700",
+        ) as typeof window;
+        cleanup.push(() => popup.close());
+        const page = await until(
+            () =>
+                popup.document?.querySelector(".docgeo-sheet.on") &&
+                popup.document,
+        );
+        const docCells = await cell(page, "Feuille1!A1", 3);
+        const bar = page.querySelector<HTMLElement>(".dge-sheet-bar")!;
+        await until(() => bar.shadowRoot?.querySelector('[data-tips^="Gras"]'));
+        const shown = (selector: string) =>
+            [...page.querySelectorAll(selector)].map(
+                (element) => element.getClientRects().length > 0,
+            );
+        const on = () => page.body.classList.contains("dge-sheet-on");
+        const press = (target: EventTarget, view: typeof window = popup) =>
+            target.dispatchEvent(
+                new view.PointerEvent("pointerdown", { bubbles: true }),
+            );
+        const svg = page.querySelector("body > svg:has([data-layer])")!;
+        const before = svg.getBoundingClientRect().toJSON();
+        const editorBar = page
+            .querySelector(".dge-bar")!
+            .getBoundingClientRect();
+        expect(on()).toBe(false);
+        expect(shown(".dge-menubar > div:not([class])")).toEqual([
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+        ]);
+        expect(shown(".dge-sheet-menus, .dge-sheet-bar")).toEqual([
+            false,
+            false,
+        ]);
+        // Pressed in the cells.
+        const frame = page.querySelector<HTMLIFrameElement>(
+            ".docgeo-sheet > iframe",
+        )!.contentWindow! as typeof window;
+        press(frame, frame);
+        expect(on()).toBe(true);
+        expect(shown(".dge-menubar > div:not([class])")).toEqual([
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+        ]);
+        expect(shown(".dge-bar, .dge-sheet-menus")).toEqual([false, true]);
+        expect(bar.getBoundingClientRect().toJSON()).toEqual(
+            editorBar.toJSON(),
+        );
+        expect(svg.getBoundingClientRect().toJSON()).toEqual(before);
+        // Bold on A1, selected, from the editor's bar.
+        const a1 = frame.document.elementFromPoint(70, 60)!;
+        for (const type of ["mousedown", "mouseup"])
+            a1.dispatchEvent(
+                new frame.MouseEvent(type, {
+                    bubbles: true,
+                    clientX: 70,
+                    clientY: 60,
+                    buttons: +(type === "mousedown"),
+                }),
+            );
+        bar.shadowRoot!.querySelector<HTMLElement>(
+            '[data-tips^="Gras"]',
+        )!.click();
+        const bold = (sheet: {
+            celldata: { r: number; c: number; v: any }[];
+        }) => sheet.celldata.find(({ r, c }) => r === 0 && c === 0)?.v.bl;
+        await until(() => bold(docCells.save().sheets[0]) === 1);
+        // File > Save, the sheet view still active.
+        let written: Blob | undefined;
+        (popup as any).showSaveFilePicker = async () => ({
+            name: "tableur.dgo",
+            createWritable: async () => ({
+                write: async (blob: Blob) => (written = blob),
+                close: async () => {},
+            }),
+        });
+        page.querySelector<HTMLElement>(".dge-menubar > div > button")!.click();
+        [...page.querySelectorAll<HTMLElement>(".dge-menu-popup > button")]
+            .find(
+                ({ firstChild }) => firstChild?.textContent === "Enregistrer",
+            )!
+            .click();
+        const book = (await dgoJson(await until(() => written))) as {
+            pg: DgoFigure[];
+        };
+        expect(bold((book.pg[0].wb as any).sheets[0])).toBe(1);
+        expect(on()).toBe(true);
+        // A single menu open in both menu bars, the pointer passing from
+        // one to the other.
+        const roots = [
+            ...page.querySelectorAll<HTMLElement>(
+                ".dge-menubar > div > button",
+            ),
+        ];
+        const inner = [
+            ...page
+                .querySelector(".dge-sheet-menus")!
+                .shadowRoot!.querySelectorAll<HTMLElement>("[aria-expanded]"),
+        ];
+        const opened = () =>
+            [
+                ...roots.filter((root) => root.classList.contains("dge-open")),
+                ...inner.filter((root) => root.ariaExpanded === "true"),
+            ]
+                .map(({ textContent }) => textContent)
+                .join();
+        roots[1].click();
+        inner
+            .find(({ textContent }) => textContent === "Format")!
+            .dispatchEvent(
+                new popup.PointerEvent("pointerover", {
+                    bubbles: true,
+                    composed: true,
+                }),
+            );
+        await until(() => opened() === "Format");
+        roots[0].dispatchEvent(new popup.PointerEvent("pointerenter"));
+        await until(() => opened() === "Fichier");
+        roots[0].click();
+        expect(opened()).toBe("");
+        // Pressed in a graphic view, then in the Construction panel.
+        press(svg);
+        expect(on()).toBe(false);
+        expect(shown(".dge-bar, .dge-sheet-menus")).toEqual([true, false]);
+        press(frame, frame);
+        expect(on()).toBe(true);
+        press(page.querySelector("#dge-history")!);
+        expect(on()).toBe(false);
+        // A sheet tab: always.
+        page.querySelectorAll<HTMLElement>(
+            ".docgeo-tabs > button[dir]",
+        )[1].click();
+        await until(on);
+        // A dialog of DocCells veils the page, not itself.
+        bar.shadowRoot!.querySelector<HTMLElement>(
+            "#custom-alternating-colors-button",
+        )!.click();
+        await until(() => page.body.classList.contains("dge-sheet-dialog"));
+        const veil = page.querySelector(".dge-sheet-veil")!;
+        expect(page.elementFromPoint(100, 300)).toBe(veil);
+        const { left, top } = page
+            .querySelector(".docgeo-sheet")!
+            .getBoundingClientRect();
+        expect(page.elementFromPoint(left + 10, top + 10)?.tagName).toBe(
+            "IFRAME",
+        );
+        // As DocCells veils its frame, then no more.
+        const backdrop = frame.document.querySelector(".dc-ac-backdrop")!;
+        const background = (element: Element, view: typeof window) =>
+            view.getComputedStyle(element).backgroundColor;
+        expect(background(veil, popup)).toBe(background(backdrop, frame));
+        [...frame.document.querySelectorAll<HTMLElement>("button")]
+            .find(({ textContent }) => textContent === "Annuler")!
+            .click();
+        await until(() => !page.body.classList.contains("dge-sheet-dialog"));
+        // DocCells' menus as large as the editor's.
+        const fontSize = (element: Element) =>
+            popup.getComputedStyle(element).fontSize;
+        expect(
+            fontSize(
+                page
+                    .querySelector(".dge-sheet-menus")!
+                    .shadowRoot!.querySelector("button")!,
+            ),
+        ).toBe(fontSize(page.querySelector(".dge-menubar > div > button")!));
+    });
+});
+
 describe("cells read by the shown figure", () => {
     it("follows the cells typed in DocCells, a range as a list", async () => {
         const { page, request, typed } = await editor("/index.html?embed");

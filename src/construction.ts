@@ -13,7 +13,7 @@ import {
     viewDirection,
     type ProjectionFrame,
 } from "./projection";
-import { hideSheet, showSheet, type Archive } from "./sheet";
+import { hideSheet, showSheet, type Archive, type DocCells } from "./sheet";
 import { vAdd, vDot, vNormalize, vScale, type Vec2, type Vec3 } from "./vec";
 
 // Zoom bounds, in pixels per unit: beyond them, graduations would outgrow
@@ -46,6 +46,10 @@ export interface DgpadLike {
     sheetRenamed?: (from: string, to: string) => void;
     // A cell's formula that closes a cycle with the figure.
     sheetCycle?: (ref: string) => void;
+    // DocCells ready, its bars to be drawn in the editor's; the sheet view
+    // made the active one.
+    sheetReady?: (cells: DocCells) => void;
+    sheetActivated?: () => void;
 }
 
 // Left, top, width and height of a view, in fractions of the window's.
