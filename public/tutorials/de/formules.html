@@ -129,12 +129,13 @@ fläche = Daten!p * 2</code></pre>
             <p>
                 In einem Tab mit
                 <a href="tableur.html">Tabellenansicht</a> liest eine Formel
-                dessen Zellen über den Namen des Blatts: eine Zelle, einen
-                Bereich (Liste) oder die Zelle eines anderen Tabs.
+                dessen Zellen mit einem Ausrufezeichen, gefolgt von ihrer Adresse:
+                eine Zelle, einen Bereich (Liste) oder die Zelle eines
+                Tabellen-Tabs.
             </p>
-            <pre><code>r = Tabelle1!B3
-L = Tabelle1!B2:B21
-k = 'Tabelle 1'!Tabelle1!A1</code></pre>
+            <pre><code>r = !B3
+L = !B2:B21
+k = Tabelle1!A1</code></pre>
             <p>
                 Eine leere Zelle oder eine Zelle mit Fehler ergibt einen
                 undefinierten Wert. Umgekehrt liest eine Zelle ein Objekt der

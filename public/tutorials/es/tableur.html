@@ -36,7 +36,7 @@
                 <li>B4 las suma: <code>=B1+B2+B3</code>;</li>
                 <li>
                     la figura vuelve a leer esta suma con la línea
-                    <code>s = Hoja1!B4</code>.
+                    <code>s = !B4</code>.
                 </li>
             </ul>
             <p>
@@ -73,8 +73,7 @@
                                 <strong
                                     >Archivo › Nueva pestaña de hoja de
                                     cálculo</strong
-                                >: una pestaña «Hoja de cálculo 1», «Hoja de
-                                cálculo 2»…, que solo contiene una hoja (<a
+                                >: una pestaña «Hoja1», «Hoja2»…, que solo contiene una hoja (<a
                                     href="demarrage.html#classeur"
                                     >libros</a
                                 >)
@@ -113,8 +112,8 @@
                     gris cuando ya tiene una.
                 </li>
                 <li>
-                    Una vista de hoja de cálculo muestra una sola hoja, llamada
-                    «Hoja1», sin pestañas de hojas. Para trabajar con varias
+                    Una vista de hoja de cálculo muestra una sola hoja, sin
+                    pestañas de hojas. Para trabajar con varias
                     hojas, se crean varias pestañas de hoja de cálculo, que se
                     leen entre sí (<a href="#autre-onglet">ver más abajo</a>).
                 </li>
@@ -174,9 +173,9 @@
 
             <h2 id="cellules">La figura lee las celdas</h2>
             <p>
-                Una fórmula de la figura designa una celda por el nombre de la
-                hoja, un signo de exclamación y la dirección de la celda, como
-                en una hoja de cálculo.
+                Una fórmula de la figura designa una celda de la vista de hoja de
+                cálculo de la pestaña por un signo de exclamación seguido de la
+                dirección de la celda: <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -188,41 +187,52 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Hoja1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>la celda B3</td>
                         </tr>
                         <tr>
-                            <td><code>Hoja1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 un rango de una fila o una columna: una lista de
                                 valores
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Hoja1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 un rectángulo: una lista de filas, cada una una
                                 lista
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Hoja de cálculo 1'!Hoja1!B3</code></td>
-                            <td>la celda B3 de la hoja de otra pestaña</td>
+                            <td><code>Hoja1!B3</code></td>
+                            <td>la celda B3 de una pestaña de hoja de cálculo</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figura 1'!!B3</code></td>
+                            <td>
+                                la celda B3 de la vista de hoja de cálculo de
+                                otra pestaña
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Hoja1!B1, Hoja1!B2)
-r = Hoja1!B3
-L = Hoja1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    La dirección se escribe con letras y luego cifras
-                    (<code>B3</code>, <code>AA12</code>), sin <code>$</code>.
+                    La dirección se escribe con letras mayúsculas y luego cifras
+                    (<code>B3</code>, <code>AA12</code>), sin <code>$</code>,
+                    justo después del signo de exclamación. La negación de un
+                    objeto llamado A1 se escribe <code>!(A1)</code>.
                 </li>
                 <li>
-                    Un número, un texto o un booleano se lee tal cual; una fecha
-                    se lee como un número. Una celda vacía o con error
+                    Un número, un texto, un booleano o una lista se lee tal cual;
+                    una fecha se lee como un número. Una celda contiene una
+                    lista escrita entre corchetes, <code>[2; 1]</code>, o
+                    calculada: <code>=[2; 1]*3</code>. Una celda vacía o con error
                     (<code>#DIV/0!</code>…) da un valor indefinido: el objeto
                     que la lee no se dibuja.
                 </li>
@@ -244,8 +254,11 @@ L = Hoja1!A1:A10</code></pre>
                 Primero va el nombre de la pestaña, entre apóstrofos si contiene
                 un espacio o un signo, como para
                 <a href="formules.html#autres-pages">leer otra pestaña</a>:
-                <code>'Hoja de cálculo 1'!Hoja1!B3</code>. Sus celdas se leen
-                tal como estaban calculadas al salir de esa pestaña.
+                <code>Hoja1!B3</code>. Si esa pestaña tiene también una figura, se
+                duplica el signo de exclamación, <code>'Figura 1'!!B3</code>,
+                porque <code>'Figura 1'!B3</code> designa el objeto B3 de su
+                figura. Sus celdas se leen tal como estaban calculadas al salir
+                de esa pestaña.
             </p>
 
             <h2 id="geo">Las celdas leen la figura: GEO</h2>
@@ -264,13 +277,12 @@ L = Hoja1!A1:A10</code></pre>
                     Sigue a la figura mientras se manipula.
                 </li>
                 <li>
-                    Un punto o una lista no se leen: cree primero una expresión,
-                    por ejemplo <code>xA = x(A)</code>, y luego
-                    <code>=GEO("xA")</code>.
+                    Un punto se lee como la lista de sus coordenadas:
+                    <code>=GEO("A")</code> da <code>[1; 2]</code>, con la que se
+                    calcula como con una lista: <code>=GEO("A")*2</code>.
                 </li>
                 <li>
-                    Un objeto desconocido, indefinido, o que no es ni número, ni
-                    texto, ni booleano da <code>#N/A</code>. El nombre debe
+                    Un objeto desconocido, indefinido, o que no es ni número, ni texto, ni booleano, ni punto, ni lista da <code>#N/A</code>. El nombre debe
                     estar escrito en la fórmula: <code>=GEO(A1)</code> da
                     <code>#VALUE!</code>.
                 </li>
@@ -290,8 +302,8 @@ L = Hoja1!A1:A10</code></pre>
                 Un objeto leído por <code>GEO</code> no puede depender de una
                 celda que depende de él. Si <code>A1</code> contiene
                 <code>=GEO("m")+1</code>, redefinir m con la línea
-                <code>m = Hoja1!A1</code> se rechaza: «Referencia circular:
-                Hoja1!A1».
+                <code>m = !A1</code> se rechaza: «Referencia circular:
+                !A1».
             </p>
             <p>
                 Del mismo modo, una fórmula de celda que cerraría un ciclo con

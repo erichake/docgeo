@@ -36,7 +36,7 @@
                 <li>B4 bildet ihre Summe: <code>=B1+B2+B3</code>;</li>
                 <li>
                     Die Figur liest diese Summe mit der Zeile
-                    <code>s = Tabelle1!B4</code> zurück.
+                    <code>s = !B4</code> zurück.
                 </li>
             </ul>
             <p>
@@ -71,7 +71,7 @@
                             <td>In einem eigenen Tab</td>
                             <td>
                                 <strong>Datei › Neuer Tabellen-Tab</strong>: ein
-                                Tab „Tabelle 1“, „Tabelle 2“…, der nur ein Blatt
+                                Tab „Tabelle1“, „Tabelle2“…, der nur ein Blatt
                                 enthält (<a href="demarrage.html#classeur"
                                     >Arbeitsmappen</a
                                 >)
@@ -110,8 +110,8 @@
                     er schon eine hat.
                 </li>
                 <li>
-                    Eine Tabellenansicht zeigt ein einziges Blatt namens
-                    „Tabelle1“, ohne Blattregister. Für mehrere Blätter legt man
+                    Eine Tabellenansicht zeigt ein einziges Blatt, ohne
+                    Blattregister. Für mehrere Blätter legt man
                     mehrere Tabellen-Tabs an, die sich gegenseitig lesen (<a
                         href="#autre-onglet"
                         >siehe unten</a
@@ -172,9 +172,9 @@
 
             <h2 id="cellules">Die Figur liest die Zellen</h2>
             <p>
-                Eine Formel der Figur bezeichnet eine Zelle mit dem Namen des
-                Blatts, einem Ausrufezeichen und der Adresse der Zelle, wie in
-                einer Tabellenkalkulation.
+                Eine Formel der Figur bezeichnet eine Zelle der Tabellenansicht
+                des Tabs mit einem Ausrufezeichen, gefolgt von der Adresse der
+                Zelle: <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -186,41 +186,53 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Tabelle1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>die Zelle B3</td>
                         </tr>
                         <tr>
-                            <td><code>Tabelle1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 ein Bereich aus einer Zeile oder Spalte: eine
                                 Liste von Werten
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Tabelle1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 ein Rechteck: eine Liste von Zeilen, jede eine
                                 Liste
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Tabelle 1'!Tabelle1!B3</code></td>
-                            <td>die Zelle B3 des Blatts eines anderen Tabs</td>
+                            <td><code>Tabelle1!B3</code></td>
+                            <td>die Zelle B3 eines Tabellen-Tabs</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figur 1'!!B3</code></td>
+                            <td>
+                                die Zelle B3 der Tabellenansicht eines anderen
+                                Tabs
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Tabelle1!B1, Tabelle1!B2)
-r = Tabelle1!B3
-L = Tabelle1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    Die Adresse besteht aus Buchstaben, dann Ziffern
-                    (<code>B3</code>, <code>AA12</code>), ohne <code>$</code>.
+                    Die Adresse besteht aus Großbuchstaben, dann Ziffern
+                    (<code>B3</code>, <code>AA12</code>), ohne <code>$</code>,
+                    direkt nach dem Ausrufezeichen. Die Negation eines Objekts
+                    namens A1 schreibt man <code>!(A1)</code>.
                 </li>
                 <li>
-                    Eine Zahl, ein Text oder ein Wahrheitswert wird unverändert
-                    gelesen; ein Datum als Zahl. Eine leere Zelle oder eine
+                    Eine Zahl, ein Text, ein Wahrheitswert oder eine Liste wird
+                    unverändert gelesen; ein Datum als Zahl. Eine Zelle enthält
+                    eine Liste, in eckigen Klammern eingegeben,
+                    <code>[2; 1]</code>, oder berechnet:
+                    <code>=[2; 1]*3</code>. Eine leere Zelle oder eine
                     Zelle mit Fehler (<code>#DIV/0!</code>…) ergibt einen
                     undefinierten Wert: Das Objekt, das sie liest, wird nicht
                     gezeichnet.
@@ -243,8 +255,11 @@ L = Tabelle1!A1:A10</code></pre>
                 Der Name des Tabs steht vorn, in Apostrophen, wenn er ein Leer-
                 oder Sonderzeichen enthält, wie beim
                 <a href="formules.html#autres-pages">Lesen eines anderen Tabs</a
-                >: <code>'Tabelle 1'!Tabelle1!B3</code>. Seine Zellen werden so
-                gelesen, wie sie beim Verlassen dieses Tabs berechnet waren.
+                >: <code>Tabelle1!B3</code>. Hat dieser Tab auch eine Figur, verdoppelt
+                man das Ausrufezeichen, <code>'Figur 1'!!B3</code>, denn
+                <code>'Figur 1'!B3</code> bezeichnet das Objekt B3 seiner Figur.
+                Seine Zellen werden so gelesen, wie sie beim Verlassen dieses
+                Tabs berechnet waren.
             </p>
 
             <h2 id="geo">Die Zellen lesen die Figur: GEO</h2>
@@ -264,13 +279,13 @@ L = Tabelle1!A1:A10</code></pre>
                     bewegt.
                 </li>
                 <li>
-                    Ein Punkt oder eine Liste lässt sich nicht lesen: Erst einen
-                    Ausdruck anlegen, zum Beispiel <code>xA = x(A)</code>, dann
-                    <code>=GEO("xA")</code>.
+                    Ein Punkt wird als Liste seiner Koordinaten gelesen:
+                    <code>=GEO("A")</code> ergibt <code>[1; 2]</code>, mit der
+                    man wie mit einer Liste rechnet: <code>=GEO("A")*2</code>.
                 </li>
                 <li>
                     Ein unbekanntes oder undefiniertes Objekt, oder eines, das
-                    weder Zahl noch Text noch Wahrheitswert ist, ergibt
+                    weder Zahl noch Text noch Wahrheitswert noch Punkt noch Liste ist, ergibt
                     <code>#N/A</code>. Der Name muss in der Formel stehen:
                     <code>=GEO(A1)</code> ergibt <code>#VALUE!</code>.
                 </li>
@@ -290,8 +305,8 @@ L = Tabelle1!A1:A10</code></pre>
                 Ein von <code>GEO</code> gelesenes Objekt kann nicht von einer
                 Zelle abhängen, die von ihm abhängt. Enthält <code>A1</code> die
                 Formel <code>=GEO("m")+1</code>, wird die Neudefinition von m
-                durch die Zeile <code>m = Tabelle1!A1</code> abgelehnt:
-                „Zirkelbezug: Tabelle1!A1“.
+                durch die Zeile <code>m = !A1</code> abgelehnt:
+                „Zirkelbezug: !A1“.
             </p>
             <p>
                 Ebenso wird eine Zellformel, die einen Kreis mit der Figur

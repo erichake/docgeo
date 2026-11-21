@@ -129,12 +129,12 @@ oppervlakte = Gegevens!p * 2</code></pre>
             <p>
                 In een tabblad met een
                 <a href="tableur.html">rekenbladweergave</a> leest een formule
-                de cellen via de naam van het blad: een cel, een bereik (lijst)
-                of de cel van een ander tabblad.
+                de cellen met een uitroepteken gevolgd door hun adres: een cel, een
+                bereik (lijst) of de cel van een rekenbladtabblad.
             </p>
-            <pre><code>r = Blad1!B3
-L = Blad1!B2:B21
-k = 'Rekenblad 1'!Blad1!A1</code></pre>
+            <pre><code>r = !B3
+L = !B2:B21
+k = Rekenblad1!A1</code></pre>
             <p>
                 Een lege cel of een cel met een fout geeft een ongedefinieerde
                 waarde. Omgekeerd leest een cel een object van de figuur met

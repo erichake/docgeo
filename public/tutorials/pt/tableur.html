@@ -35,7 +35,7 @@
                 <li>B4 faz a soma: <code>=B1+B2+B3</code>;</li>
                 <li>
                     a figura lê essa soma de volta pela linha
-                    <code>s = Planilha1!B4</code>.
+                    <code>s = !B4</code>.
                 </li>
             </ul>
             <p>
@@ -70,7 +70,7 @@
                             <td>Em sua própria aba</td>
                             <td>
                                 <strong>Arquivo › Nova aba de planilha</strong>:
-                                uma aba “Planilha 1”, “Planilha 2”…, que contém
+                                uma aba “Planilha1”, “Planilha2”…, que contém
                                 apenas uma folha (<a
                                     href="demarrage.html#classeur"
                                     >pastas de trabalho</a
@@ -110,8 +110,8 @@
                     quando ela já tem uma.
                 </li>
                 <li>
-                    Uma vista de planilha mostra uma única folha, chamada
-                    “Planilha1”, sem abas de folhas. Para trabalhar com várias
+                    Uma vista de planilha mostra uma única folha, sem abas
+                    de folhas. Para trabalhar com várias
                     folhas, criam-se várias abas de planilha, que se leem entre
                     si (<a href="#autre-onglet">veja abaixo</a>).
                 </li>
@@ -168,9 +168,9 @@
 
             <h2 id="cellules">A figura lê as células</h2>
             <p>
-                Uma fórmula da figura designa uma célula pelo nome da folha, um
-                ponto de exclamação e o endereço da célula, como em uma
-                planilha.
+                Uma fórmula da figura designa uma célula da vista de planilha da
+                aba por um ponto de exclamação seguido do endereço da célula:
+                <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -182,41 +182,49 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Planilha1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>a célula B3</td>
                         </tr>
                         <tr>
-                            <td><code>Planilha1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 um intervalo de uma linha ou de uma coluna: uma
                                 lista de valores
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Planilha1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 um retângulo: uma lista de linhas, cada uma uma
                                 lista
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Planilha 1'!Planilha1!B3</code></td>
-                            <td>a célula B3 da folha de outra aba</td>
+                            <td><code>Planilha1!B3</code></td>
+                            <td>a célula B3 de uma aba de planilha</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figura 1'!!B3</code></td>
+                            <td>a célula B3 da vista de planilha de outra aba</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Planilha1!B1, Planilha1!B2)
-r = Planilha1!B3
-L = Planilha1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    O endereço é escrito com letras e depois algarismos
-                    (<code>B3</code>, <code>AA12</code>), sem <code>$</code>.
+                    O endereço é escrito com letras maiúsculas e depois algarismos
+                    (<code>B3</code>, <code>AA12</code>), sem <code>$</code>,
+                    logo após o ponto de exclamação. A negação de um objeto
+                    chamado A1 escreve-se <code>!(A1)</code>.
                 </li>
                 <li>
-                    Um número, um texto ou um booleano é lido tal como está; uma
-                    data é lida como um número. Uma célula vazia ou com erro
+                    Um número, um texto, um booleano ou uma lista é lido tal como
+                    está; uma data é lida como um número. Uma célula contém uma
+                    lista digitada entre colchetes, <code>[2; 1]</code>, ou
+                    calculada: <code>=[2; 1]*3</code>. Uma célula vazia ou com erro
                     (<code>#DIV/0!</code>…) dá um valor indefinido: o objeto que
                     a lê não é desenhado.
                 </li>
@@ -238,8 +246,11 @@ L = Planilha1!A1:A10</code></pre>
                 O nome da aba vem primeiro, entre apóstrofos se contiver um
                 espaço ou um sinal, como para
                 <a href="formules.html#autres-pages">ler outra aba</a>:
-                <code>'Planilha 1'!Planilha1!B3</code>. Suas células são lidas
-                como estavam calculadas quando se saiu dessa aba.
+                <code>Planilha1!B3</code>. Se essa aba também tem uma figura,
+                dobra-se o ponto de exclamação, <code>'Figura 1'!!B3</code>,
+                pois <code>'Figura 1'!B3</code> designa o objeto B3 da sua
+                figura. Suas células são lidas como estavam calculadas quando
+                se saiu dessa aba.
             </p>
 
             <h2 id="geo">As células leem a figura: GEO</h2>
@@ -258,13 +269,13 @@ L = Planilha1!A1:A10</code></pre>
                     seleção… Ele acompanha a figura enquanto ela é manipulada.
                 </li>
                 <li>
-                    Um ponto ou uma lista não se leem: crie primeiro uma
-                    expressão, por exemplo <code>xA = x(A)</code>, e depois
-                    <code>=GEO("xA")</code>.
+                    Um ponto é lido como a lista de suas coordenadas:
+                    <code>=GEO("A")</code> dá <code>[1; 2]</code>, com a qual se
+                    calcula como com uma lista: <code>=GEO("A")*2</code>.
                 </li>
                 <li>
                     Um objeto desconhecido, indefinido, ou que não é nem número,
-                    nem texto, nem booleano dá <code>#N/A</code>. O nome deve
+                    nem texto, nem booleano, nem ponto, nem lista dá <code>#N/A</code>. O nome deve
                     estar escrito na fórmula: <code>=GEO(A1)</code> dá
                     <code>#VALUE!</code>.
                 </li>
@@ -284,8 +295,8 @@ L = Planilha1!A1:A10</code></pre>
                 Um objeto lido por <code>GEO</code> não pode depender de uma
                 célula que depende dele. Se <code>A1</code> contém
                 <code>=GEO("m")+1</code>, redefinir m pela linha
-                <code>m = Planilha1!A1</code> é recusado: “Referência circular:
-                Planilha1!A1”.
+                <code>m = !A1</code> é recusado: “Referência circular:
+                !A1”.
             </p>
             <p>
                 Da mesma forma, uma fórmula de célula que fecharia um ciclo com

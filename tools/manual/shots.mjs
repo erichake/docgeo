@@ -129,7 +129,7 @@ async function spreadsheet({ page, type, t }) {
         "a = Segment(B, C)",
         "b = Segment(A, C)",
         "c = Segment(A, B)",
-        `s = ${sheet}!B4`,
+        "s = !B4",
     ]);
     await page.waitForTimeout(800);
     const box = await page.locator(".docgeo-sheet iframe").boundingBox();

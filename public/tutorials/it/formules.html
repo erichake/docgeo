@@ -127,12 +127,13 @@ area = Dati!p * 2</code></pre>
             <p>
                 In una scheda con una
                 <a href="tableur.html">vista foglio di calcolo</a>, una formula
-                legge le sue celle tramite il nome del foglio: una cella, un
-                intervallo (lista) o la cella di un’altra scheda.
+                legge le sue celle con un punto esclamativo seguito dal loro
+                indirizzo: una cella, un intervallo (lista) o la cella di una
+                scheda foglio di calcolo.
             </p>
-            <pre><code>r = Foglio1!B3
-L = Foglio1!B2:B21
-k = 'Foglio di calcolo 1'!Foglio1!A1</code></pre>
+            <pre><code>r = !B3
+L = !B2:B21
+k = Foglio1!A1</code></pre>
             <p>
                 Una cella vuota o in errore dà un valore indefinito. Nel senso
                 inverso, una cella legge un oggetto della figura con

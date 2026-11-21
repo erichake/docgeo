@@ -36,7 +36,7 @@
                 <li>B4 en fait la somme : <code>=B1+B2+B3</code> ;</li>
                 <li>
                     la figure relit cette somme par la ligne
-                    <code>s = Feuille1!B4</code>.
+                    <code>s = !B4</code>.
                 </li>
             </ul>
             <p>
@@ -72,7 +72,7 @@
                             <td>Dans son propre onglet</td>
                             <td>
                                 <strong>Fichier › Nouvel onglet tableur</strong>
-                                : un onglet « Tableur 1 », « Tableur 2 »…, qui
+                                : un onglet « Tableur1 », « Tableur2 »…, qui
                                 ne contient qu’une feuille (<a
                                     href="demarrage.html#classeur"
                                     >classeurs</a
@@ -113,8 +113,8 @@
                     a déjà une.
                 </li>
                 <li>
-                    Une vue tableur montre une seule feuille, nommée « Feuille1
-                    », sans onglets de feuilles. Pour travailler sur plusieurs
+                    Une vue tableur montre une seule feuille, sans onglets de
+                    feuilles. Pour travailler sur plusieurs
                     feuilles, on crée plusieurs onglets tableur, qui se lisent
                     entre eux (<a href="#autre-onglet">voir plus bas</a>).
                 </li>
@@ -172,9 +172,9 @@
 
             <h2 id="cellules">La figure lit les cellules</h2>
             <p>
-                Une formule de la figure désigne une cellule par le nom de la
-                feuille, un point d’exclamation et l’adresse de la cellule,
-                comme dans un tableur.
+                Une formule de la figure désigne une cellule de la vue tableur
+                de l’onglet par un point d’exclamation suivi de l’adresse de
+                la cellule : <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -186,43 +186,52 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Feuille1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>la cellule B3</td>
                         </tr>
                         <tr>
-                            <td><code>Feuille1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 une plage d’une ligne ou d’une colonne : une
                                 liste de valeurs
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Feuille1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 un rectangle : une liste de lignes, chacune une
                                 liste
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Tableur 1'!Feuille1!B3</code></td>
+                            <td><code>Tableur1!B3</code></td>
+                            <td>la cellule B3 d’un onglet tableur</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figure 1'!!B3</code></td>
                             <td>
-                                la cellule B3 de la feuille d’un autre onglet
+                                la cellule B3 de la vue tableur d’un autre
+                                onglet
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Feuille1!B1, Feuille1!B2)
-r = Feuille1!B3
-L = Feuille1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    L’adresse s’écrit en lettres puis en chiffres
-                    (<code>B3</code>, <code>AA12</code>), sans <code>$</code>.
+                    L’adresse s’écrit en lettres majuscules puis en chiffres
+                    (<code>B3</code>, <code>AA12</code>), sans <code>$</code>,
+                    collée au point d’exclamation. Pour la négation d’un
+                    objet nommé A1, on écrit <code>!(A1)</code>.
                 </li>
                 <li>
-                    Un nombre, un texte ou un booléen est lu tel quel ; une date
-                    est lue comme un nombre. Une cellule vide ou en erreur
+                    Un nombre, un texte, un booléen ou une liste est lu tel
+                    quel ; une date est lue comme un nombre. Une cellule
+                    contient une liste saisie entre crochets,
+                    <code>[2; 1]</code>, ou calculée : <code>=[2; 1]*3</code>. Une cellule vide ou en erreur
                     (<code>#DIV/0!</code>…) donne une valeur indéfinie : l’objet
                     qui la lit n’est pas dessiné.
                 </li>
@@ -244,8 +253,11 @@ L = Feuille1!A1:A10</code></pre>
                 Le nom de l’onglet vient d’abord, entre apostrophes s’il
                 contient une espace ou un signe, comme pour
                 <a href="formules.html#autres-pages">lire un autre onglet</a> :
-                <code>'Tableur 1'!Feuille1!B3</code>. Ses cellules y sont lues
-                telles qu’elles étaient calculées quand on a quitté cet onglet.
+                <code>Tableur1!B3</code>. Si cet onglet a aussi une figure, on
+                double le point d’exclamation, <code>'Figure 1'!!B3</code>, car
+                <code>'Figure 1'!B3</code> désigne l’objet B3 de sa figure. Ses
+                cellules y sont lues telles qu’elles étaient calculées quand on
+                a quitté cet onglet.
             </p>
 
             <h2 id="geo">Les cellules lisent la figure : GEO</h2>
@@ -264,13 +276,15 @@ L = Feuille1!A1:A10</code></pre>
                     Elle suit la figure pendant qu’on la manipule.
                 </li>
                 <li>
-                    Un point ou une liste ne se lisent pas : on crée d’abord une
-                    expression, par exemple <code>xA = x(A)</code>, puis
-                    <code>=GEO("xA")</code>.
+                    Un point est lu comme la liste de ses coordonnées :
+                    <code>=GEO("A")</code> donne <code>[1; 2]</code>, sur
+                    laquelle on calcule comme sur une liste :
+                    <code>=GEO("A")*2</code>.
                 </li>
                 <li>
                     Un objet inconnu, indéfini, ou qui n’est ni un nombre, ni un
-                    texte, ni un booléen donne <code>#N/A</code>. Le nom doit
+                    texte, ni un booléen, ni un point, ni une liste donne
+                    <code>#N/A</code>. Le nom doit
                     être écrit dans la formule : <code>=GEO(A1)</code> donne
                     <code>#VALUE!</code>.
                 </li>
@@ -290,8 +304,7 @@ L = Feuille1!A1:A10</code></pre>
                 Un objet lu par <code>GEO</code> ne peut pas dépendre d’une
                 cellule qui dépend de lui. Si <code>A1</code> contient
                 <code>=GEO("m")+1</code>, redéfinir m par la ligne
-                <code>m = Feuille1!A1</code> est refusé : « Référence circulaire
-                : Feuille1!A1 ».
+                <code>m = !A1</code> est refusé : « Référence circulaire : !A1 ».
             </p>
             <p>
                 De même, une formule de cellule qui fermerait une boucle avec la

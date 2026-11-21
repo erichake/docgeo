@@ -124,12 +124,13 @@ area = Dados!p * 2</code></pre>
             <h2 id="cellules">Ler uma célula da planilha</h2>
             <p>
                 Em uma aba com uma <a href="tableur.html">vista de planilha</a>,
-                uma fórmula lê suas células pelo nome da folha: uma célula, um
-                intervalo (lista) ou a célula de outra aba.
+                uma fórmula lê suas células por um ponto de exclamação seguido do
+                endereço: uma célula, um intervalo (lista) ou a célula de uma aba
+                de planilha.
             </p>
-            <pre><code>r = Planilha1!B3
-L = Planilha1!B2:B21
-k = 'Planilha 1'!Planilha1!A1</code></pre>
+            <pre><code>r = !B3
+L = !B2:B21
+k = Planilha1!A1</code></pre>
             <p>
                 Uma célula vazia ou com erro dá um valor indefinido. No sentido
                 inverso, uma célula lê um objeto da figura com

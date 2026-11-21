@@ -129,12 +129,13 @@ area = Datos!p * 2</code></pre>
             <p>
                 En una pestaña con una
                 <a href="tableur.html">vista de hoja de cálculo</a>, una fórmula
-                lee sus celdas por el nombre de la hoja: una celda, un rango
-                (lista) o la celda de otra pestaña.
+                lee sus celdas por un signo de exclamación seguido de su dirección:
+                una celda, un rango (lista) o la celda de una pestaña de hoja de
+                cálculo.
             </p>
-            <pre><code>r = Hoja1!B3
-L = Hoja1!B2:B21
-k = 'Hoja de cálculo 1'!Hoja1!A1</code></pre>
+            <pre><code>r = !B3
+L = !B2:B21
+k = Hoja1!A1</code></pre>
             <p>
                 Una celda vacía o con error da un valor indefinido. En sentido
                 inverso, una celda lee un objeto de la figura con

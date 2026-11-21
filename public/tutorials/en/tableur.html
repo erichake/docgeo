@@ -35,7 +35,7 @@
                 <li>B4 adds them up: <code>=B1+B2+B3</code>;</li>
                 <li>
                     the figure reads this sum back with the line
-                    <code>s = Sheet1!B4</code>.
+                    <code>s = !B4</code>.
                 </li>
             </ul>
             <p>
@@ -69,7 +69,7 @@
                             <td>In its own tab</td>
                             <td>
                                 <strong>File › New spreadsheet tab</strong>: a
-                                tab “Spreadsheet 1”, “Spreadsheet 2”…, holding
+                                tab “Spreadsheet1”, “Spreadsheet2”…, holding
                                 only a sheet (<a href="demarrage.html#classeur"
                                     >workbooks</a
                                 >)
@@ -105,7 +105,7 @@
                     already has one.
                 </li>
                 <li>
-                    A spreadsheet view shows a single sheet, named “Sheet1”,
+                    A spreadsheet view shows a single sheet,
                     without sheet tabs. To work on several sheets, create
                     several spreadsheet tabs, which read one another (<a
                         href="#autre-onglet"
@@ -162,8 +162,9 @@
 
             <h2 id="cellules">The figure reads the cells</h2>
             <p>
-                A formula of the figure names a cell by the sheet’s name, an
-                exclamation mark and the cell’s address, as in a spreadsheet.
+                A formula of the figure names a cell of the tab’s spreadsheet view
+                by an exclamation mark followed by the cell’s address:
+                <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -175,41 +176,51 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Sheet1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>cell B3</td>
                         </tr>
                         <tr>
-                            <td><code>Sheet1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 a range of one row or one column: a list of
                                 values
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Sheet1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 a rectangle: a list of rows, each one a list
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Spreadsheet 1'!Sheet1!B3</code></td>
-                            <td>cell B3 of the sheet of another tab</td>
+                            <td><code>Spreadsheet1!B3</code></td>
+                            <td>cell B3 of a spreadsheet tab</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figure 1'!!B3</code></td>
+                            <td>
+                                cell B3 of the spreadsheet view of another tab
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Sheet1!B1, Sheet1!B2)
-r = Sheet1!B3
-L = Sheet1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    The address is written with letters then digits
+                    The address is written with capital letters then digits
                     (<code>B3</code>, <code>AA12</code>), without
-                    <code>$</code>.
+                    <code>$</code>, right after the exclamation mark. The
+                    negation of an object named A1 is written
+                    <code>!(A1)</code>.
                 </li>
                 <li>
-                    A number, a text or a boolean is read as it is; a date is
-                    read as a number. An empty cell or a cell in error
+                    A number, a text, a boolean or a list is read as it is; a
+                    date is read as a number. A cell holds a list typed between
+                    brackets, <code>[2, 1]</code>, or computed:
+                    <code>=[2, 1]*3</code>. An empty cell or a cell in error
                     (<code>#DIV/0!</code>…) gives an undefined value: the object
                     that reads it is not drawn.
                 </li>
@@ -231,8 +242,11 @@ L = Sheet1!A1:A10</code></pre>
                 The tab’s name comes first, in apostrophes if it contains a
                 space or a sign, as when
                 <a href="formules.html#autres-pages">reading another tab</a>:
-                <code>'Spreadsheet 1'!Sheet1!B3</code>. Its cells are read as
-                they were computed when that tab was left.
+                <code>Spreadsheet1!B3</code>. If that tab also has a figure,
+                double the exclamation mark, <code>'Figure 1'!!B3</code>,
+                since <code>'Figure 1'!B3</code> names the object B3 of its
+                figure. Its cells are read as they were computed when that tab
+                was left.
             </p>
 
             <h2 id="geo">The cells read the figure: GEO</h2>
@@ -251,13 +265,13 @@ L = Sheet1!A1:A10</code></pre>
                     follows the figure while it is manipulated.
                 </li>
                 <li>
-                    A point or a list cannot be read: first create an
-                    expression, for example <code>xA = x(A)</code>, then
-                    <code>=GEO("xA")</code>.
+                    A point is read as the list of its coordinates:
+                    <code>=GEO("A")</code> gives <code>[1, 2]</code>, on which
+                    one computes as on a list: <code>=GEO("A")*2</code>.
                 </li>
                 <li>
                     An unknown or undefined object, or one that is neither a
-                    number, nor a text, nor a boolean, gives <code>#N/A</code>.
+                    number, nor a text, nor a boolean, nor a point, nor a list, gives <code>#N/A</code>.
                     The name must be written in the formula:
                     <code>=GEO(A1)</code> gives <code>#VALUE!</code>.
                 </li>
@@ -277,8 +291,8 @@ L = Sheet1!A1:A10</code></pre>
                 An object read by <code>GEO</code> cannot depend on a cell that
                 depends on it. If <code>A1</code> contains
                 <code>=GEO("m")+1</code>, redefining m with the line
-                <code>m = Sheet1!A1</code> is refused: “Circular reference:
-                Sheet1!A1”.
+                <code>m = !A1</code> is refused: “Circular reference:
+                !A1”.
             </p>
             <p>
                 Likewise, a cell formula that would close a loop with the figure

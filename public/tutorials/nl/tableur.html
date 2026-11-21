@@ -35,7 +35,7 @@
                 <li>B4 telt ze op: <code>=B1+B2+B3</code>;</li>
                 <li>
                     de figuur leest die som terug met de regel
-                    <code>s = Blad1!B4</code>.
+                    <code>s = !B4</code>.
                 </li>
             </ul>
             <p>
@@ -70,7 +70,7 @@
                             <td>In een eigen tabblad</td>
                             <td>
                                 <strong>Bestand › Nieuw rekenbladtabblad</strong
-                                >: een tabblad „Rekenblad 1”, „Rekenblad 2”…,
+                                >: een tabblad „Rekenblad1”, „Rekenblad2”…,
                                 dat alleen een blad bevat (<a
                                     href="demarrage.html#classeur"
                                     >werkmappen</a
@@ -111,8 +111,7 @@
                     er al een heeft.
                 </li>
                 <li>
-                    Een rekenbladweergave toont één blad, „Blad1” genoemd,
-                    zonder bladtabs. Om met meerdere bladen te werken, maakt men
+                    Een rekenbladweergave toont één blad, zonder bladtabs. Om met meerdere bladen te werken, maakt men
                     meerdere rekenbladtabbladen, die elkaar lezen (<a
                         href="#autre-onglet"
                         >zie verder</a
@@ -174,9 +173,9 @@
 
             <h2 id="cellules">De figuur leest de cellen</h2>
             <p>
-                Een formule van de figuur duidt een cel aan met de naam van het
-                blad, een uitroepteken en het adres van de cel, zoals in een
-                rekenblad.
+                Een formule van de figuur duidt een cel van de rekenbladweergave
+                van het tabblad aan met een uitroepteken gevolgd door het adres
+                van de cel: <code>!B3</code>.
             </p>
             <div class="table">
                 <table>
@@ -188,41 +187,52 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>Blad1!B3</code></td>
+                            <td><code>!B3</code></td>
                             <td>cel B3</td>
                         </tr>
                         <tr>
-                            <td><code>Blad1!B2:B21</code></td>
+                            <td><code>!B2:B21</code></td>
                             <td>
                                 een bereik van één rij of één kolom: een lijst
                                 van waarden
                             </td>
                         </tr>
                         <tr>
-                            <td><code>Blad1!A1:C3</code></td>
+                            <td><code>!A1:C3</code></td>
                             <td>
                                 een rechthoek: een lijst van rijen, elk een
                                 lijst
                             </td>
                         </tr>
                         <tr>
-                            <td><code>'Rekenblad 1'!Blad1!B3</code></td>
-                            <td>cel B3 van het blad van een ander tabblad</td>
+                            <td><code>Rekenblad1!B3</code></td>
+                            <td>cel B3 van een rekenbladtabblad</td>
+                        </tr>
+                        <tr>
+                            <td><code>'Figuur 1'!!B3</code></td>
+                            <td>
+                                cel B3 van de rekenbladweergave van een ander
+                                tabblad
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <pre><code>A = (Blad1!B1, Blad1!B2)
-r = Blad1!B3
-L = Blad1!A1:A10</code></pre>
+            <pre><code>A = (!B1, !B2)
+r = !B3
+L = !A1:A10</code></pre>
             <ul>
                 <li>
-                    Het adres bestaat uit letters en dan cijfers
-                    (<code>B3</code>, <code>AA12</code>), zonder <code>$</code>.
+                    Het adres bestaat uit hoofdletters en dan cijfers
+                    (<code>B3</code>, <code>AA12</code>), zonder <code>$</code>,
+                    direct na het uitroepteken. De negatie van een object met
+                    de naam A1 schrijf je <code>!(A1)</code>.
                 </li>
                 <li>
-                    Een getal, een tekst of een boolean wordt gelezen zoals hij
-                    is; een datum wordt als getal gelezen. Een lege cel of een
+                    Een getal, een tekst, een boolean of een lijst wordt gelezen
+                    zoals hij is; een datum wordt als getal gelezen. Een cel
+                    bevat een lijst, tussen vierkante haken getypt,
+                    <code>[2; 1]</code>, of berekend: <code>=[2; 1]*3</code>. Een lege cel of een
                     cel met een fout (<code>#DIV/0!</code>…) geeft een
                     ongedefinieerde waarde: het object dat haar leest, wordt
                     niet getekend.
@@ -245,8 +255,11 @@ L = Blad1!A1:A10</code></pre>
                 De naam van het tabblad komt eerst, tussen apostrofs als hij een
                 spatie of een teken bevat, zoals bij
                 <a href="formules.html#autres-pages">een ander tabblad lezen</a
-                >: <code>'Rekenblad 1'!Blad1!B3</code>. De cellen worden gelezen
-                zoals ze berekend waren toen men dat tabblad verliet.
+                >: <code>Rekenblad1!B3</code>. Heeft dat tabblad ook een figuur, dan
+                verdubbelt men het uitroepteken, <code>'Figuur 1'!!B3</code>,
+                want <code>'Figuur 1'!B3</code> duidt het object B3 van zijn
+                figuur aan. De cellen worden gelezen zoals ze berekend waren
+                toen men dat tabblad verliet.
             </p>
 
             <h2 id="geo">De cellen lezen de figuur: GEO</h2>
@@ -267,13 +280,13 @@ L = Blad1!A1:A10</code></pre>
                     bewerkt.
                 </li>
                 <li>
-                    Een punt of een lijst kan niet gelezen worden: maak eerst
-                    een uitdrukking, bijvoorbeeld <code>xA = x(A)</code>, en dan
-                    <code>=GEO("xA")</code>.
+                    Een punt wordt gelezen als de lijst van zijn coördinaten:
+                    <code>=GEO("A")</code> geeft <code>[1; 2]</code>, waarmee je
+                    rekent als met een lijst: <code>=GEO("A")*2</code>.
                 </li>
                 <li>
                     Een onbekend of ongedefinieerd object, of een object dat
-                    geen getal, tekst of boolean is, geeft <code>#N/A</code>. De
+                    geen getal, tekst, boolean, punt of lijst is, geeft <code>#N/A</code>. De
                     naam moet in de formule geschreven staan:
                     <code>=GEO(A1)</code> geeft <code>#VALUE!</code>.
                 </li>
@@ -294,8 +307,8 @@ L = Blad1!A1:A10</code></pre>
                 afhangen van een cel die van dat object afhangt. Als
                 <code>A1</code> <code>=GEO("m")+1</code> bevat, wordt het
                 herdefiniëren van m met de regel
-                <code>m = Blad1!A1</code> geweigerd: „Kringverwijzing:
-                Blad1!A1”.
+                <code>m = !A1</code> geweigerd: „Kringverwijzing:
+                !A1”.
             </p>
             <p>
                 Evenzo wordt een celformule die een kring met de figuur zou
