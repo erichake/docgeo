@@ -628,12 +628,12 @@ qui est dit plus haut.
 
 ## Point de reprise
 
-État au 2026-11-21 : étapes 1 à 14 faites et commitées, manuel compris
+État au 2026-11-21 : étapes 1 à 15 faites et commitées, manuel compris
 (listes et points de l'étape 13, références sans nom de feuille de
 l'étape 14, capture `tableur.webp` refaite). Étape 15 (insertion à la
-souris) faite, dans DocCells et DocGeo, non commitée ; son manuel reste à
-écrire (page tableur, « Les cellules lues par la figure »). Restent les
-décisions de l'auteur sur les limites de la v1.
+souris) faite et commitée, dans DocCells et DocGeo, manuel compris (page
+tableur, « Désigner les cellules à la souris »). Restent les décisions de
+l'auteur sur les limites de la v1.
 
 ## Comptes rendus des étapes
 
@@ -1510,8 +1510,8 @@ DocGeo).
     la ferme. Suite complète : 286 unitaires, 1 590 navigateur.
 - **Poids** : moteur 376 182 octets et lecteur `main` 15 857 inchangés ;
   éditeur 330 599 → 330 923 (+324).
-- **Manuel** (à écrire, page tableur, section « Les cellules lues par la
-  figure ») : pendant la saisie d'une ligne, cliquer une cellule insère
+- **Manuel** (page tableur, `#souris`, 12 langues, dans « La figure lit
+  les cellules ») : pendant la saisie d'une ligne, cliquer une cellule insère
   `!B3` au curseur, glisser insère une plage `!A1:A20` ; la vue tableur
   reste inactive et le focus dans la ligne ; un cadre pointillé montre la
   plage. Hors saisie, un clic dans les cellules les sélectionne comme
