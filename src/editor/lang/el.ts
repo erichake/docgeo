@@ -50,7 +50,7 @@ const el: Texts = {
         new_sheet_view: "Νέα προβολή υπολογιστικού φύλλου",
         delete_sheet_view: "Διαγραφή της προβολής υπολογιστικού φύλλου",
         new_sheet_page: "Νέα καρτέλα υπολογιστικού φύλλου",
-        sheet_page_name: "Υπολογιστικό φύλλο %",
+        sheet_page_name: "Φύλλο%",
         sheet_name: "Φύλλο1",
         move_view_left: "Μετακίνηση προβολής αριστερά",
         move_view_right: "Μετακίνηση προβολής δεξιά",

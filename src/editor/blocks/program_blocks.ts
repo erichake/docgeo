@@ -1,3 +1,4 @@
+import { negation } from "../../import/dgp_formula";
 import type {
     FormulaFn,
     FormulaNode,
@@ -1863,7 +1864,7 @@ class Generator {
             case "controls_whileUntil": {
                 const test =
                     fields.MODE === "UNTIL"
-                        ? `!${this.operand(block, "BOOL", UNARY, "false")}`
+                        ? negation(this.operand(block, "BOOL", UNARY, "false"))
                         : this.arg(block, "BOOL", "false");
                 return [
                     `${indent}while (${test}) {`,
@@ -2075,7 +2076,7 @@ class Generator {
             }
             case "logic_negate":
                 return [
-                    `!${this.operand(block, "BOOL", UNARY, "false")}`,
+                    negation(this.operand(block, "BOOL", UNARY, "false")),
                     UNARY,
                 ];
             case "logic_ternary":

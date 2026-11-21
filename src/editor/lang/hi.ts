@@ -50,7 +50,7 @@ const hi: Texts = {
         new_sheet_view: "नया स्प्रेडशीट दृश्य",
         delete_sheet_view: "स्प्रेडशीट दृश्य हटाएँ",
         new_sheet_page: "नया स्प्रेडशीट टैब",
-        sheet_page_name: "स्प्रेडशीट %",
+        sheet_page_name: "स्प्रेडशीट%",
         sheet_name: "शीट1",
         move_view_left: "दृश्य को बाईं ओर ले जाएँ",
         move_view_right: "दृश्य को दाईं ओर ले जाएँ",

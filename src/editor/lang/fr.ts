@@ -50,7 +50,7 @@ const fr: Texts = {
         new_sheet_view: "Nouvelle vue tableur",
         delete_sheet_view: "Supprimer la vue tableur",
         new_sheet_page: "Nouvel onglet tableur",
-        sheet_page_name: "Tableur %",
+        sheet_page_name: "Tableur%",
         sheet_name: "Feuille1",
         move_view_left: "Déplacer la vue à gauche",
         move_view_right: "Déplacer la vue à droite",

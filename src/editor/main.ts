@@ -314,7 +314,6 @@ const studio = {
     viewsChanged: () => void record(),
     editor: true,
     saveFigure: () => void save(),
-    sheetRenamed: (from, to) => void renameSheet(from, to),
     sheetChanged: () => keepSheet(),
     // The cells as they were before the formula (see TABLEUR.md).
     sheetCycle: (ref) => {
@@ -8053,29 +8052,6 @@ function renamePage(index: number): void {
 }
 
 type Rename = (page: string, name: string) => [string, string] | undefined;
-
-// The references to cells of a sheet renamed in DocCells written anew, in
-// the page shown and the others (see TABLEUR.md).
-async function renameSheet(from: string, to: string): Promise<void> {
-    await recording;
-    if (book) {
-        const page = book.pages[book.current].name;
-        renameReferences((other, name) =>
-            other === page && name.startsWith(`${from}!`)
-                ? [page, to + name.slice(from.length)]
-                : undefined,
-        );
-    }
-    const figure = await asSaved(() => describeDgo(scene()));
-    const renamed = renamedJson(figure, (sheet, name) =>
-        sheet === from && /^[A-Z]+\d+(:[A-Z]+\d+)?$/i.test(name)
-            ? [to, name]
-            : undefined,
-    ) as DgoFigure;
-    if (JSON.stringify(renamed) === JSON.stringify(figure)) return;
-    rebuild(studio, renamed);
-    changed();
-}
 
 // A description whose formulas' references to objects of other pages are
 // written anew.

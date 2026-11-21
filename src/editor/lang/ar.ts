@@ -49,7 +49,7 @@ const ar: Texts = {
         new_sheet_view: "عرض جدول بيانات جديد",
         delete_sheet_view: "حذف عرض جدول البيانات",
         new_sheet_page: "علامة تبويب جدول بيانات جديدة",
-        sheet_page_name: "جدول بيانات %",
+        sheet_page_name: "جدول%",
         sheet_name: "ورقة1",
         move_view_left: "نقل العرض إلى اليسار",
         move_view_right: "نقل العرض إلى اليمين",

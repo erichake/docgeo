@@ -50,7 +50,7 @@ const nl: Texts = {
         new_sheet_view: "Nieuwe rekenbladweergave",
         delete_sheet_view: "Rekenbladweergave verwijderen",
         new_sheet_page: "Nieuw rekenbladtabblad",
-        sheet_page_name: "Rekenblad %",
+        sheet_page_name: "Rekenblad%",
         sheet_name: "Blad1",
         move_view_left: "Weergave naar links verplaatsen",
         move_view_right: "Weergave naar rechts verplaatsen",

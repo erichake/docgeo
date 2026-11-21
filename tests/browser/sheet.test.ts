@@ -129,20 +129,22 @@ describe("cells read by the figure", () => {
         );
         // Shown, as in the editor, before DocCells holds its workbook.
         c.reveal();
-        type(c, "m = 2 * Feuille1!A1");
+        type(c, "m = 2 * !A1");
         expect(value(c, "m")).toBe(6);
-        type(c, "B = (Feuille1!A2, Feuille1!B1)");
+        type(c, "B = (!A2, !B1)");
         expect(value(c, "B")).toEqual([4, 5]);
-        type(c, "n = Tableur!Données!B2");
+        type(c, "n = Tableur!B2");
         expect(value(c, "n")).toBe(7);
-        type(c, "L = Feuille1!A1:A4");
+        type(c, "f = Figure!!A1");
+        expect(value(c, "f")).toBe(3);
+        type(c, "L = !A1:A4");
         expect(value(c, "L")).toEqual([3, 4, NaN, NaN]);
-        type(c, "R = Feuille1!A1:B2");
+        type(c, "R = !A1:B2");
         expect(value(c, "R")).toEqual([
             [3, 5],
             [4, NaN],
         ]);
-        type(c, "e = Feuille1!A3");
+        type(c, "e = !A3");
         expect(value(c, "e")).toBeNull();
         expect(() => type(c, "q = Données!B2")).toThrow("unknown_object");
     });
@@ -508,7 +510,7 @@ describe("cells read by the shown figure", () => {
         const figure = {
             ...both,
             wb: workbook("Feuille1", [number(0, 0, 3), number(1, 1, 2)]),
-            o: [ex("m", "2*Feuille1!B2"), ex("L", "Feuille1!A1:A2")],
+            o: [ex("m", "2*!B2"), ex("L", "!A1:A2")],
         };
         await request("load", {
             data: new TextEncoder().encode(JSON.stringify(figure)).buffer,
@@ -586,8 +588,8 @@ describe("cells that read the figure", () => {
                     "A = (1, 2)",
                     "d = x(A)",
                     'e = "a"',
-                    "m = Feuille1!A2 + 1",
-                    "t = Feuille1!A3",
+                    "m = !A2 + 1",
+                    "t = !A3",
                 ],
             ),
             format: "dgo",
@@ -602,6 +604,29 @@ describe("cells that read the figure", () => {
                 docCells().getValues("Feuille1!A1:A2"),
             ]),
         ).toEqual([11, [[5], [10]]]);
+    });
+
+    it("read a point as a list, computed on as complex numbers", async () => {
+        const { page, request } = await editor("/index.html?embed");
+        await request("load", {
+            data: await built(
+                [formula(0, 0, '=GEO("A")'), formula(1, 0, "=A1*A1")],
+                ["A = (1, 2)", "m = !A2"],
+            ),
+            format: "dgo",
+        });
+        const { c, docCells, drag } = await engine(page());
+        const read = () => c.getObj("m")!.scriptValue(false);
+        await until(() => String(read()) === "-3,4");
+        expect(
+            await drag("A", [0, 1, 0], () => [
+                read(),
+                docCells().getValues("Feuille1!A1:A2"),
+            ]),
+        ).toEqual([
+            [-1, 0],
+            [[[0, 1]], [[-1, 0]]],
+        ]);
     });
 
     it("read an object of another page", async () => {
@@ -620,7 +645,7 @@ describe("cells that read the figure", () => {
                         {
                             n: "Page 2",
                             ...other,
-                            o: [ex("n", "Feuille1!A1 * 2")],
+                            o: [ex("n", "!A1 * 2")],
                             dgo: undefined,
                         },
                     ],
@@ -638,7 +663,7 @@ describe("cells that read the figure", () => {
         await request("load", {
             data: await built(
                 [formula(0, 0, '=GEO("m")+1')],
-                ["m = Feuille1!A1 * 2", "n = m + 1"],
+                ["m = !A1 * 2", "n = m + 1"],
             ),
             format: "dgo",
         });
@@ -655,7 +680,7 @@ describe("cells that read the figure", () => {
             data: encoded({
                 ...both,
                 wb: workbook("Feuille1", [formula(0, 0, '=GEO("m")+1')]),
-                o: [ex("m", "1"), ex("n", "Feuille1!B1+1")],
+                o: [ex("m", "1"), ex("n", "!B1+1")],
             }),
             format: "dgo",
         });
@@ -670,12 +695,12 @@ describe("cells that read the figure", () => {
         };
         const hint = (ref: string) =>
             page().body.textContent!.includes(`Référence circulaire : ${ref}`);
-        enter("m = Feuille1!A1");
+        enter("m = !A1");
         await until(() => input.classList.contains("dge-error"));
-        expect(hint("Feuille1!A1")).toBe(true);
+        expect(hint("!A1")).toBe(true);
         const scene = (await engine(page())).c;
         expect(scene.getObj("m")!.scriptValue(false)).toBe(1);
-        enter("p = Feuille1!A1");
+        enter("p = !A1");
         await until(() => scene.getObj("p")?.scriptValue(false) === 2);
         // A cell's formula, typed in DocCells, the cells then loaded again.
         let typing = true;
@@ -684,7 +709,7 @@ describe("cells that read the figure", () => {
         await until(
             () =>
                 !typing &&
-                hint("Feuille1!B1") &&
+                hint("!B1") &&
                 docCells()
                     ?.save()
                     .sheets[0].celldata.every(
@@ -705,7 +730,7 @@ describe("cells that read the figure", () => {
                         formula(k + 1, 0, `=A${k + 1}+1`),
                     ),
                 ],
-                ["A = (1, 2)", "d = x(A)", "m = Feuille1!A300"],
+                ["A = (1, 2)", "d = x(A)", "m = !A300"],
             ),
             format: "dgo",
         });
@@ -740,7 +765,7 @@ describe("a sheet view in the embedded player", () => {
         await request("load", {
             data: encoded({
                 ...both,
-                o: [ex("m", "2*Feuille1!A1")],
+                o: [ex("m", "2*!A1")],
                 wb: workbook("Feuille1", [number(0, 0, 3)]),
             }),
             format: "dgo",

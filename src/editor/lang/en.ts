@@ -49,7 +49,7 @@ export default {
     new_sheet_view: "New spreadsheet view",
     delete_sheet_view: "Delete the spreadsheet view",
     new_sheet_page: "New spreadsheet tab",
-    sheet_page_name: "Spreadsheet %",
+    sheet_page_name: "Spreadsheet%",
     sheet_name: "Sheet1",
     move_view_left: "Move view left",
     move_view_right: "Move view right",

@@ -423,20 +423,11 @@ const PLAIN = /^[\p{L}_][\p{L}\p{N}_']*$/u;
 export const formatName = (name: string): string =>
     PLAIN.test(name) ? name : `\`${name}\``;
 
-// "'Page 1'!c", as a formula reads an object of another page.
+// "'Page 1'!c", as a formula reads an object of another page, or cells
+// (see TABLEUR.md): "!B3" of the page's sheet view, "Tableur2!B2:B21" of a
+// sheet tab, "'Page 1'!!B3" of another page's sheet view.
 export const externalSource = (page: string, name: string): string =>
-    `${/^[\p{L}_][\p{L}\p{N}_]*$/u.test(page) ? page : `'${page.replace(/[\\']/g, "\\$&")}'`}!${cellsSource(name)}`;
-
-// Cells of a sheet ("B2:B21") as they are, those of another page's sheet
-// after its name ("Feuille1!B3"), else an object's name (see TABLEUR.md).
-function cellsSource(name: string): string {
-    const [sheet, cells] = name.split("!");
-    return cells
-        ? `${formatName(sheet)}!${cells}`
-        : /^[A-Z]+\d+(:[A-Z]+\d+)?$/i.test(name)
-          ? name
-          : formatName(name);
-}
+    `${!page || /^[\p{L}_][\p{L}\p{N}_]*$/u.test(page) ? page : `'${page.replace(/[\\']/g, "\\$&")}'`}!${/^!?[A-Z]+\d+(:[A-Z]+\d+)?$/i.test(name) ? name : formatName(name)}`;
 
 // A formula point's definition: its coordinates between brackets, unless
 // they are numbers only, which a free point's are.

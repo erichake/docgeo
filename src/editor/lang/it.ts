@@ -50,7 +50,7 @@ const it: Texts = {
         new_sheet_view: "Nuova vista foglio di calcolo",
         delete_sheet_view: "Elimina la vista foglio di calcolo",
         new_sheet_page: "Nuova scheda foglio di calcolo",
-        sheet_page_name: "Foglio di calcolo %",
+        sheet_page_name: "Foglio%",
         sheet_name: "Foglio1",
         move_view_left: "Sposta la vista a sinistra",
         move_view_right: "Sposta la vista a destra",

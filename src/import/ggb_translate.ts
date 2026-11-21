@@ -1485,6 +1485,8 @@ export function translateGgb(
             .replace(/≥/g, ">=")
             .replace(/∧/g, "&&")
             .replace(/∨/g, "||")
+            // Not the cells "!A1" (see TABLEUR.md).
+            .replace(/¬\s*([A-Z]+\d)/g, "! $1")
             .replace(/¬/g, "!")
             // The least or greatest of a list's items.
             .replace(/\b(Min|Max)\(\{([^{}]*)\}\)/g, "$1($2)")

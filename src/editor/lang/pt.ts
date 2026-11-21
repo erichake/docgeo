@@ -50,7 +50,7 @@ const pt: Texts = {
         new_sheet_view: "Nova vista de planilha",
         delete_sheet_view: "Eliminar a vista de planilha",
         new_sheet_page: "Nova aba de planilha",
-        sheet_page_name: "Planilha %",
+        sheet_page_name: "Planilha%",
         sheet_name: "Planilha1",
         move_view_left: "Mover a vista para a esquerda",
         move_view_right: "Mover a vista para a direita",

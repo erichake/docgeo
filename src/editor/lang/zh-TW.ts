@@ -49,7 +49,7 @@ const zh_TW: Texts = {
         new_sheet_view: "新增試算表檢視",
         delete_sheet_view: "刪除試算表檢視",
         new_sheet_page: "新增試算表分頁",
-        sheet_page_name: "試算表 %",
+        sheet_page_name: "試算表%",
         sheet_name: "工作表1",
         move_view_left: "視圖左移",
         move_view_right: "視圖右移",

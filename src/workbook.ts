@@ -106,12 +106,9 @@ function reader(): { page: Page; reads: Set<Page> } {
 // Undefined if it would close a cycle: the pages being computed, the page
 // shown first, can't be read.
 readExternals((name, object) => {
-    const [sheet, range] = object.split("!");
-    const wb = range && pageNamed(name)?.figure.wb;
-    const cells = range
-        ? wb && archiveCells(wb, sheet, range)
-        : readCells(name, object);
-    if (cells !== undefined || range) return cells ?? null;
+    const cells = cellsOf(name, object);
+    if (cells !== undefined) return cells;
+    if (!name || object.startsWith("!")) return null;
     const page = pageNamed(name);
     if (!page) return null;
     reader().reads.add(page);
@@ -119,6 +116,22 @@ readExternals((name, object) => {
         ? null
         : (pageValues(page).get(object) ?? null);
 });
+
+// The cells a reference names, undefined if it names none: of the sheet
+// view of the page computed ("!B3"), or of a page's sheet tab
+// ("Tableur2!B3") or sheet view ("'Page 1'!!B3"), see TABLEUR.md.
+function cellsOf(
+    name: string,
+    object: string,
+): ScriptValue | null | undefined {
+    if (!name) return readCells(object);
+    const page = pageNamed(name);
+    const view = object.startsWith("!");
+    const { wb, v, vs } = page?.figure ?? {};
+    if (!wb || !(view || (v!.t === "s" && !vs?.length))) return undefined;
+    const range = view ? object.slice(1) : object;
+    return page === reader().page ? readCells(range) : archiveCells(wb, range);
+}
 
 // As last computed, or computed in a figure that is never shown.
 function pageValues(page: Page): Map<string, ScriptValue | null> {
@@ -185,10 +198,9 @@ export function unreadable(
     name: string,
     object: string,
 ): "unknown_object" | "circular_reference" | null {
-    if (readCells(name, object) !== undefined) return null;
+    if (cellsOf(name, object) !== undefined) return null;
     const page = pageNamed(name);
-    if (!page) return "unknown_object";
-    if (object.includes("!")) return null;
+    if (!page || !name || object.startsWith("!")) return "unknown_object";
     const shown = reader().page;
     if (page === shown) return "circular_reference";
     const values = pageValues(page);

@@ -50,7 +50,7 @@ const es: Texts = {
         new_sheet_view: "Nueva vista de hoja de cálculo",
         delete_sheet_view: "Eliminar la vista de hoja de cálculo",
         new_sheet_page: "Nueva pestaña de hoja de cálculo",
-        sheet_page_name: "Hoja de cálculo %",
+        sheet_page_name: "Hoja%",
         sheet_name: "Hoja1",
         move_view_left: "Mover la vista a la izquierda",
         move_view_right: "Mover la vista a la derecha",

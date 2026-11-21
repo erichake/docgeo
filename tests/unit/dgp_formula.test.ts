@@ -5,6 +5,7 @@ import {
     formulaIdentifiers,
     globalName,
     NO_VIEW,
+    negation,
     parseFormula,
     parseProgram,
     programReferences,
@@ -173,16 +174,27 @@ describe("references to cells", () => {
         page,
         name,
     });
-    it("reads a sheet's cells as a page's object, a range at once", () => {
-        expect(parseFormula("Feuille1!B3")).toEqual(
-            external("Feuille1", "B3"),
+    it("reads the cells of the sheet view, a sheet tab's, another page's view", () => {
+        expect(parseFormula("!B3")).toEqual(external("", "B3"));
+        expect(parseFormula("2*!AA12:B3")).toMatchObject({
+            right: external("", "AA12:B3"),
+        });
+        expect(parseFormula("Tableur2!B3")).toEqual(
+            external("Tableur2", "B3"),
         );
-        expect(parseFormula("'Données 2'!AA12:B3")).toEqual(
-            external("Données 2", "AA12:B3"),
+        expect(parseFormula("'Page 2'!!B2:B21")).toEqual(
+            external("Page 2", "!B2:B21"),
         );
-        expect(parseFormula("'Page 2'!Feuille1!B2:B21")).toEqual(
-            external("Page 2", "Feuille1!B2:B21"),
-        );
+    });
+
+    it("leaves negations alone", () => {
+        for (const source of ["!(A1)", "! A1", "!b3", "!A1(x)", "!A1'"])
+            expect(parseFormula(source)).toMatchObject({
+                kind: "unary",
+                op: "!",
+            });
+        expect(negation("A1")).toBe("!(A1)");
+        expect(negation("a")).toBe("!a");
     });
 
     it("leaves comparisons, spaced conditionals and objects alone", () => {

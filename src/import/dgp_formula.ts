@@ -562,6 +562,15 @@ const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
 const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
 // A range's end, written at once after its start.
 const RANGE = /:[A-Z]+\d+/iy;
+// Cells of the page's sheet view, in capitals (see TABLEUR.md): "!A1" not
+// followed by a name, a call or a quote, else a negation.
+const CELLS = /![A-Z]+\d+(?::[A-Z]+\d+)?(?![\p{L}\p{N}_'`(])/uy;
+
+// A negation as written: "!(A1)", not the cells "!A1".
+export const negation = (operand: string): string => {
+    CELLS.lastIndex = 0;
+    return CELLS.test(`!${operand}`) ? `!(${operand})` : `!${operand}`;
+};
 const SPACE = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/y;
 // After its "/": the rest of a regular expression, its flags included.
 const REGEX = /(?:[^\\/[\n]|\\.|\[(?:[^\\\]\n]|\\.)*\])+\/[a-z]*/y;
@@ -603,6 +612,9 @@ export class FormulaLexer {
             });
         }
 
+        const cells = this.cells(this.index);
+        if (cells !== null) return { type: "external", value: cells, page: "" };
+
         const operator = OPERATOR.exec(this.source.slice(this.index));
         if (operator) {
             this.index += operator[0].length;
@@ -636,21 +648,22 @@ export class FormulaLexer {
     }
 
     // The page's name followed at once by "!" and the object's: "a!=b"
-    // remains a comparison. Or a sheet's and its cells (see TABLEUR.md):
-    // "Feuille1!B2:B21", "'Page 2'!Feuille1!B3", the sheet's and the
-    // cells' in the name.
+    // remains a comparison. Or its cells, of its sheet tab
+    // ("Tableur2!B2:B21") or of its sheet view ("'Page 1'!!B3", the name
+    // "!B3"), see TABLEUR.md.
     private external(page: Token): Token {
+        if (this.source[this.index] !== "!") return page;
+        const cells = this.cells(this.index + 1);
+        if (cells !== null)
+            return {
+                type: "external",
+                value: `!${cells}`,
+                page: page.value as string,
+            };
         const next = this.source[this.index + 1] ?? "";
-        if (
-            this.source[this.index] !== "!" ||
-            !(next === "`" || IDENTIFIER_START.test(next))
-        )
-            return page;
+        if (!(next === "`" || IDENTIFIER_START.test(next))) return page;
         this.index++;
         let { value } = next === "`" ? this.quoted() : this.identifier();
-        const nested = this.external({ type: "identifier", value });
-        if (nested.type === "external")
-            value = `${nested.page}!${nested.value}`;
         RANGE.lastIndex = this.index;
         const range =
             /^[A-Z]+\d+$/i.test(value as string) && RANGE.exec(this.source);
@@ -659,6 +672,15 @@ export class FormulaLexer {
             this.index = RANGE.lastIndex;
         }
         return { type: "external", value, page: page.value as string };
+    }
+
+    // The cells after a "!" at this index ("!B2:B21"), without it.
+    private cells(at: number): string | null {
+        CELLS.lastIndex = at;
+        const cells = CELLS.exec(this.source);
+        if (!cells) return null;
+        this.index = CELLS.lastIndex;
+        return cells[0].slice(1);
     }
 
     private consumeBareI(): boolean {

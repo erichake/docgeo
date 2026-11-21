@@ -50,7 +50,7 @@ const de: Texts = {
         new_sheet_view: "Neue Tabellenansicht",
         delete_sheet_view: "Tabellenansicht löschen",
         new_sheet_page: "Neuer Tabellen-Tab",
-        sheet_page_name: "Tabelle %",
+        sheet_page_name: "Tabelle%",
         sheet_name: "Tabelle1",
         move_view_left: "Ansicht nach links verschieben",
         move_view_right: "Ansicht nach rechts verschieben",

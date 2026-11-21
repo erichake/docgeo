@@ -43,7 +43,6 @@ export interface DgpadLike {
     editor?: boolean;
     saveFigure?: () => void;
     sheetChanged?: () => void;
-    sheetRenamed?: (from: string, to: string) => void;
     // A cell's formula that closes a cycle with the figure.
     sheetCycle?: (ref: string) => void;
     // DocCells ready, its bars to be drawn in the editor's; the sheet view

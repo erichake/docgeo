@@ -17,7 +17,7 @@ import type { construction_object } from "./objects/construction_object";
 export type Archive = Record<string, unknown>;
 
 type Event = Record<string, never>;
-type HostValue = string | number | boolean | null;
+type HostValue = ScriptValue | boolean | null;
 export interface DocCells {
     load(workbook: Archive): Promise<unknown>;
     save(): Archive;
@@ -45,6 +45,8 @@ let shown: construction | null = null;
 let holder: construction | null = null;
 let held = "";
 let loading = false;
+// The name of the sheet the frame shows, in the references it reads.
+let sheet = "";
 
 // The object being computed, whose formulas read cells (see readCells).
 export const reading: { object: construction_object | null } = {
@@ -98,9 +100,12 @@ function createFrame(c: construction): DOMElement {
             shown?.dgpad.sheetChanged?.();
         });
         cells.on("hostNamesChanged", (event) => rescan(event.names));
-        cells.on("sheetRenamed", ({ oldName, newName }) =>
-            shown?.dgpad.sheetRenamed?.(oldName, newName),
-        );
+        // The references DocCells reads hold its name.
+        cells.on("sheetRenamed", ({ newName }) => {
+            sheet = String(newName);
+            unsubscribe();
+            reread();
+        });
         cells.on("values", (event) => receive([event]));
         // Pressed or typed in, the sheet view becomes the active one.
         const activate = () => {
@@ -153,16 +158,12 @@ async function sync(): Promise<void> {
         loading = true;
         held = text;
         holder = null;
-        subscriptions.forEach((_, subscription) =>
-            cells!.unsubscribe(subscription),
-        );
-        subscriptions.clear();
-        values.clear();
-        dependencies.clear();
+        unsubscribe();
         given.clear();
         let failed = false;
         try {
             await cells.load(c.workbook!);
+            sheet = String(firstSheet(c.workbook!)?.name);
             names = cells.hostNames();
         } catch {
             failed = true;
@@ -180,6 +181,15 @@ async function sync(): Promise<void> {
     cycles.clear();
     provide(c);
     reread();
+}
+
+function unsubscribe(): void {
+    subscriptions.forEach((_, subscription) =>
+        cells!.unsubscribe(subscription),
+    );
+    subscriptions.clear();
+    values.clear();
+    dependencies.clear();
 }
 
 // Loaded again as it was (see the editor's sheetCycle and the embedded
@@ -257,7 +267,14 @@ function target(name: string): Token | null {
 const local = (c: construction, token: Token | null) =>
     token?.type === "identifier" ? c.getObj(token.value as string) : undefined;
 
-// What a formula reads naming it, if it is a number, a text or a boolean.
+// A list of finite numbers and lists (a point's coordinates, a list of
+// points...), as DocCells takes it.
+const isList = (v: unknown): v is ScriptValue[] =>
+    Array.isArray(v) &&
+    v.every((x) => (typeof x === "number" ? isFinite(x) : isList(x)));
+
+// What a formula reads naming it, if it is a number, a text, a boolean or
+// a list.
 function hostValue(c: construction, token: Token | null): HostValue {
     const v =
         token?.type === "external"
@@ -265,7 +282,8 @@ function hostValue(c: construction, token: Token | null): HostValue {
             : local(c, token)?.scriptValue(c.space);
     return typeof v === "string" ||
         typeof v === "boolean" ||
-        (typeof v === "number" && isFinite(v))
+        (typeof v === "number" && isFinite(v)) ||
+        isList(v)
         ? v
         : null;
 }
@@ -292,7 +310,7 @@ export function provide(
         )
             return [];
         const v = hostValue(c, token);
-        if (given.get(name) === v) return [];
+        if (JSON.stringify(given.get(name)) === JSON.stringify(v)) return [];
         given.set(name, v);
         return [{ name, v }];
     });
@@ -324,38 +342,46 @@ function closes(object: construction_object, ref: string): boolean {
 
 const CELLS = /^[A-Z]+\d+(:[A-Z]+\d+)?$/i;
 
-// The value of cells of a sheet ("B3", "B2:B21") of the workbook of the
-// figure computed, undefined if it has no such sheet: as DocCells gives
-// it once it holds the workbook, else as last computed in its archive.
-export function readCells(
-    sheet: string,
-    range: string,
-): ScriptValue | null | undefined {
+type Sheet = { name?: unknown; order?: unknown; celldata?: unknown };
+
+// The sheet a workbook shows, the first of its tabs (see TABLEUR.md).
+const firstSheet = ({ sheets }: Archive): Sheet | undefined =>
+    Array.isArray(sheets)
+        ? (sheets as Sheet[]).reduce<Sheet | undefined>(
+              (first, sheet) =>
+                  !first || Number(sheet?.order) < Number(first.order)
+                      ? sheet
+                      : first,
+              undefined,
+          )
+        : undefined;
+
+// The value of cells ("B3", "B2:B21") of the sheet of the figure computed,
+// undefined if it has none: as DocCells gives it once it holds the
+// workbook, else as last computed in its archive.
+export function readCells(range: string): ScriptValue | null | undefined {
     const { object } = reading;
     const c = object ? object.C : shown;
     if (!c?.workbook || !CELLS.test(range)) return undefined;
     const ref = `'${sheet.replace(/'/g, "''")}'!${range}`;
     let read: ScriptValue | null | undefined;
-    if (c !== holder) read = archiveCells(c.workbook, sheet, range);
+    if (c !== holder) read = archiveCells(c.workbook, range);
     else {
-        if (!values.has(ref))
-            try {
-                const subscribed = cells!.subscribe(ref);
-                subscriptions.set(subscribed.subscription, ref);
-                values.set(ref, value(subscribed.values));
-                dependencies.set(ref, cells!.hostDependencies(ref));
-            } catch {
-                // No such sheet: a page's name.
-                values.set(ref, undefined);
-            }
+        if (!values.has(ref)) {
+            const subscribed = cells!.subscribe(ref);
+            subscriptions.set(subscribed.subscription, ref);
+            values.set(ref, value(subscribed.values));
+            dependencies.set(ref, cells!.hostDependencies(ref));
+        }
         read = values.get(ref);
         // The reference that closes a cycle undefined.
-        if (object && read !== undefined && closes(object, ref)) {
-            cycles.set(`${object.name}\n${ref}`, `${sheet}!${range}`);
+        if (object && closes(object, ref)) {
+            cycles.set(`${object.name}\n${ref}`, `!${range}`);
             read = null;
         }
     }
-    if (object && read !== undefined)
+    // Computed again once DocCells holds the workbook.
+    if (object)
         (
             readers.get(object) ?? readers.set(object, new Set()).get(object)!
         ).add(ref);
@@ -366,15 +392,9 @@ export function readCells(
 // from anywhere.
 export function archiveCells(
     workbook: Archive,
-    sheet: string,
     range: string,
 ): ScriptValue | null | undefined {
-    const { sheets } = workbook;
-    const found =
-        Array.isArray(sheets) &&
-        (sheets as { name?: unknown; celldata?: unknown }[]).find(
-            (other) => other?.name === sheet,
-        );
+    const found = firstSheet(workbook);
     if (!found || !CELLS.test(range)) return undefined;
     const [start, end = start] = range.split(":").map((cell) => {
         const [, letters, row] = /([A-Z]+)(\d+)/i.exec(cell)!;
@@ -410,7 +430,9 @@ const ERROR = /^(#[A-Z/0_]+[!?]?|DIV\/0)$/;
 const scalar = (v: unknown): ScriptValue | null =>
     typeof v === "boolean"
         ? +v
-        : typeof v === "number" || (typeof v === "string" && !ERROR.test(v))
+        : typeof v === "number" ||
+            (typeof v === "string" && !ERROR.test(v)) ||
+            isList(v)
           ? v
           : null;
 

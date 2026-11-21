@@ -49,7 +49,7 @@ const zh: Texts = {
         new_sheet_view: "新建电子表格视图",
         delete_sheet_view: "删除电子表格视图",
         new_sheet_page: "新建电子表格标签页",
-        sheet_page_name: "电子表格 %",
+        sheet_page_name: "电子表格%",
         sheet_name: "工作表1",
         move_view_left: "视图左移",
         move_view_right: "视图右移",
