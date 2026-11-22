@@ -275,6 +275,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-18 | 332 / 460 (72 %)   | 364,0 Ko | item 92 : foyers et sommets d'une section de cône ou de cylindre, `abs` d'un vecteur de l'espace (+1) |
 | 2026-11-22 | 332 / 460 (72 %)   | moteur +0,7 Ko | item 93 (branche `cas`) : `Derivative`, primitive `Integral`, `IFactor`, `CSolve`, lignes `symbolic` par Giac (+0, un écart corrigé) |
 | 2026-11-22 | 333 / 460 (72 %)   | moteur +0,05 Ko | item 94 (branche `cas`) : cellules de la vue CAS, lignes `symbolic` à variables libres dans une vue CAS (+1) |
+| 2026-11-22 | 333 / 460 (72 %)   | moteur +1,1 Ko | item 95 (branche `cas`) : `Sum` symbolique, `Limit`, intégrale définie, `TaylorPolynomial` ; toutes les lignes `symbolic` dans la vue CAS (+0) |
 
 ## À faire, par rapport gain / coût
 
@@ -1881,3 +1882,20 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       sur 10 (les 5 autres : `Sum`, `Limit`, intégrale définie) et attend
       d'autres éléments. Moteur +50 octets, importeur GeoGebra 103,6 →
       105,4 Ko.
+- [x] **95. Commandes des cellules réelles (étape 9 de `CAS.md`,
+      branche `cas`)** : `Sum(e, k, a, b)` (calculée par Giac, k lié),
+      `Limit`, `Integral` entre deux bornes dans une formule, et
+      `TaylorPolynomial` (commande et formule) passent par Giac. Dans une
+      cellule, l'indice d'une somme ou la variable d'une limite est une
+      variable libre. Les lignes `symbolic` de la Suite vont toutes dans
+      la vue CAS quand la vue Algèbre est montrée, à sa place : une ligne
+      sans nom (étiquette `¥¦§¨©ª` de GeoGebra) n'y est qu'une ligne, une
+      ligne nommée y est `nom := …` et reste aussi un objet de la figure.
+      ksughxrj importe 9 cellules sur 10 (la dixième lit la fonction `az`,
+      non importée) et attend toujours `Prism` dans une `Sequence`. Le nom
+      d'un objet auxiliaire (condition d'affichage `d ≠ 0`…) évite
+      désormais les mots des cellules et des lignes `symbolic` : il
+      prenait `a` et `b`, lus là comme variable libre et fonction de
+      cellule, d'où des réponses nulles dans ksughxrj.
+      **+0 figure** (333 / 460). Moteur +1,1 Ko, importeur GeoGebra
+      105,4 → 106,2 Ko.

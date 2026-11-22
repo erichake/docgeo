@@ -11,16 +11,20 @@ import {
 // answer, read by the formulas' grammar.
 
 // Their arguments at most: what is computed, then a variable, then the
-// order of a derivative.
+// order of a derivative, or the bounds of a sum or a definite integral, the
+// point of a limit or of a Taylor polynomial and its order.
 export const CAS_ARITY = {
     Derivative: 3,
-    Integral: 2,
+    Integral: 4,
     Factor: 1,
     IFactor: 1,
     Expand: 1,
     Simplify: 1,
     Solve: 2,
     CSolve: 2,
+    Sum: 4,
+    Limit: 3,
+    TaylorPolynomial: 4,
 };
 export type CasFn = keyof typeof CAS_ARITY;
 // Of a command's name, undefined for another name.
@@ -42,10 +46,31 @@ const GIAC: Record<CasFn, string> = {
     Simplify: "simplify(%)",
     Solve: "ggbsort(solve(%))",
     CSolve: "ggbsort(csolve(%))",
+    Sum: "expand(sum(%))",
+    Limit: "regroup(limit(%))",
+    TaylorPolynomial: "convert(series(%),polynom)",
 };
 
 // The functions' variables (see FUNCTION_VARIABLES), symbols for Giac.
 const VARIABLES = ["x", "y", "z", "t"];
+
+// What a command binds, its answer not reading it: the unknown of Solve,
+// the index of Sum, the variable of Limit and of a definite Integral, named
+// or else any of the functions'.
+export function casBound({ fn, args }: CasNode): string[] | null {
+    const named = (count: number) =>
+        args.length === count && args[1].kind === "identifier"
+            ? [args[1].name]
+            : VARIABLES;
+    if (fn.endsWith("Solve")) return named(2);
+    if (fn === "Sum" || fn === "Limit") return named(CAS_ARITY[fn]);
+    return fn === "Integral" && args.length > 2 ? named(4) : null;
+}
+
+// Sum(e, k, a, b), Limit(e[, v], a), Integral(e[, v], a, b) and
+// TaylorPolynomial(e[, v], a, n): their variable, if named, comes before
+// their other arguments.
+const BETWEEN = new Set<CasFn>(["Sum", "Limit", "TaylorPolynomial"]);
 
 const CALLS: Record<string, string> = {
     sqrt: "sqrt",
@@ -102,23 +127,28 @@ const UNREAD = new Error("Not a computer algebra formula");
 // radians. Null when Giac couldn't read it. A computer algebra view's line
 // (see cas_view.ts) writes the values of the objects it reads (`valueOf`,
 // null when Giac can't read them), its free variables (undefined) staying
-// symbols.
+// symbols. The order of a Taylor polynomial is written by its value
+// (`valueOf`, or else `numberOf`): a slider gives the polynomials of its
+// integers.
 export function casRequest(
     node: FormulaNode,
     degrees: boolean,
     functionOf: (name: string) => CasFunction | null,
     valueOf?: (part: FormulaNode) => string | null | undefined,
+    numberOf?: (part: FormulaNode) => ScriptValue | null,
 ): { request: string; parameters: CasParameter[]; read: Set<string> } | null {
     const parameters: CasParameter[] = [];
     const symbols = new Map<string, string>();
     const read = new Set<string>();
+    let bound = 0;
 
     const parameter = (part: FormulaNode, context: Context): string => {
         const reading = formulaIdentifiers(part);
         if (
-            (context.owner ? [...context.variables.keys()] : VARIABLES).some(
-                (variable) => reading.has(variable),
-            )
+            [
+                ...(context.owner ? [] : VARIABLES),
+                ...context.variables.keys(),
+            ].some((variable) => reading.has(variable))
         )
             throw UNREAD;
         const value = valueOf?.(part);
@@ -223,20 +253,78 @@ export function casRequest(
         return parameter(part, context);
     };
 
+    // A variable named: of the functions', or free in a view's line.
+    const free = (arg: FormulaNode, context: Context): string | null => {
+        if (arg.kind !== "identifier") return null;
+        if (VARIABLES.includes(arg.name)) {
+            read.add(arg.name);
+            return arg.name;
+        }
+        return valueOf && valueOf(arg) === undefined
+            ? parameter(arg, context)
+            : null;
+    };
+    const implicit = () =>
+        VARIABLES.find((name) => read.has(name)) ??
+        (valueOf && [...read].find((name) => SYMBOL.test(name))) ??
+        "x";
+
+    const between = (part: CasNode, context: Context): string => {
+        const { fn, args } = part;
+        const named = args.length === CAS_ARITY[fn];
+        if (args.length < CAS_ARITY[fn] - (fn === "Sum" ? 0 : 1)) throw UNREAD;
+        let inner = context;
+        let variable: string | null | undefined;
+        if (named && fn === "TaylorPolynomial") {
+            variable = free(args[1], context);
+            if (!variable) throw UNREAD;
+        } else if (named) {
+            if (args[1].kind !== "identifier") throw UNREAD;
+            variable = `dk${bound++}`;
+            inner = {
+                ...context,
+                variables: new Map([
+                    ...context.variables,
+                    [args[1].name, variable],
+                ]),
+            };
+        }
+        const body = write(args[0], inner);
+        const rest = args.slice(named ? 2 : 1).map((arg, k, all) => {
+            if (fn !== "TaylorPolynomial" || k < all.length - 1 || valueOf)
+                return write(arg, context);
+            const value =
+                arg.kind === "number"
+                    ? arg.value
+                    : context.owner
+                      ? context.owner.value(arg)
+                      : numberOf?.(arg);
+            if (
+                typeof value !== "number" ||
+                !Number.isInteger(value) ||
+                value < 0
+            )
+                throw UNREAD;
+            return String(value);
+        });
+        return GIAC[fn].replace("%", () =>
+            [body, variable ?? implicit(), ...rest].join(","),
+        );
+    };
+
     const command = (part: CasNode, context: Context): string => {
+        if (
+            BETWEEN.has(part.fn) ||
+            (part.fn === "Integral" && part.args.length > 2)
+        )
+            return between(part, context);
         const [body, ...rest] = part.args;
         const text = write(body, context);
         let variable: string | undefined;
         let order = "";
-        for (const arg of rest)
-            if (arg.kind === "identifier" && VARIABLES.includes(arg.name))
-                read.add((variable = arg.name));
-            else if (
-                arg.kind === "identifier" &&
-                valueOf &&
-                valueOf(arg) === undefined
-            )
-                variable = parameter(arg, context);
+        for (const arg of rest) {
+            const named = free(arg, context);
+            if (named) variable = named;
             else if (
                 part.fn === "Derivative" &&
                 arg.kind === "number" &&
@@ -245,10 +333,8 @@ export function casRequest(
             )
                 order = `,${arg.value}`;
             else throw UNREAD;
-        variable ??=
-            VARIABLES.find((name) => read.has(name)) ??
-            (valueOf && [...read].find((name) => SYMBOL.test(name))) ??
-            "x";
+        }
+        variable ??= implicit();
         return GIAC[part.fn].replace("%", () =>
             part.fn === "Expand" || part.fn === "Simplify"
                 ? text
@@ -375,6 +461,9 @@ export function casTree(
                 parseFormula(
                     answer
                         .replace(/list\[/g, "[")
+                        .replace(/([+-])infinity/g, (_, sign: string) =>
+                            sign === "-" ? "-inf" : "inf",
+                        )
                         .replace(/√(\(|[\w.]+)/g, (_, arg: string) =>
                             arg === "(" ? "sqrt(" : `sqrt(${arg})`,
                         ),
@@ -394,4 +483,5 @@ export const casText = (answer: string, names: string[]): string =>
     answer
         .replace(/list\[/g, "[")
         .replace(/\bpi\b/g, "π")
+        .replace(/\+?infinity/g, "∞")
         .replace(/\bdg(\d+)\b/g, (_, k: string) => names[+k]);

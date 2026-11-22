@@ -114,6 +114,60 @@ describe("Computer algebra commands", () => {
         expect(at(other, "g", 2)).toBe(12);
     });
 
+    it("sum, take a limit, a definite integral and a Taylor polynomial", async () => {
+        const c = figure();
+        const text = [
+            "n = Slider(1, 10, 3)",
+            "a = Slider(0, 5, 2)",
+            "s = Sum(k^2, k, 1, n)",
+            "l = Limit((1 + 1/m)^m, m, ∞)",
+            "q = Limit((x^2 - 1) / (x - 1), 1)",
+            "J = Integral(x^2, 0, a)",
+            "G(x) = Integral(x z, z, 0, 1)",
+            "T(x) = TaylorPolynomial(exp(x), 0, n)",
+            "I = Integral(G, 0, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        await vi.waitFor(
+            () => {
+                c.flush();
+                expect(c.getObj("s")!.scriptValue(false)).toBe(14);
+                expect(c.getObj("l")!.scriptValue(false)).toBeCloseTo(
+                    Math.E,
+                    12,
+                );
+                expect(c.getObj("q")!.scriptValue(false)).toBe(2);
+                expect(c.getObj("J")!.scriptValue(false)).toBeCloseTo(8 / 3);
+                expect(at(c, "G", 4)).toBe(2);
+                expect(at(c, "T", 1)).toBeCloseTo(8 / 3, 12);
+            },
+            { timeout: 20000, interval: 50 },
+        );
+        const index = figureIndex(c);
+        const objects = figureObjects(c);
+        const shown = (name: string) => {
+            const object = c.getObj(name)!;
+            return valueText(object, lineOf(object, index, objects), false);
+        };
+        expect(shown("s")).toBe("= 1/3*n^3+1/2*n^2+1/6*n");
+        expect(shown("T")).toBe("= 1+x+1/2*x^2+1/6*x^3");
+        // The sum by its closed form, the Taylor polynomial asked again.
+        const n = c.getObj("n") as expression_object;
+        n.value = 4;
+        c.invalidateGeometry(n);
+        c.flush();
+        expect(c.getObj("s")!.scriptValue(false)).toBe(30);
+        await vi.waitFor(
+            () => {
+                c.flush();
+                expect(at(c, "T", 1)).toBeCloseTo(65 / 24, 12);
+            },
+            { timeout: 20000, interval: 50 },
+        );
+    });
+
     it("are undefined when Giac has no answer the formulas read", async () => {
         const c = figure();
         type(c, "e = Integral(exp(-x^2))");

@@ -216,14 +216,18 @@ export function parseLine(
         };
     }
     const head = peek()!;
-    // `Integral(f)`, the computer algebra command, `Integral(f, a, b)` the
-    // catalog's.
-    const arity = casArity(head.value as string);
+    // `Integral(f, a, b)`, f named, is the catalog's command, its other
+    // forms (`Integral(f)`, `Integral(x^2, 0, 1)`, `Integral(f, x, a, b)`)
+    // the computer algebra command.
+    const commas = whole(position + 1)?.commas;
     if (
         head.type === "identifier" &&
         peek(1)?.type === "(" &&
         isCommand(head.value as string) &&
-        !(arity && (whole(position + 1)?.commas.length ?? arity) < arity)
+        !(
+            casArity(head.value as string) &&
+            (commas?.length !== 2 || commas[0] !== position + 3)
+        )
     ) {
         // `Point(2*B - A)`: one argument, which no point on an object takes.
         const inner = whole(position + 1);

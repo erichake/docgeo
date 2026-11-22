@@ -78,6 +78,62 @@ describe("computer algebra requests", () => {
         );
     });
 
+    it("binds the index of Sum, the variable of Limit and of a definite Integral", () => {
+        expect(request("Sum(k^2, k, 1, n)")).toBe(
+            "expand(sum(dk0^2,dk0,1,dg0))",
+        );
+        // An object of the index's name is not read.
+        expect(request("Sum(x*k, k, 0, k)")).toBe(
+            "expand(sum(x*dk0,dk0,0,dg0))",
+        );
+        expect(request("Limit(sin(x)/x, 0)")).toBe(
+            "regroup(limit(sin(x)/x,x,0))",
+        );
+        expect(request("Limit((1+1/n)^n, n, ∞)")).toBe(
+            "regroup(limit((1+(1/dk0))^dk0,dk0,inf))",
+        );
+        expect(request("Integral(x^2, 0, a)")).toBe(
+            "regroup(integrate(x^2,x,0,dg0))",
+        );
+        expect(request("Integral(f(z)^2, z, 0, h)", false, { f })).toBe(
+            "regroup(integrate((dg0*(dk0^2))^2,dk0,0,dg1))",
+        );
+        expect(request("Sum(k, k, 1)")).toBeNull();
+        expect(request("Sum(floor(k), k, 1, 3)")).toBeNull();
+        for (const [source, names] of [
+            ["Sum(k^2, k, 1, n)", ["n"]],
+            ["Limit(a/n, n, ∞)", ["a"]],
+            ["Limit(x^2, a)", ["a"]],
+            ["Integral(x^2, 0, a)", ["a"]],
+            ["Integral(x*z, z, 0, 1)", ["x"]],
+            ["Integral(x^2, x)", ["x"]],
+        ] as const)
+            expect(
+                [...formulaIdentifiers(parseFormula(source))],
+                source,
+            ).toEqual(names);
+    });
+
+    it("writes the order of a Taylor polynomial by its value", () => {
+        expect(request("TaylorPolynomial(exp(x), 0, 3)")).toBe(
+            "convert(series(exp(x),x,0,3),polynom)",
+        );
+        expect(request("TaylorPolynomial(sin(t), t, a, 2)")).toBe(
+            "convert(series(sin(t),t,dg0,2),polynom)",
+        );
+        const taylor = (order: ScriptValue | null) =>
+            casRequest(
+                parseFormula("TaylorPolynomial(f, 1, n)") as CasNode,
+                false,
+                (name) => (name === "f" ? f : null),
+                undefined,
+                () => order,
+            )?.request ?? null;
+        expect(taylor(4)).toBe("convert(series((dg0*(x^2)),x,1,4),polynom)");
+        expect(taylor(2.5)).toBeNull();
+        expect(taylor(null)).toBeNull();
+    });
+
     it("binds Solve's unknown", () => {
         expect([...formulaIdentifiers(parseFormula("Solve(x^2 = a)"))]).toEqual(
             ["a"],
@@ -102,12 +158,23 @@ describe("Giac's answers", () => {
             "i*x-1",
             "dg0*pi*exp(x)",
             "[]",
+            "+infinity",
+            "-infinity",
+            "exp(1)",
         ])
             expect(casTree(answer, read, false), answer).not.toBeNull();
     });
 
     it("refuses what the formulas don't read", () => {
-        for (const answer of ["undef", "sqrt(pi)/2*erf(x)", "y+1", "x:=2"])
+        for (const answer of [
+            "undef",
+            "sqrt(pi)/2*erf(x)",
+            "y+1",
+            "x:=2",
+            "infinity",
+            "Psi(dg0+1)+euler_gamma",
+            "bounded_function(2)",
+        ])
             expect(casTree(answer, read, false), answer).toBeNull();
     });
 });

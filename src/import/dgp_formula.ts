@@ -11,6 +11,7 @@ import {
 import {
     CAS_ARITY,
     casArity,
+    casBound,
     casRequest,
     casText,
     casTree,
@@ -641,6 +642,10 @@ export class FormulaLexer {
         if ("+-*/%^(),[].°".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character };
+        }
+        if (character === "∞") {
+            this.index++;
+            return { type: "identifier", value: "Infinity" };
         }
 
         throw new Error("Invalid DGP formula syntax");
@@ -1735,24 +1740,19 @@ function ownTurtles(program: Program): string[] {
     );
 }
 
-// But the unknown of a Solve or CSolve, which it binds.
+// But what a computer algebra command binds (see casBound): the unknown of
+// Solve, the index of Sum…
 export function formulaIdentifiers(node: FormulaNode): Set<string> {
     const names = new Set<string>();
     const walk = (node: FormulaNode, bound: ReadonlySet<string>): void => {
         nodeNames(node).forEach((name) => bound.has(name) || names.add(name));
-        const unknown = node.kind === "cas" && node.fn.endsWith("Solve");
-        const inner = unknown
-            ? new Set([...bound, ...solveUnknown(node)])
-            : bound;
+        const binding = node.kind === "cas" && casBound(node);
+        const inner = binding ? new Set([...bound, ...binding]) : bound;
         children(node).forEach((child) => walk(child, inner));
     };
     walk(node, new Set());
     return names;
 }
-
-// Its variable, else those of the functions.
-const solveUnknown = ({ args: [, variable] }: CasNode): string[] =>
-    variable?.kind === "identifier" ? [variable.name] : ["x", "y", "z", "t"];
 
 // The figure's objects the program reads.
 export function programReferences(program: Program): Set<string> {
@@ -2947,6 +2947,8 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
             node,
             degrees,
             (name) => frame.env.functionOf?.(name) ?? null,
+            undefined,
+            (part) => code(part)(frame),
         );
         const answer = built && casAnswer(node, built.request);
         if (typeof answer !== "string") {

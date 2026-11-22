@@ -129,7 +129,7 @@ describe("Computer algebra views", () => {
             "?",
             "?",
             "\\left\\{x = 0\\right\\}",
-            "\\frac{1}{x} - 1",
+            "-1 + \\frac{1}{x}",
         ];
         await vi.waitFor(() => expect(shown()).toEqual(answers), {
             timeout: 20000,
@@ -151,7 +151,11 @@ describe("Computer algebra views", () => {
         );
         // Its answers kept with the figure, which shows them without Giac.
         const saved = await describeDgo(c);
-        expect(saved.cas!["3^2"]).toBe("9");
+        expect(
+            Object.entries(saved.cas!).find(([request]) =>
+                request.endsWith("regroup(3^2))"),
+            )?.[1],
+        ).toBe("9");
         c.dispose();
         await vi.waitFor(() =>
             expect(document.querySelector(".docgeo-cas")).toBeNull(),
@@ -171,18 +175,27 @@ describe("Computer algebra views", () => {
 <view id="8" visible="true" location="3" size="300"/>
 </views></perspective></perspectives></gui><construction>
 <element type="numeric" label="a"><value val="2"/></element>
+<element type="boolean" label="c"><value val="true"/></element>
+<element type="point" label="A"><coords x="1" y="1" z="1"/><condition showObject="c ≠ 0"/></element>
 <cascell><cellPair><useAsText/><inputCell><expression value="Calcul &quot;exact&quot;"/></inputCell></cellPair></cascell>
 ${cell("Factor(x² - a²)", "Factor(x^(2) - a^(2))")}
 ${cell("f(x):= x² + a", "Evaluate(Evaluate(x^(2) + a))", "KeepInput")}
-${cell("Limit(1/n, n, ∞)", "Limit(1 / n, n, Infinity)")}
+${cell("Product(k, k, 1, n)", "Product(k, k, 1, n)")}
 ${cell("Solve(f(x) = 6)", "Solve(f(x) = 6)")}
 ${cell("v:=sqrt(2) a", "Numeric(sqrt(2) * a)", "Numeric")}
 ${cell("$2 + 1", "$2 + 1")}
 ${cell("$4", "$4")}
 ${cell("IFactor(b² - 5)", "IFactor(b^(2) - 5)")}
+${cell("Sum[f(k/n)/n,k,1,n]", "Sum(f(k / n) / n,k,1,n)")}
+${cell("Limit[$10,n,∞]", "Limit($10,n,Infinity)")}
+${cell("Integral[f(z)²,z,0,a]", "Integral(f(z)^(2),z,0,a)")}
+${cell("TaylorPolynomial[sin(x),x,0,5]", "TaylorPolynomial(sin(x),x,0,5)")}
 </construction></geogebra>`,
             ),
-        ).toEqual(["cascell Limit(1/n, n, ∞)", "cascell $4"]);
+        ).toEqual(["cascell Product(k, k, 1, n)", "cascell $4"]);
+        // The condition of A, an auxiliary object, not named after a free
+        // variable of the cells.
+        expect(c.getObj("b")).toBeUndefined();
         // On the left of the graphics, as in GeoGebra.
         expect(c.views.map((view) => !!view.cas)).toEqual([true, false]);
         expect(c.views[0].cas!.lines).toEqual([
@@ -193,6 +206,10 @@ ${cell("IFactor(b² - 5)", "IFactor(b^(2) - 5)")}
             "v := Numeric(sqrt(2) * a)",
             "$2 + 1",
             "IFactor(b^(2) - 5)",
+            "Sum(f(k / n) / n,k,1,n)",
+            "Limit($8,n,Infinity)",
+            "Integral(f(z)^(2),z,0,a)",
+            "TaylorPolynomial(sin(x),x,0,5)",
         ]);
         c.reveal();
         c.flush();
@@ -204,8 +221,12 @@ ${cell("IFactor(b² - 5)", "IFactor(b^(2) - 5)")}
                     "f(x) := x^{2} + a",
                     "\\left\\{x = -2, x = 2\\right\\}",
                     "v := 2.82842712475",
-                    "\\left(x - 2\\right) \\left(x + 2\\right) + 1",
+                    "x^{2} - 3",
                     "\\left(b - \\sqrt{5}\\right) \\left(b + \\sqrt{5}\\right)",
+                    "\\frac{1}{2 n} + \\frac{1}{6 n^{2}} + \\frac{7}{3}",
+                    "\\frac{7}{3}",
+                    "\\frac{376}{15}",
+                    "x - \\frac{1}{6} x^{3} + \\frac{1}{120} x^{5}",
                 ]),
             { timeout: 20000, interval: 50 },
         );
@@ -216,20 +237,71 @@ ${cell("IFactor(b² - 5)", "IFactor(b^(2) - 5)")}
 
         // A row of the Suite's symbolic mode that reads a free variable: a
         // line of a CAS view, on the right without the algebra view.
+        const symbolic = (label: string, exp: string) =>
+            `<expression label="${label}" exp="${exp}"/><element type="symbolic" label="${label}"/>`;
         const suite = createConstruction([800, 600]);
         readDgo(suite, { dgo: 1, v: VIEW, o: [] });
         expect(
             importGgb(
                 suite,
                 `<geogebra><construction>
-<expression label="r" exp="IFactor(a^(2) - 5)"/><element type="symbolic" label="r"/>
+${symbolic("r", "IFactor(a^(2) - 5)")}
+${symbolic("k", "Factor(x^(2) - 5)")}
 </construction></geogebra>`,
             ),
         ).toEqual([]);
         expect(suite.views.map((view) => view.cas?.lines)).toEqual([
             undefined,
-            ["IFactor(a^(2) - 5)"],
+            ["r := IFactor(a^(2) - 5)"],
         ]);
+        expect(suite.getObj("k")).toBeTruthy();
         suite.dispose();
+
+        // All of them where the algebra view shows them, in its place, the
+        // named ones still objects of the figure.
+        const algebra = createConstruction([800, 600]);
+        readDgo(algebra, { dgo: 1, v: VIEW, o: [] });
+        expect(
+            importGgb(
+                algebra,
+                `<geogebra><gui><perspectives><perspective id="tmp"><views>
+<view id="1" visible="true" location="1" size="159"/>
+<view id="2" visible="true" location="3" size="541"/>
+</views></perspective></perspectives></gui><construction>
+${symbolic("¥¦§¨©ª", "sqrt(12) - sqrt(3)")}
+${symbolic("¥¦§¨©ª_{1}", "IFactor(a^(2) - 5)")}
+${symbolic("k", "Factor(x^(2) - 5)")}
+${symbolic("¥¦§¨©ª_{2}", "Sum(j^(2), j, 1, 10)")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect(algebra.views.map((view) => view.cas?.lines)).toEqual([
+            [
+                "sqrt(12) - sqrt(3)",
+                "IFactor(a^(2) - 5)",
+                "k := Factor(x^(2) - 5)",
+                "Sum(j^(2),j,1,10)",
+            ],
+            undefined,
+        ]);
+        expect(
+            algebra.OBJS.V.filter(({ name }) => name.startsWith("k")).length,
+        ).toBe(1);
+        expect(algebra.OBJS.V.some(({ name }) => /¥|sqrt/.test(name))).toBe(
+            false,
+        );
+        algebra.reveal();
+        algebra.flush();
+        await vi.waitFor(
+            () =>
+                expect(shown()).toEqual([
+                    "\\sqrt{3}",
+                    "\\left(a - \\sqrt{5}\\right) \\left(a + \\sqrt{5}\\right)",
+                    "k := x^{2} - 5",
+                    "385",
+                ]),
+            { timeout: 20000, interval: 50 },
+        );
+        algebra.dispose();
     }, 30000);
 });

@@ -277,9 +277,11 @@ const evaluateConstant = (source: string): number | null =>
         }),
     );
 const FUNCTIONS: Record<string, string | Expansion> = {
-    // Computed by Giac (see CAS.md); Integral between bounds is a command.
+    // Computed by Giac (see CAS.md).
     Derivative: "Derivative",
-    Integral: (args) => (args.length > 2 ? "?" : `Integral(${args})`),
+    Integral: "Integral",
+    Limit: "Limit",
+    TaylorPolynomial: "TaylorPolynomial",
     Factor: "Factor",
     IFactor: "IFactor",
     Expand: "Expand",
@@ -1847,6 +1849,18 @@ export function translateGgb(
             // stands for the item's index. Not of a list reading a local
             // variable, which only a script's loop has (see scripted).
             case "Sum": {
+                // Sum(e, k, a, b), computed by Giac, k bound.
+                if (args.length === 4) {
+                    const index = args[1].trim();
+                    const inner = new Map([...locals, [index, index]]);
+                    const values = args.map((arg, k) =>
+                        formula(arg, VALUE_KINDS, k < 2 ? inner : locals),
+                    );
+                    return LABEL.exec(index)?.[0] === index &&
+                        !values.includes(null)
+                        ? `Sum(${values.join(",")})`
+                        : null;
+                }
                 const list =
                     args.length === 1 &&
                     !args[0]
@@ -3984,8 +3998,27 @@ export function translateGgb(
     const nested = new Set<string>();
     // An auxiliary object's name, as the editor gives one (see nextName in
     // src/editor/figure.ts): a capital letter for a point, a small one
-    // otherwise, then numbered, none of GeoGebra's labels.
-    const given = new Set<string>();
+    // otherwise, then numbered, none of GeoGebra's labels nor a word of its
+    // CAS cells and symbolic rows, where a free variable reads no object.
+    const given = new Set(
+        [
+            ...construction.querySelectorAll(
+                ":scope > cascell expression, :scope > expression",
+            ),
+        ].flatMap((expression) =>
+            expression.tagName === "expression" &&
+            expression.parentElement === construction &&
+            elements
+                .get(expression.getAttribute("label") ?? "")
+                ?.getAttribute("type") !== "symbolic"
+                ? []
+                : ((
+                      expression.getAttribute("value") ??
+                      expression.getAttribute("exp") ??
+                      ""
+                  ).match(LABEL_WORDS) ?? []),
+        ),
+    );
     const freshName = (kind: Kind): string => {
         const letters =
             kind === "point" || kind === "pointOn"
@@ -5637,6 +5670,19 @@ export function translateGgb(
             inputs.length > 2
                 ? integral("Integral", 2)(inputs, outputs)
                 : casFunction("Integral", inputs, outputs[0]),
+        Limit: formulaCommand("Limit"),
+        TaylorPolynomial: ([f, ...rest], [label]) => {
+            const body = functions.has(f)
+                ? objects.get(f)!.variable
+                : functionBody(f);
+            const values = rest.map((arg) => formula(arg, VALUE_KINDS));
+            return (
+                body !== null &&
+                values.length === 2 &&
+                !values.includes(null) &&
+                defineFunction(label, `TaylorPolynomial(${body},${values})`)
+            );
+        },
         LowerSum: integral("LowerSum", 3),
         UpperSum: integral("UpperSum", 3),
         Random: savedValue((inputs) => `Random(${inputs})`),
@@ -6751,12 +6797,23 @@ export function translateGgb(
             );
         }
         // A row of GeoGebra's symbolic mode (its Suite), computed by Giac,
-        // which its graphics don't draw: a hidden number of the figure.
+        // which its graphics don't draw: a hidden number of the figure,
+        // unless it reads free variables; and a line of the CAS view where
+        // the algebra view shows it, `name := …` if named (GeoGebra's
+        // unnamed rows are labeled ¥¦§¨©ª).
         if (type === "symbolic" && source !== undefined) {
             const content = formula(source, VALUE_KINDS, new Map([["x", "x"]]));
-            if (content === null) {
-                const line = casLine(source, source, false);
-                return line !== null && casLines.push(line) > 0;
+            const shown = shownView("2");
+            if (content === null || shown) {
+                const named = !label.startsWith("¥");
+                const line = casLine(
+                    named ? `${label} := ${source}` : source,
+                    source,
+                    false,
+                );
+                if (line === null) return false;
+                casLines.push(line);
+                if (content === null || !named) return true;
             }
             const call = commandCall(content);
             return define(

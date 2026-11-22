@@ -3,8 +3,8 @@
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
 Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
 GeoGebra), 5 (vue CAS dans le lecteur), 6 (vue CAS dans l'éditeur), 7
-(cellules CAS de GeoGebra) et 8 (étude du raisonnement automatique)
-faites ; décisions de l'auteur prises le même jour (« Décisions de
+(cellules CAS de GeoGebra), 8 (étude du raisonnement automatique) et 9
+(commandes des cellules réelles) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -454,6 +454,15 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 32. **`Prove`** : réponse `true`, `false` ou indéfinie, avec les
     prédicats (`AreCollinear`…) ajoutés aussi numériquement ; les
     conditions de `ProveDetails` plus tard.
+33. **Étape 9 acceptée** : lignes sans commande de la vue CAS évaluées
+    comme `Evaluate` de GeoGebra ; une somme sans forme close redemandée
+    avec ses bornes par leur valeur (fait au début de l'étape 10) ; noms
+    acceptés ; lignes sans nom de la Suite reconnues à `¥¦§¨©ª`.
+34. **Liste des étapes figée** (2026-11-22) : plus aucune étape ajoutée.
+    Le chantier se termine par les étapes 10 et 11, le manuel et la
+    fusion. Une question soulevée par une étape est tranchée dans cette
+    étape ou notée « hors chantier », jamais transformée en étape
+    nouvelle ; `ProveDetails` et l'outil Relation sont hors chantier.
 
 ## Étapes
 
@@ -519,7 +528,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 - [x] **Étape 8 (CAS) — étude du raisonnement automatique** :
   traduction de la construction en équations, objets couverts, mesures,
   suite du chantier.
-- [ ] **Étape 9 (CAS) — commandes des cellules réelles** : `Sum`,
+- [x] **Étape 9 (CAS) — commandes des cellules réelles** : `Sum`,
   `Limit`, intégrale définie, `TaylorPolynomial` (décision 24), toutes
   les lignes `symbolic` de la Suite dans la vue CAS (décision 26).
 - [ ] **Étape 10 (CAS) — courbe algébrique, `LocusEquation` et
@@ -527,17 +536,23 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 - [ ] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
   (`AreCollinear`…, décision 32).
 - [ ] **Manuel** dans les 12 langues, quand l'auteur le demandera.
+- [ ] **Fin du chantier** (sur demande de l'auteur) : commit de
+  `giac_MAIN`, fusion de `cas` dans `docgeo_MAIN`, installation de Giac
+  dans DocTools, build, tests ; déploiement par l'auteur.
+
+Liste figée (décision 34) : aucune étape ne s'y ajoute.
 
 ## Point de reprise
 
-Étapes 0, M, 1 à 8 faites le 2026-11-22 (comptes rendus ci-dessous), 2
-à 8 committées sur la branche `cas` ; questions des étapes 7 et 8
-tranchées (décisions 24 à 32) ; `giac_MAIN` n'a encore aucun commit (à
+Étapes 0, M, 1 à 9 faites le 2026-11-22 (comptes rendus ci-dessous), 2
+à 8 committées sur la branche `cas`, 9 à committer quand l'auteur
+l'accepte ; questions des étapes 7 à 9 tranchées (décisions 24 à 34) ; `giac_MAIN` n'a encore aucun commit (à
 demander par l'auteur dans une session de `giac_MAIN`). Le chantier
-compte +10,6 Ko au moteur sur 20. Prochaine action : étape 9 (`Sum`,
-`Limit`, intégrale définie, `TaylorPolynomial`, lignes de la Suite),
-dans une session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais
-ce qu'il dit »).
+compte +11,7 Ko au moteur sur 20. Liste des étapes figée (décision
+34) : restent 10, 11, le manuel et la fin du chantier. Prochaine
+action : étape 10 (d'abord la somme sans forme close, décision 33, puis
+courbe algébrique, `LocusEquation`, `Envelope`), dans une session VS Code
+ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -1553,3 +1568,140 @@ coordonnées).
    `AreConcyclic`, `AreConcurrent`, `AreEqual`), qui n'existent pas encore
    dans DocGeo, même numériquement. Les conditions de `ProveDetails` en
    langage géométrique : plus tard. D'accord ?
+
+### Étape 9 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`.
+
+**Commandes** (formules de la figure et vue CAS, `DGO.md`), traduites
+comme dans `Ggb2giac` :
+
+| Commande | Requête Giac |
+| -------- | ------------ |
+| `Sum(e, k, a, b)` | `expand(sum(e, k, a, b))` |
+| `Limit(e[, v], a)` | `regroup(limit(e, v, a))` |
+| `Integral(e[, v], a, b)` | `regroup(integrate(e, v, a, b))` |
+| `TaylorPolynomial(e[, v], a, n)` | `convert(series(e, v, a, n), polynom)` |
+
+- **Variables liées** (`casBound`, `cas_formula.ts`) : l'indice de `Sum`,
+  la variable de `Limit` et de l'intégrale définie, nommés ou sinon
+  x, y, z, t, comme l'inconnue de `Solve`. `formulaIdentifiers` ne les
+  compte pas (`Sum(k^2, k, 1, n)` ne lit que n, `Integral(x z, z, 0, 1)`
+  est une fonction de x) ; la requête les écrit `dk0`, `dk1`… : un objet
+  du même nom n'est pas lu ; la vue CAS ne les remplace pas par une
+  définition de même nom.
+- **Ordre d'un polynôme de Taylor** par sa valeur (un entier positif ou
+  nul, sinon indéfini) : Giac ne développe pas à un ordre symbolique. Un
+  curseur n demande donc un polynôme par entier (cache), quand les autres
+  objets restent des symboles (décision 11).
+- **Réponses** : `+infinity` et `-infinity` relues (∞), `infinity` sans
+  signe (1/x en 0) refusée, comme `Psi`, `euler_gamma` ou
+  `bounded_function(…)` (limite de sin en ∞) : indéfinies.
+- **`∞`** est lu par la grammaire des formules (`Infinity`), `inf` aussi
+  dans une ligne de la vue CAS, comme `pi`.
+- **Éditeur** : une ligne entière `Integral(f, a, b)` dont f est un nom
+  reste l'objet `Itg` du catalogue (aire tracée) ; `Integral(x^2, 0, a)`
+  et `Integral(e, v, a, b)` sont la commande de calcul formel (valeur
+  exacte). Noms dans les 12 langues (`cas_names.ts`), ceux de GeoGebra
+  (`properties_keys_*`) sauf el `Άθροισμα` (GeoGebra :
+  `ΑθροισμαΣτοιχείωνΛίστας`) et zh-TW (non traduit chez GeoGebra) :
+
+| Commande | fr | de | es | it | pt | nl |
+| -------- | -- | -- | -- | -- | -- | -- |
+| Sum | Somme | Summe | Suma | Somma | Soma | Som |
+| Limit | Limite | Grenzwert | Límite | Limite | Limite | Limiet |
+| TaylorPolynomial | PolynômeTaylor | TaylorReihe | PolinomioTaylor | PolinomioTaylor | PolinômioDeTaylor | Taylorveelterm |
+
+el : Άθροισμα, Όριο, ΠολυώνυμοTaylor ; ar : مجموع، نهاية، كثيرحدودتايلور ;
+hi : योग, सीमा, टेलरबहुलक ; zh : 总和、极限、泰勒公式 ; zh-TW : 總和、極限、
+泰勒多項式.
+
+**Vue CAS** :
+- une ligne sans commande est évaluée comme par `Evaluate` de GeoGebra
+  (`Ggb2giac`) : la plus courte de `regroup(normal(e))` et `regroup(e)`.
+  Avant, elle était envoyée telle quelle : `√12 − √3` restait
+  `2√3 − √3`, et `$2 + 1` (avec `$2` = `(x − 2)(x + 2)`) donne
+  maintenant `x² − 3`, `Derivative(ln(x)) + cos(pi)` `−1 + 1/x` ;
+- une division de Giac écrite `1/2*h*a^2/n` est montrée `h a² / (2n)`
+  (numérateur et dénominateur rassemblés, `fraction` dans `cas_view.ts`).
+
+**Import GeoGebra** (`GGB_IMPORT.md`, item 95) : `Sum(e, k, a, b)`
+(`commandFormula`, k lié), `Limit`, `Integral` entre bornes dans une
+formule et `TaylorPolynomial` (commande et formule) passent par Giac ;
+dans une cellule, l'indice d'une somme est une variable libre.
+**Lignes de la Suite** (décision 26) : quand la vue Algèbre est montrée,
+toutes deviennent des lignes de la vue CAS, à sa place ; une ligne sans
+nom (étiquette `¥¦§¨©ª…`, celle que GeoGebra donne aux lignes de la
+Suite, vu sur zxmurptj) n'est qu'une ligne, une ligne nommée est `nom :=
+…` et garde son objet de la figure (lien à sens unique, décision 22).
+Sans vue Algèbre, rien ne change, sauf qu'une ligne nommée à variable
+libre est aussi écrite `nom := …`.
+**Trouvé à l'essai** : le nom d'un objet auxiliaire de l'import
+(condition d'affichage `d ≠ 0`) prenait `a` puis `b`, lettres libres des
+cellules de ksughxrj (`b(z) := a / h (h − z)`) : `a` y était lue par la
+valeur de cet objet (0), d'où des réponses nulles. `freshName` évite
+désormais les mots des cellules et des lignes `symbolic`.
+
+**Corpus** : 333 / 460, inchangé. ksughxrj : 9 cellules sur 10
+importées, réponses de GeoGebra (`1/3 a² h + a² h/(2n) + a² h/(6n²)`,
+limite `1/3 h a²`, intégrale `1/3 a² h`), vue à l'œil dans le lecteur de
+développement ; la dixième lit `az`, fonction non importée, et la figure
+attend toujours `Prism` dans une `Sequence`. zxmurptj : ses trois lignes
+dans la vue CAS (`√3`, `(a − √5)(a + √5)`, `{x = i√5, x = −i√5}`), sans
+objet caché.
+
+**Tests** :
+- `tests/unit/cas_formula.test.ts` : requêtes des quatre commandes,
+  variables liées (objet du même nom non lu, partie illisible refusée,
+  `formulaIdentifiers`), ordre de Taylor par valeur (entier, non entier,
+  indéfini), réponses infinies lues ou refusées ;
+- `tests/browser/cas_commands.test.ts` (vrai Giac, éditeur) : sept lignes
+  tapées et relues (`Sum`, `Limit` à ∞ et en un point, `Integral(x^2, 0,
+  a)`, `Integral(x z, z, 0, 1)`, `TaylorPolynomial(exp(x), 0, n)`, et
+  `Integral(G, 0, 1)` resté au catalogue), valeurs, réponses montrées,
+  curseur n changé (somme par sa forme close sans requête, nouveau
+  polynôme de Taylor) ;
+- `tests/browser/cas_view.test.ts` : cellules `Sum` (d'une fonction de
+  cellule), `Limit` de `$n` à ∞, intégrale définie, `TaylorPolynomial`
+  (réponses KaTeX), cellule `Product` signalée ; objet auxiliaire qui ne
+  prend pas le nom d'une variable libre (le test échoue sans le
+  correctif) ; lignes de la Suite sans et avec vue Algèbre (nommée en
+  `nom :=` avec son objet, sans nom sans objet, réponses) ; réponses
+  existantes mises à jour (`x^{2} - 3`, `-1 + \frac{1}{x}`, clé du
+  `.dgo`) ;
+- suite complète : unitaires 305/305 ; navigateur 1 602/1 603, l'échec
+  (`sheet`, pointage `GEO`, instable sous charge, connu) passant seul
+  (17/17).
+
+**Poids** (`npx vite build` dans des dossiers jetables, `HEAD` construit à
+part) : moteur `engine-*` 386 777 → 387 924 octets (**+1,1 Ko**, gzip
+127 977 → 128 405), plus que les 0,5 Ko estimés : liaison des variables,
+forme à bornes des commandes, ordre par valeur, `∞` ; lecteur `main`
+16 368 inchangé ; `cas_view` 6 252 → 6 721 (à la demande) ; noms des
+commandes (`import-*`) 2 751 → 3 496 (à la demande) ; importeur GeoGebra
+105 448 → 106 189 ; éditeur `main-*` 335 681 → 335 707. Chantier :
++11,7 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : `Somme`, `Limite`, intégrale définie
+et `PolynômeTaylor` et leurs noms ; `∞` (et `inf` dans la vue CAS) ;
+`Intégrale(f, a, b)`, f nommée, qui trace l'aire, à côté de
+`Intégrale(x^2, 0, 1)` et `Intégrale(e, v, a, b)`, exactes ; l'ordre d'un
+polynôme de Taylor donné par un curseur ; les lignes de la Suite
+importées dans la vue CAS.
+
+**Questions pour l'auteur.**
+1. **Lignes sans commande de la vue CAS** évaluées comme dans GeoGebra
+   (la plus courte de deux formes, voir plus haut), ce qui change des
+   réponses de l'étape 5 (`$2 + 1` → `x² − 3`) : d'accord ?
+2. **Somme sans forme close** : dans une formule, un curseur reste un
+   symbole (décision 11), donc `Sum(1/k, k, 1, n)` (réponse `Psi`) est
+   indéfinie, alors que GeoGebra la calcule dans sa vue Algèbre.
+   Recommandation : dans ce cas seulement, redemander la somme avec les
+   bornes par leur valeur (comme l'ordre de Taylor), environ 0,2 Ko.
+3. **Noms** à relire : de `TaylorReihe` (celui de GeoGebra, pour un
+   polynôme), el `Άθροισμα`, zh `泰勒公式` (celui de GeoGebra), et les
+   trois noms zh-TW.
+4. **Lignes de la Suite sans nom** reconnues à leur étiquette `¥¦§¨©ª…`,
+   vue sur la seule figure du corpus qui en a (zxmurptj) : à confirmer
+   si l'auteur a d'autres figures de la Suite.
+

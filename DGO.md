@@ -532,6 +532,17 @@ ou partie que Giac ne lit pas), `Derivative` est la dérivée symbolique de
 DocGeo (`dgp_derivative.ts`), de même valeur. Une expression dont la
 formule est une seule commande montre la réponse de Giac plutôt que sa
 formule.
+Depuis le 2026-11-22 (étape 9) : `Sum(e, k, a, b)` (somme de e pour k
+entier de a à b, développée), `Limit(e, a)`, `Limit(e, v, a)` (a pouvant
+être `∞`, écrit aussi `Infinity`), `Integral(e, a, b)`, `Integral(e, v,
+a, b)` (intégrale définie, exacte) et `TaylorPolynomial(e, a, n)`,
+`TaylorPolynomial(e, v, a, n)` (polynôme de Taylor d'ordre n en a). L'indice
+de `Sum` et la variable de `Limit` et de l'intégrale définie sont liés : un
+nom quelconque, même celui d'un objet, qu'ils ne lisent pas. L'ordre n
+d'un polynôme de Taylor est envoyé par sa valeur, un entier positif ou nul
+(sinon indéfini) : un curseur change la requête. Une ligne entière
+`Integral(f, a, b)`, f nommée, reste l'objet `Itg` (aire tracée) de
+l'éditeur.
 `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont la
 moyenne, la médiane, les quartiles et les écarts types (de la population,
 d'un échantillon) d'une liste de nombres, comme `Mean`, `Median`, `Q1`,

@@ -5,6 +5,7 @@ import { $, type DOMElement } from "./dom";
 import { LANG } from "./i18n";
 import {
     CAS_DEFINITION,
+    casBound,
     casRequest,
     casTree,
     rational,
@@ -68,6 +69,10 @@ const localized = (text: string): string =>
         (match, name?: string) => (name && NAMES[name]) || match,
     );
 const VARIABLES = ["x", "y", "z", "t"];
+const CONSTANTS: Record<string, "PI" | "INFINITY"> = {
+    pi: "PI",
+    inf: "INFINITY",
+};
 
 export function show(c: construction): void {
     let shown = panes.get(c);
@@ -194,6 +199,10 @@ function compute(c: construction): void {
                 kept || !node
                     ? null
                     : casRequest(node, false, casFunction, valueOf);
+            // As GeoGebra evaluates it, the shorter of its normal and
+            // gathered forms: √3 for √12 - √3, (x + 1)^2 kept.
+            if (built && node!.kind !== "cas")
+                built.request = `((dgu,dgv)->when(length(""+dgu)<=length(""+dgv),dgu,dgv))(regroup(normal(${built.request})),regroup(${built.request}))`;
             // To the digits asked for if any.
             if (built && command) {
                 const digits = command.args[1];
@@ -242,13 +251,16 @@ function compute(c: construction): void {
                     return n < k ? trees[n] : null;
                 }
                 // As typed in GeoGebra.
-                if (node.name === "pi" && !c.getObj("pi") && !values.has("pi"))
-                    return { kind: "constant", name: "PI" };
+                const constant = CONSTANTS[node.name];
+                if (constant && !c.getObj(node.name) && !values.has(node.name))
+                    return { kind: "constant", name: constant };
                 return (
                     (!bound.includes(node.name) && values.get(node.name)) ||
                     node
                 );
             }
+            if (node.kind === "cas")
+                bound = [...bound, ...(casBound(node) ?? [])];
             const copy: Record<string, unknown> =
                 node.kind === "userCall" &&
                 node.name === "ln" &&
@@ -316,6 +328,23 @@ const FUNCTIONS: Record<string, string> = {
     atan: "\\arctan",
 };
 
+const product = (left: FormulaNode, right: FormulaNode): FormulaNode =>
+    left.kind === "number" && left.value === 1
+        ? right
+        : { kind: "binary", op: "*", left, right };
+
+// A product's numerator and denominator, its divisions gathered.
+function fraction(node: FormulaNode): [FormulaNode, FormulaNode | null] {
+    if (node.kind !== "binary" || !"*/".includes(node.op)) return [node, null];
+    const [numerator, denominator] = fraction(node.left);
+    return node.op === "/"
+        ? [
+              numerator,
+              denominator ? product(denominator, node.right) : node.right,
+          ]
+        : [denominator ? product(numerator, node.right) : node, denominator];
+}
+
 // As GeoGebra shows it: 2x, fractions, roots, lists in braces.
 function texOf(node: FormulaNode, names: string[]): string {
     const tex = (part: FormulaNode) => texOf(part, names);
@@ -353,7 +382,11 @@ function texOf(node: FormulaNode, names: string[]): string {
         case "binary": {
             const { op, left, right } = node;
             if (op === "==") return `${tex(left)} = ${tex(right)}`;
-            if (op === "/") return `\\frac{${tex(left)}}{${tex(right)}}`;
+            // Giac's 1/2*h/n, h/(2n).
+            if (op === "/") {
+                const [numerator, denominator] = fraction(node);
+                return `\\frac{${tex(numerator)}}{${tex(denominator!)}}`;
+            }
             if (op === "^")
                 return `${
                     left.kind === "identifier" ||
