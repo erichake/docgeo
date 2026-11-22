@@ -564,10 +564,9 @@ fusionnée dans `master` de `docgeo_MAIN`, Giac installé dans
 `doctools_MAIN/public/apps/giac`, DocGeo construit dans DocTools (compte
 rendu « Fin du chantier »). Le calcul formel se développe désormais dans
 `docgeo_MAIN`, sur `master`, comme le reste (exception d'`AGENTS.md`
-mise à jour). Reste à l'auteur, **avant tout déploiement** : publier
-`giac_MAIN` (dépôt public, exigé par la GPL), puis relancer
-`giac_MAIN/install_doctools.sh`, qui réinstalle le module avec l'adresse
-de ses sources dans `SOURCE.txt`.
+mise à jour). `giac_MAIN` est public (https://github.com/erichake/giac)
+et le module installé par `install_doctools.sh` : DocGeo est prêt à être
+déployé par l'auteur.
 
 ## Comptes rendus des étapes
 
@@ -2047,4 +2046,10 @@ Faite le 2026-11-22, à la demande de l'auteur.
 - Le dossier `docgeo_CAS` (worktree de `cas`) n'a plus d'usage ;
   l'auteur peut le retirer (`git worktree remove ../docgeo_CAS` depuis
   `docgeo_MAIN`).
+- **Publication**, à la demande de l'auteur : dépôt public
+  `erichake/giac` créé, `master` poussé (`bb086c7`) ;
+  `install_doctools.sh` relancé : Giac recompilé, d'origine et modifié,
+  réponses identiques sur 3 128 entrées, module réinstallé, `SOURCE.txt`
+  donnant l'adresse des sources et le commit. Les 18 tests navigateur du
+  calcul formel passent avec le module installé.
 
