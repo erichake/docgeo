@@ -47,6 +47,7 @@ const serve = (prefix: string, folder: string): Plugin => {
 export const serveDocCells = (): Plugin =>
     serve("/doccells", "../doctools_MAIN/public/apps/doccells");
 
-// Giac's module (see CAS.md), from its build in giac_MAIN until the end of
-// the project, which installs it in DocTools.
-export const serveGiac = (): Plugin => serve("/giac", "../giac_MAIN/dist");
+// Giac's module (see CAS.md), which DocTools serves beside DocGeo, from
+// its installation in DocTools (giac_MAIN/install_doctools.sh).
+export const serveGiac = (): Plugin =>
+    serve("/giac", "../doctools_MAIN/public/apps/giac");

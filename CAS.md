@@ -551,7 +551,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 - [x] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
   (`AreCollinear`…, décision 32).
 - [x] **Manuel** dans les 12 langues, quand l'auteur le demandera.
-- [ ] **Fin du chantier** (sur demande de l'auteur) : commit de
+- [x] **Fin du chantier** (sur demande de l'auteur) : commit de
   `giac_MAIN`, fusion de `cas` dans `docgeo_MAIN`, installation de Giac
   dans DocTools, build, tests ; déploiement par l'auteur.
 
@@ -559,13 +559,15 @@ Liste figée (décision 34) : aucune étape ne s'y ajoute.
 
 ## Point de reprise
 
-Étapes 0, M, 1 à 11 et le manuel faits le 2026-11-22 (comptes rendus
-ci-dessous), committés sur la branche `cas` ; toutes les questions
-tranchées (décisions 1 à 41) ; `giac_MAIN` n'a encore aucun commit (à
-demander par l'auteur dans une session de `giac_MAIN`). Le chantier
-compte +16,8 Ko au moteur sur 20. Reste la fin du chantier, seulement
-sur demande de l'auteur, dans une session VS Code ouverte sur
-`docgeo_CAS`.
+**Chantier terminé le 2026-11-22** : toutes les étapes faites, `cas`
+fusionnée dans `master` de `docgeo_MAIN`, Giac installé dans
+`doctools_MAIN/public/apps/giac`, DocGeo construit dans DocTools (compte
+rendu « Fin du chantier »). Le calcul formel se développe désormais dans
+`docgeo_MAIN`, sur `master`, comme le reste (exception d'`AGENTS.md`
+mise à jour). Reste à l'auteur, **avant tout déploiement** : publier
+`giac_MAIN` (dépôt public, exigé par la GPL), puis relancer
+`giac_MAIN/install_doctools.sh`, qui réinstalle le module avec l'adresse
+de ses sources dans `SOURCE.txt`.
 
 ## Comptes rendus des étapes
 
@@ -2008,4 +2010,41 @@ les notes « Manuel, à couvrir plus tard » des étapes 3 à 11.
   lignes tapées, réponses de Giac attendues ; générée dans les 12
   langues.
 - `npm run manual -- check` : aucun manque dans les 12 langues.
+
+### Fin du chantier : ce qui est fait
+
+Faite le 2026-11-22, à la demande de l'auteur.
+
+- **`giac_MAIN`** : premier commit (`bb086c7`, branche `master`) :
+  `upstream/`, `patches/`, `build.sh`, `module/`, outils, page de test,
+  script d'installation ; `emsdk/`, `build*/`, `dist*/` non versionnés.
+  Oracle : réponses identiques à Giac d'origine sur 3 128 entrées. **Pas
+  de dépôt public** : le créer et le pousser publie sous le compte de
+  l'auteur, ce que la fin du chantier ne prévoyait pas ; laissé à
+  l'auteur.
+- **Fusion** : `git merge --ff-only cas` dans `docgeo_MAIN` (`master`
+  n'avait aucun commit propre depuis la création de `cas`).
+- **Installation** dans `doctools_MAIN/public/apps/giac` : les fichiers
+  de `install_doctools.sh` (`giac.js`, `giac.wasm`, `giac_worker.js`,
+  `giac_host.js`, `COPYING`, `SOURCE.txt`), copiés depuis `dist/` du
+  commit `bb086c7`, sans la vérification du dépôt public ; `SOURCE.txt`
+  le dit (« NOT YET PUBLISHED ») et sera réécrit par le script.
+  `doctools_MAIN` n'est pas committé (déploiement par l'auteur).
+- **Développement** : `/giac/` sert maintenant
+  `../doctools_MAIN/public/apps/giac` (`doccells.config.ts`), comme
+  DocCells.
+- **`AGENTS.md`** : l'exception du calcul formel ne renvoie plus à
+  `docgeo_CAS` ni à la branche `cas`.
+- **Build** (`npm run build` dans `docgeo_MAIN`) : moteur `engine-*`
+  393 037 octets, comme à l'étape 11.
+- **Tests** dans `docgeo_MAIN` : unitaires 308/308 ; navigateur
+  1 609/1 610 à deux reprises, l'échec étant chaque fois l'un des deux
+  tests instables sous charge (`editor_properties`, glissement d'un
+  nombre ; `sheet`, pointage `GEO`), qui passent seuls (37/37).
+- **Lecteur construit** dans DocTools, servi avec `apps/giac`, sur une
+  figure sans réponses enregistrées : Giac chargé depuis `../giac/`,
+  `Prouver` répond (`true`, `false`), aucune erreur.
+- Le dossier `docgeo_CAS` (worktree de `cas`) n'a plus d'usage ;
+  l'auteur peut le retirer (`git worktree remove ../docgeo_CAS` depuis
+  `docgeo_MAIN`).
 
