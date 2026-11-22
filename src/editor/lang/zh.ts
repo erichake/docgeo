@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const zh: Texts = {
@@ -568,14 +569,7 @@ const zh: Texts = {
         Sequence: "序列",
         IterationList: "迭代列表",
         Element: "元素",
-        Integral: "积分",
-        Derivative: "导数",
-        Factor: "因式分解",
-        Expand: "展开",
-        Simplify: "化简",
-        Solve: "求解",
-        IFactor: "实数域因式分解",
-        CSolve: "复数求解",
+        ...CAS_NAMES.zh,
         LowerSum: "下和",
         UpperSum: "上和",
         BoxPlot: "箱线图",

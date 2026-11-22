@@ -5,6 +5,7 @@ import {
     isGraphic,
     type FigureView,
 } from "../construction";
+import { LINE_COMMANDS } from "../import/cas_names";
 import { hideCas, showCas } from "../cas";
 import { CAS_DEFINITION } from "../import/cas_formula";
 import {
@@ -8084,7 +8085,20 @@ async function enterCas(
         }
         lines[k] = text;
         if (definition && !CAS_VARIABLES.includes(definition[1])) {
-            const [, name, variables, source] = definition;
+            const [, name, variables] = definition;
+            let [, , , source] = definition;
+            // The object is defined by the formula a line command keeps or
+            // computes numerically.
+            const kept = /^\s*(\p{L}+)\s*\((.*)\)\s*$/su.exec(source);
+            if (
+                kept &&
+                node.kind === "userCall" &&
+                LINE_COMMANDS.includes(node.name) &&
+                node.args.length === 1
+            ) {
+                source = kept[2];
+                node = node.args[0];
+            }
             const bound = [
                 ...CAS_VARIABLES,
                 ...(variables?.split(",").map((name) => name.trim()) ?? []),

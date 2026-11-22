@@ -186,6 +186,20 @@ describe("Computer algebra view in the editor", () => {
                 answers(page)[0] ===
                 "\\left(x - 2\\right) \\left(x + 2\\right)",
         );
+        // Kept as typed, numerically: its object defined by its formula.
+        fields(page)[1].focus();
+        await commands.keyboard("type", "w(x) := ConserverSaisie(x^2 + a)");
+        await commands.keyboard("press", "Enter");
+        await until(() => rows(page).includes("w(x) = x^2 + a"));
+        await until(() => answers(page)[1] === "w(x) := x^{2} + a");
+        fields(page)[2].focus();
+        await commands.keyboard("type", "Numérique(sqrt(2))");
+        await commands.keyboard("press", "Enter");
+        await until(() => answers(page)[2] === "1.41421356237");
+        expect(values(page).slice(1, 3)).toEqual([
+            "w(x) := ConserverSaisie(x^2 + a)",
+            "Numérique(sqrt(2))",
+        ]);
         choose(page, "Nouvel onglet calcul formel");
         await until(
             () =>

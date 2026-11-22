@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const hi: Texts = {
@@ -600,14 +601,7 @@ const hi: Texts = {
         Sequence: "अनुक्रम",
         IterationList: "चलनसूची",
         Element: "तत्व",
-        Integral: "समाकल",
-        Derivative: "अवकलज",
-        Factor: "गुणनखंड",
-        Expand: "प्रसार",
-        Simplify: "सरलीकरण",
-        Solve: "हल",
-        IFactor: "अपरिमेयगुणनखंड",
-        CSolve: "सम्मिश्रहल",
+        ...CAS_NAMES.hi,
         LowerSum: "निम्नयोग",
         UpperSum: "उच्चयोग",
         BoxPlot: "बाक्सप्लाट",

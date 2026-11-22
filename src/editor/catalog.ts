@@ -1,3 +1,4 @@
+import { LINE_COMMANDS } from "../import/cas_names";
 import type { DgoRef } from "../objects/construction_object";
 import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
@@ -1744,8 +1745,14 @@ export const findCommand = (name: string): Command | undefined =>
 
 export const isCommand = (name: string): boolean => BY_NAME.has(fold(name));
 
+// Also those of a computer algebra view's lines only, not the formulas'.
+const CAS_LINE = [
+    ...CAS,
+    ...LINE_COMMANDS.map((name) => formulaFunction(name, ["real"], true)),
+];
+
 casNames.canonical = (name) =>
-    CAS.find((command) =>
+    CAS_LINE.find((command) =>
         [command.name, commandName(command)].some(
             (other) => fold(other) === fold(name),
         ),
@@ -1753,7 +1760,7 @@ casNames.canonical = (name) =>
 
 // A computer algebra command's name in the language.
 export const casName = (name: string): string | undefined => {
-    const command = CAS.find((command) => command.name === name);
+    const command = CAS_LINE.find((command) => command.name === name);
     return command && commandName(command);
 };
 

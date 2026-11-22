@@ -119,6 +119,7 @@ import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
 import { CAS_ARITY } from "../../src/import/cas_formula";
+import { LINE_COMMANDS } from "../../src/import/cas_names";
 
 disposeFigures();
 
@@ -166,11 +167,13 @@ describe("Editor", () => {
                     placeholders(en[key]),
                 );
             }
-            // The computer algebra commands of the formulas too.
+            // The computer algebra commands of the formulas and of the CAS
+            // view's lines too.
             const names = [
                 ...new Set([
                     ...COMMANDS.map(({ name }) => name),
                     ...Object.keys(CAS_ARITY),
+                    ...LINE_COMMANDS,
                 ]),
             ];
             expect(Object.keys(commands!).sort(), path).toEqual(

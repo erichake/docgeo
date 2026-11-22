@@ -274,6 +274,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 331 / 459 (72 %)   | 363,6 Ko | item 91 : `IterationList` natif, section par des arêtes, homothétie sans centre ; plus de ligne `= …` (+3) |
 | 2026-11-18 | 332 / 460 (72 %)   | 364,0 Ko | item 92 : foyers et sommets d'une section de cône ou de cylindre, `abs` d'un vecteur de l'espace (+1) |
 | 2026-11-22 | 332 / 460 (72 %)   | moteur +0,7 Ko | item 93 (branche `cas`) : `Derivative`, primitive `Integral`, `IFactor`, `CSolve`, lignes `symbolic` par Giac (+0, un écart corrigé) |
+| 2026-11-22 | 333 / 460 (72 %)   | moteur +0,05 Ko | item 94 (branche `cas`) : cellules de la vue CAS, lignes `symbolic` à variables libres dans une vue CAS (+1) |
 
 ## À faire, par rapport gain / coût
 
@@ -1857,3 +1858,26 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       yy9v3pxp l'écriture d'une fonction dans un texte (`"f'(x) = " + f'`,
       item 1 des leviers), aruq33yh les fonctions de trois variables.
       Moteur +0,7 Ko, importeur GeoGebra 103,0 → 103,6 Ko.
+- [x] **94. Vue CAS de GeoGebra (étape 7 de `CAS.md`, branche `cas`)** :
+      les cellules (`cascell`), jusqu'ici ignorées sans être signalées,
+      deviennent les lignes d'une vue CAS de DocGeo quand la fenêtre de
+      GeoGebra la montre (vue `8`), à sa place (à gauche si elle est à
+      gauche ou au-dessus du graphique) et à sa largeur (au plus la
+      moitié de la fenêtre). Une cellule de texte est une ligne `"…"` ;
+      une cellule est lue depuis son `eval` (sans `Evaluate`), sa
+      définition `nom := …` ou `f(x) := …` depuis sa saisie, le mode
+      « garder la saisie » en `KeepInput(…)`, le mode numérique en
+      `Numeric(…)`, `$n` renuméroté ; les lettres qui ne sont pas des
+      objets restent des variables libres, et une cellule peut appeler
+      une fonction définie par une cellule précédente. Une cellule qui
+      emploie une commande que DocGeo n'a pas (`Sum` symbolique, `Limit`,
+      `Integral(f, z, a, b)`…) est signalée (`cascell …`). Une vue CAS
+      cachée n'est pas importée (rumzymp5 : ses cellules n'y définissent
+      que des fonctions dont les jumeaux sont dans la construction). Une
+      ligne `symbolic` de la Suite qui lit une variable libre
+      (`IFactor(a^2 - 5)`) devient aussi une ligne d'une vue CAS, à la
+      place de la vue Algèbre si elle est montrée. **+1 figure**
+      (zxmurptj, 333 / 460), aucune perdue ; ksughxrj importe 5 cellules
+      sur 10 (les 5 autres : `Sum`, `Limit`, intégrale définie) et attend
+      d'autres éléments. Moteur +50 octets, importeur GeoGebra 103,6 →
+      105,4 Ko.

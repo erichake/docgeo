@@ -50,6 +50,7 @@ export function importGgb(
         nested,
         is3D,
         view3D,
+        cas,
     } = translateGgb(xml, images, macros);
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
@@ -66,6 +67,18 @@ export function importGgb(
         c.measureViews();
     }
     if (view3D?.planeFirst) c.moveView(1, 0);
+    // Its CAS view, as wide as GeoGebra's, but at most half the window.
+    if (cas) {
+        const [width] = c.windowSize;
+        const share = Math.min(cas.width, width / 2);
+        const total = c.views.reduce((sum, view) => sum + view.share, 0);
+        c.views.forEach((view) => (view.share *= (width - share) / total));
+        const index = c.addView(share);
+        c.views[index].cas = { lines: cas.lines, requests: [] };
+        c.arrangeViews();
+        c.measureViews();
+        if (cas.first) c.moveView(index, 0);
+    }
     const variables = executed.variables;
     // Built without its choices: rebuilt with them.
     menus.forEach((choices, variable) => {

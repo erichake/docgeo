@@ -2,7 +2,8 @@
 
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
 Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
-GeoGebra), 5 (vue CAS dans le lecteur) et 6 (vue CAS dans l'éditeur)
+GeoGebra), 5 (vue CAS dans le lecteur), 6 (vue CAS dans l'éditeur), 7
+(cellules CAS de GeoGebra) et 8 (étude du raisonnement automatique)
 faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
@@ -434,6 +435,25 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
     demande.
 23. **Ligne CAS par valeur, objet créé par symbole** (décisions 11 et
     16), accepté.
+24. **`Sum`, `Limit`, intégrale définie et `TaylorPolynomial`** ajoutés
+    aux commandes de calcul formel (formules et vue CAS, 12 langues),
+    dans une petite étape avant le raisonnement automatique (étape 9).
+25. **Vue CAS cachée de GeoGebra** (rumzymp5) : non importée.
+26. **Lignes `symbolic` de la Suite** : toutes dans la vue CAS quand la
+    vue Algèbre est montrée, les nommées en `nom := …`, liées à leur
+    objet (étape 9).
+27. **Noms** de `Numeric` et `KeepInput` (étape 7) acceptés.
+28. **Raisonnement automatique** : continuer, d'abord `LocusEquation` et
+    `Envelope` (étape 10), `Prove` ensuite (étape 11).
+29. **Courbe algébrique** `f(x, y) = 0` : nouvel objet du moteur, aussi
+    obtenu en tapant une équation dans l'éditeur, sans Giac.
+30. **`Envelope`** : la courbe entière par Giac quand il est là, le calcul
+    numérique actuel (partie balayée) restant le repli.
+31. **Glissement** : coordonnées des autres points libres arrondies à
+    6 chiffres, pas symboliques.
+32. **`Prove`** : réponse `true`, `false` ou indéfinie, avec les
+    prédicats (`AreCollinear`…) ajoutés aussi numériquement ; les
+    conditions de `ProveDetails` plus tard.
 
 ## Étapes
 
@@ -493,23 +513,31 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 - [x] **Étape 6 (CAS) — vue CAS dans l'éditeur** : saisie, création et
   suppression de la vue et de l'onglet, insertion d'un objet à la souris
   (comme les étapes 15 et 16 de `TABLEUR.md`).
-- [ ] **Étape 7 (CAS) — import des cellules CAS de GeoGebra** (`cascell`, qui
+- [x] **Étape 7 (CAS) — import des cellules CAS de GeoGebra** (`cascell`, qui
   sont aujourd'hui ignorées sans être signalées), plus les lignes
   traduites dans le lecteur (décision 21).
-- [ ] **Étape 8 (CAS) — raisonnement automatique** : d'abord une étude
-  (traduction de la construction en équations, objets couverts), puis
-  `LocusEquation` et `Envelope`, puis `Prove`.
+- [x] **Étape 8 (CAS) — étude du raisonnement automatique** :
+  traduction de la construction en équations, objets couverts, mesures,
+  suite du chantier.
+- [ ] **Étape 9 (CAS) — commandes des cellules réelles** : `Sum`,
+  `Limit`, intégrale définie, `TaylorPolynomial` (décision 24), toutes
+  les lignes `symbolic` de la Suite dans la vue CAS (décision 26).
+- [ ] **Étape 10 (CAS) — courbe algébrique, `LocusEquation` et
+  `Envelope`** (décisions 28 à 31).
+- [ ] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
+  (`AreCollinear`…, décision 32).
 - [ ] **Manuel** dans les 12 langues, quand l'auteur le demandera.
 
 ## Point de reprise
 
-Étapes 0, M, 1 à 6 faites le 2026-11-22 (comptes rendus ci-dessous), 2
-à 6 committées sur la branche `cas` ; questions de l'étape 6 tranchées
-(décisions 21 à 23) ; `giac_MAIN`
-n'a encore aucun commit (à demander par l'auteur dans une session de
-`giac_MAIN`). Le chantier compte +10,6 Ko au moteur sur 20. Prochaine
-action : étape 7 (avec la décision 21), dans une session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il
-dit »).
+Étapes 0, M, 1 à 8 faites le 2026-11-22 (comptes rendus ci-dessous), 2
+à 8 committées sur la branche `cas` ; questions des étapes 7 et 8
+tranchées (décisions 24 à 32) ; `giac_MAIN` n'a encore aucun commit (à
+demander par l'auteur dans une session de `giac_MAIN`). Le chantier
+compte +10,6 Ko au moteur sur 20. Prochaine action : étape 9 (`Sum`,
+`Limit`, intégrale définie, `TaylorPolynomial`, lignes de la Suite),
+dans une session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais
+ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -1274,3 +1302,254 @@ la vue.
    (décision 11). Les valeurs sont les mêmes, seules les réponses
    montrées diffèrent (`m(x) := x^2 + 1` dans la vue, `m(x) = x^2 + a`
    dans la Construction). D'accord ?
+
+### Étape 7 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`. Moteur inchangé (sauf les listes
+de préchargement de Vite).
+
+**Commandes des lignes** (décision 19), propres à la vue CAS, comme les
+modes de la vue CAS de GeoGebra : `Numeric(e)` et `Numeric(e, n)` (Giac
+`evalf`), `KeepInput(e)` (e montré tel quel, sans requête, la définition
+`f(x) := KeepInput(…)` valant pour les lignes suivantes). Elles n'agissent
+qu'en tête d'une ligne ou de sa définition (ailleurs elles valent e), et
+une fonction du même nom garde la priorité. Calculées dans `cas_view`
+seul : la grammaire et le moteur ne les connaissent pas. Dans l'éditeur,
+une définition `w(x) := KeepInput(x^2 + a)` crée l'objet `w(x) = x^2 + a`
+(décision 18). Une ligne qui n'est qu'un texte (`"Calcul exact"`) est
+montrée comme un texte, sans calcul (pour les cellules de texte de
+GeoGebra).
+
+**Noms dans la langue** (décision 21) : `src/import/cas_names.ts`, les
+noms des dix commandes (les huit des formules, `Numeric`, `KeepInput`)
+dans les 11 langues autres que l'anglais, lus par `cas_view` (langue de la
+page, `LANG` de `i18n.ts`, ou `?lang=`) et par les fichiers de langue de
+l'éditeur (`...CAS_NAMES.fr`, une seule source au lieu de deux). Placé
+dans `src/import/` pour que son morceau, chargé seulement avec la vue CAS
+ou un importeur, ne soit pas nommé `engine-` (règle de `vite.config.ts`,
+dont le commentaire est mis à jour). Noms de `Numeric` : ceux de
+GeoGebra (`properties_keys_*`), sauf zh-TW (non traduit chez GeoGebra :
+近似數) ; `KeepInput` n'est pas une commande traduite de GeoGebra (c'est
+un mode) : noms tirés du libellé de son bouton, sans espaces.
+
+| Commande | fr | de | es | it | pt | nl |
+| -------- | -- | -- | -- | -- | -- | -- |
+| Numeric | Numérique | Numerisch | ValorNumérico | Numerico | ValorNumérico | Numeriek |
+| KeepInput | ConserverSaisie | BehalteEingabe | ConservaEntrada | MantieniInserimento | ManterEntrada | BewaarInvoer |
+
+el : Αριθμητικός, ΔιατήρησηΕισαγομένων ; ar : قيمةعددية، إبقاءالإدخال ;
+hi : सांख्यिक, इनपुटरखें ; zh : 近似数、保留输入 ; zh-TW : 近似數、保留原式.
+
+**Import** (`ggb_translate.ts`, `ggb_importer.ts`, `GGB_IMPORT.md` item
+94) :
+- les cellules `cascell`, jusqu'ici ignorées sans être signalées,
+  deviennent les lignes d'une vue CAS quand la fenêtre de GeoGebra la
+  montre (vue `8`), placée comme elle (à gauche si elle est à gauche ou
+  au-dessus du graphique), aussi large (au plus la moitié de la fenêtre) ;
+- une cellule de texte (`useAsText`) est une ligne `"…"` ; une autre est
+  lue depuis son `eval` (normalisé par GeoGebra, sans ses `Evaluate` et
+  ses parenthèses englobantes), sa définition `nom := …` ou `f(x) := …`
+  depuis sa saisie, son mode « garder la saisie » en `KeepInput(…)`, le
+  mode numérique étant déjà `Numeric(…)` dans l'`eval` ;
+- la traduction est celle des formules (`formula`), les lettres qui ne
+  sont pas des objets passées en variables libres (`locals`, qui peut
+  maintenant nommer aussi une fonction appelée), comme les fonctions
+  définies par les cellules précédentes ; `$n` est renuméroté ; une
+  cellule qui appelle une commande que DocGeo n'a pas, ou lit un objet
+  d'un nom que les formules n'écrivent pas, est signalée (`cascell …`) ;
+- une ligne `symbolic` de la Suite qui lit une variable libre
+  (`IFactor(a^2 - 5)`, décision 13) devient aussi une ligne de la vue
+  CAS, à la place de la vue Algèbre si elle est montrée, à droite sinon.
+
+**Corpus** : 332 → **333 / 460**, aucune figure perdue : zxmurptj passe.
+ksughxrj (vue CAS montrée) : 5 cellules sur 10 importées (textes,
+`b(z) := KeepInput(a / h * (h - z))`), les 5 autres signalées (`Sum`
+symbolique, `Limit`, `Integral(f, z, 0, h)`), et la figure attend
+d'autres éléments (`Prism` dans une `Sequence`…). rumzymp5 : vue CAS
+cachée, non importée (voir question 2).
+
+**Tests** :
+- `tests/browser/cas_view.test.ts` (vrai Giac) : figure GeoGebra à neuf
+  cellules (texte, `Factor`, définition gardée, `Limit` signalée,
+  `Solve` d'une fonction de cellule, `Numeric` nommée, `$2 + 1`, `$4`
+  d'une cellule non importée signalé, variable libre), vue placée à
+  gauche, lignes et réponses KaTeX ; ligne de la Suite à variable libre ;
+- `tests/browser/cas_editor.test.ts` : `w(x) := ConserverSaisie(x^2 + a)`
+  tapé en français crée `w(x) = x^2 + a`, `Numérique(sqrt(2))` →
+  `1.41421356237` ;
+- `tests/browser/editor.test.ts` : le contrôle des langues couvre
+  `Numeric` et `KeepInput` ;
+- lecteur de développement en `?lang=fr` : lignes de
+  `tests/dgo/calcul_formel.dgo` et de ksughxrj montrées en français
+  (`Factoriser(…)`, `ConserverSaisie(…)`), vue CAS de ksughxrj à gauche,
+  aucune erreur ;
+- suite complète : unitaires 303/303 ; navigateur 1 598/1 602, les quatre
+  échecs (`editor` : contrôle des langues, corrigé ; `editor_properties`,
+  `fit`, `sheet` : instables sous charge, connus) relancés seuls :
+  110/110.
+
+**Poids** (`npx vite build` dans des dossiers jetables, `HEAD` construit à
+part) : moteur `engine-*` 386 727 → 386 777 octets (**+50**, listes de
+préchargement) ; lecteur `main` 16 343 → 16 368 ; `cas_view` 5 448 →
+6 252 (à la demande) ; noms des commandes, morceau `import-*` 2 751
+(1,2 Ko gzip, à la demande) ; importeur GeoGebra 103 596 → 105 448 ;
+éditeur `main-*` 334 991 → 335 681. Chantier : +10,6 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : `Numérique(…)` et `ConserverSaisie(…)`
+dans une ligne de la vue CAS, une ligne de texte entre guillemets, les
+lignes montrées dans la langue du lecteur ; l'import des cellules CAS de
+GeoGebra (ce qui est lu, ce qui est signalé).
+
+**Questions pour l'auteur.**
+1. **Commandes des cellules réelles** : la moitié des cellules de
+   ksughxrj emploient `Sum(e, k, a, b)` symbolique, `Limit(e, n, ∞)` et
+   l'intégrale définie `Integral(f, z, a, b)`. Les ajouter aux commandes
+   de calcul formel (formules et vue CAS, noms dans les 12 langues,
+   environ 0,5 Ko au moteur) ? Recommandation : oui, avec
+   `TaylorPolynomial`, dans une petite étape avant l'étape 8, ou au fil
+   de celle-ci.
+2. **Vue CAS cachée** (rumzymp5) : ses cellules ne sont pas importées,
+   puisque GeoGebra ne les montre pas et que leurs jumeaux (fonctions
+   `Tn`, `Ro`) sont dans la construction. Les garder dans un onglet CAS
+   demanderait que l'import produise un classeur de deux pages.
+   Recommandation : ne rien faire.
+3. **Lignes de la Suite** : seules celles qui lisent une variable libre
+   vont dans la vue CAS ; les autres restent des expressions cachées
+   (étape 4), donc invisibles dans le lecteur, alors que la Suite les
+   montre toutes dans sa vue Algèbre. Recommandation : montrer toutes les
+   lignes `symbolic` dans la vue CAS (les nommées en `nom := …`, liées à
+   leur objet), quand la vue Algèbre est montrée.
+4. **Noms** de `KeepInput` (pas de nom de commande chez GeoGebra) et
+   `Numeric` en zh-TW : à relire.
+
+
+### Étape 8 : étude du raisonnement automatique
+
+Faite le 2026-11-22 dans `docgeo_CAS`, sans code : seul ce mémo change
+(ni tests ni mesure de poids, rien d'autre n'ayant bougé). Giac de
+`giac_MAIN/dist` lancé sous Node, comme le fait
+`giac_MAIN/tools/giac_eval.cjs` (une entrée par ligne).
+
+**Usage réel.** Sur les 492 figures du corpus GeoGebra, **aucune**
+n'emploie `LocusEquation`, `Envelope`, `Prove`, `ProveDetails` ni l'outil
+Relation (14 emploient `Locus`, numérique, déjà importé). Les 7 figures à
+courbe implicite (`implicitpoly`) sont toutes la même section plane d'un
+cône (`IntersectPath(Plane, Cone)`, 3D) : une courbe algébrique du plan ne
+les aiderait pas. DGPad n'a pas de raisonnement automatique. Ce n'est donc
+pas un levier de l'import (aucune figure gagnée) : c'est une
+fonctionnalité nouvelle, pour les professeurs qui construisent dans
+l'éditeur.
+
+**Méthode** (celle de GeoGebra, dite de Botana : la construction devient
+des équations polynomiales, Giac fait l'élimination) :
+- chaque point a deux variables. Celles d'un point libre sont libres ; un
+  point sur objet a une équation ; un point construit a les siennes
+  (milieu `2m1 - a1 - b1`, alignement `(p1 - a1)(b2 - a2) - (p2 - a2)(b1 -
+  a1)`, perpendicularité par un produit scalaire, cercle par une égalité
+  de distances au carré). Une droite ou un cercle est donné par ses
+  points (deux points, centre et point), qui sont ses variables ;
+- **`Prove(T)`** : hypothèses H, thèse T (un polynôme) ;
+  `eliminate(H ∪ {1 - t·T}, variables des objets construits ∪ {t})`
+  répond `[1]` (vrai partout), des polynômes des variables libres (vrai
+  sauf là où ils s'annulent : les conditions de non-dégénérescence de
+  `ProveDetails`) ou `[]` (faux en général). Le calcul est fait sur les
+  complexes : l'ordre (entre, intérieur, bissectrice intérieure ou
+  extérieure, laquelle des deux intersections) n'existe pas, un énoncé
+  est prouvé pour toutes les branches à la fois, comme dans GeoGebra ;
+- **`LocusEquation(P, M)`** : M point sur objet, P = (x, y), les autres
+  points libres par leurs coordonnées (rationnels) ;
+  `eliminate(H, toutes les variables sauf x, y)` donne f(x, y) : la
+  courbe algébrique entière (toutes ses branches), pas seulement la
+  partie balayée ;
+- **`Envelope(d, M)`** : de même, plus la condition de contact (jacobien
+  de l'équation de d et du chemin de M selon les variables de M). Comme
+  GeoGebra, elle donne toute la courbe, quand DocGeo ne trace aujourd'hui
+  que la partie balayée (`GGB_IMPORT.md`, item 43).
+
+**Mesures** (premier appel / appel suivant) :
+
+| Calcul | Réponse de Giac | ms |
+| ------ | --------------- | -- |
+| `Prove` : médianes concourantes, A, B, C symboliques | `[1]`, vrai | 30 / 5 |
+| `Prove` faux : centre de gravité sur (AB) | `[]` | 5 / 2 |
+| `Prove` : droite de Simson, 4 points du cercle unité symboliques | vrai sauf A = B = C | 75 / 53 |
+| idem, A fixé en (1, 0) | idem | 16 / 14 |
+| `Prove` : droite d'Euler, A = (0, 0), B sur l'axe | vrai sauf triangle dégénéré | 3 / 3 |
+| `Prove` : cercle des neuf points, B = (b, 0) | vrai sauf b = 0 | 4 / 6 |
+| `LocusEquation` : milieu de AP, P sur un cercle | un cercle | 0,4 / 0,2 |
+| `LocusEquation` : orthocentre, C sur un cercle | degré 4 | 10 / 2 |
+| idem, coordonnées à 7 chiffres | degré 4, coefficients de 37 chiffres | 28 / 3 |
+| idem, A, B, centre et rayon symboliques | plusieurs centaines de termes | 42 / 16 |
+| `Envelope` : droites par (t, 0) et (0, 1 − t) | une parabole | 0,2 / 0,1 |
+
+Giac suffit largement. Recalculer un lieu à chaque image d'un glissement,
+les autres points libres donnés par leurs coordonnées (comme GeoGebra),
+coûte quelques millisecondes, par le cache existant (une seule requête en
+cours). Garder ces points symboliques (comme les curseurs, décision 11)
+donne des polynômes énormes : à écarter pour les lieux. Fixer un premier
+point libre en (0, 0) pour `Prove` (ce que fait GeoGebra) accélère
+nettement (Simson : 53 → 14 ms).
+
+**Objets du moteur couverts.**
+- **Directement** (équations de degré 1 ou 2) : point libre `Pt`, point
+  sur objet `On` (droite, segment, demi-droite, cercle, arc, l'ordre
+  étant perdu), point fixe `Fix` et équations à coefficients numériques
+  `EqL`, `EqC`, `EqQ` (constantes rationnelles), `Mid`, `Line`, `Seg`,
+  `Ray`, `Vec`, `Par`, `Perp`, `Med`, `Cir`, `C3`, cercle par trois
+  points, `Ctr`, intersections droite–droite, droite–cercle et
+  cercle–cercle (les deux points à la fois), `Sym`, `Refl`, translation,
+  `Inv`, homothétie de rapport numérique, `Prb` (foyer et directrice),
+  tangente à un cercle, `TC` (centre de gravité, orthocentre, centre du
+  cercle circonscrit), sommets de `Poly`.
+- **Avec une variable de plus** : `Bis` (les deux bissectrices), centre
+  du cercle inscrit (avec les trois exinscrits), rotation d'un angle
+  numérique de cosinus algébrique (90°, 60°, 2π/n) et polygone régulier,
+  longueurs et curseurs (variables, `d² = …`).
+- **Hors champ** (`Prove` indéfini, comme GeoGebra pour ce qu'il ne
+  traduit pas) : tout le 3D (GeoGebra aussi), fonctions et courbes,
+  points de formule `Fp`, lieux, listes, itérations, suites, intégrales,
+  programmes, mesures d'angles (sauf leurs égalités), rotation d'un angle
+  quelconque.
+- **Macros** (`Mac`) : par leurs objets intermédiaires, si le moteur les
+  garde ; à vérifier à l'étape 10.
+
+**Architecture proposée.**
+- **Moteur** (il reste 9,4 Ko du budget) : un objet **courbe
+  algébrique** `f(x, y) = 0` (polynôme lu par la grammaire des formules),
+  tracé par une grille affinée près de la courbe (marching squares) ; les
+  commandes `LocusEquation`, `Envelope`, `Prove` lisant le cache comme
+  celles de l'étape 3, leur dernier résultat gardé dans le `.dgo` (une
+  figure s'affiche sans Giac ni traducteur). Estimation : 2 à 3 Ko.
+- **Traducteur** construction → polynômes : un module chargé à la demande
+  (`src/import/`, morceau `import-*`), une table par sorte d'objet, sans
+  méthode dans les classes ; chargé seulement quand un résultat manque ou
+  qu'une dépendance bouge.
+- **Sécurité** : la requête ne contient que des variables générées, des
+  rationnels et `eliminate` : aucun texte de la figure (« Sécurité »).
+- **Éditeur** : commandes dans les 12 langues ; plus tard, l'outil
+  Relation (test numérique, puis « vrai en général » par `Prove`).
+
+**Incertain** : le tracé d'une courbe de degré élevé (points singuliers,
+branches proches) ; la taille des coefficients (GeoGebra arrondit les
+coordonnées).
+
+**Manuel, à couvrir plus tard** : rien pour cette étape.
+
+**Questions pour l'auteur.**
+1. **Continuer**, sachant qu'aucune figure du corpus n'en emploie ?
+   Recommandation : oui, en commençant par `LocusEquation` et `Envelope`
+   (visuels, utiles en classe), `Prove` ensuite.
+2. **Courbe algébrique** : un nouvel objet du moteur (balise `.dgo` à
+   créer, `DGO.md`), qu'on pourrait aussi obtenir en tapant une équation
+   (`x^3 + y^3 = 3x y`) dans l'éditeur, sans Giac ? Recommandation : oui
+   (2 à 3 Ko).
+3. **`Envelope`** : la courbe entière par Giac quand il est là, le calcul
+   numérique actuel (partie balayée) restant le repli ? Recommandation :
+   oui, comme GeoGebra.
+4. **Glissement** : coordonnées des autres points arrondies (6 chiffres)
+   plutôt que symboliques. Recommandation : arrondies.
+5. **`Prove`** : réponse `true`, `false` ou indéfinie ; il demande les
+   prédicats (`AreCollinear`, `AreParallel`, `ArePerpendicular`,
+   `AreConcyclic`, `AreConcurrent`, `AreEqual`), qui n'existent pas encore
+   dans DocGeo, même numériquement. Les conditions de `ProveDetails` en
+   langage géométrique : plus tard. D'accord ?

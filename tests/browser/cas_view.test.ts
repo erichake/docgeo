@@ -9,6 +9,7 @@ import { isCommand } from "../../src/editor/catalog";
 import { parseLine } from "../../src/editor/text";
 import { add } from "../../src/editor/figure";
 import type { expression_object } from "../../src/objects/expression_object";
+import { importGgb } from "../../src/ggb_importer";
 
 disposeFigures();
 
@@ -156,4 +157,79 @@ describe("Computer algebra views", () => {
             expect(document.querySelector(".docgeo-cas")).toBeNull(),
         );
     });
+
+    it("import GeoGebra's CAS cells, and the Suite's rows that read free variables", async () => {
+        const c = createConstruction([800, 600]);
+        readDgo(c, { dgo: 1, v: VIEW, o: [] });
+        const cell = (typed: string, evaluated: string, command = "") =>
+            `<cascell><cellPair><inputCell><expression value="${typed}" eval="${evaluated}" evalCmd="${command}"/></inputCell></cellPair></cascell>`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><gui><perspectives><perspective id="tmp"><views>
+<view id="1" visible="true" location="1" size="500"/>
+<view id="8" visible="true" location="3" size="300"/>
+</views></perspective></perspectives></gui><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<cascell><cellPair><useAsText/><inputCell><expression value="Calcul &quot;exact&quot;"/></inputCell></cellPair></cascell>
+${cell("Factor(x² - a²)", "Factor(x^(2) - a^(2))")}
+${cell("f(x):= x² + a", "Evaluate(Evaluate(x^(2) + a))", "KeepInput")}
+${cell("Limit(1/n, n, ∞)", "Limit(1 / n, n, Infinity)")}
+${cell("Solve(f(x) = 6)", "Solve(f(x) = 6)")}
+${cell("v:=sqrt(2) a", "Numeric(sqrt(2) * a)", "Numeric")}
+${cell("$2 + 1", "$2 + 1")}
+${cell("$4", "$4")}
+${cell("IFactor(b² - 5)", "IFactor(b^(2) - 5)")}
+</construction></geogebra>`,
+            ),
+        ).toEqual(["cascell Limit(1/n, n, ∞)", "cascell $4"]);
+        // On the left of the graphics, as in GeoGebra.
+        expect(c.views.map((view) => !!view.cas)).toEqual([true, false]);
+        expect(c.views[0].cas!.lines).toEqual([
+            `"Calcul 'exact'"`,
+            "Factor(x^(2) - a^(2))",
+            "f(x) := KeepInput(x^(2) + a)",
+            "Solve(f(x) = 6)",
+            "v := Numeric(sqrt(2) * a)",
+            "$2 + 1",
+            "IFactor(b^(2) - 5)",
+        ]);
+        c.reveal();
+        c.flush();
+        await vi.waitFor(
+            () =>
+                expect(shown()).toEqual([
+                    "",
+                    "\\left(x - 2\\right) \\left(x + 2\\right)",
+                    "f(x) := x^{2} + a",
+                    "\\left\\{x = -2, x = 2\\right\\}",
+                    "v := 2.82842712475",
+                    "\\left(x - 2\\right) \\left(x + 2\\right) + 1",
+                    "\\left(b - \\sqrt{5}\\right) \\left(b + \\sqrt{5}\\right)",
+                ]),
+            { timeout: 20000, interval: 50 },
+        );
+        expect(document.querySelector(".docgeo-cas .t")?.textContent).toBe(
+            "1Calcul 'exact'",
+        );
+        c.dispose();
+
+        // A row of the Suite's symbolic mode that reads a free variable: a
+        // line of a CAS view, on the right without the algebra view.
+        const suite = createConstruction([800, 600]);
+        readDgo(suite, { dgo: 1, v: VIEW, o: [] });
+        expect(
+            importGgb(
+                suite,
+                `<geogebra><construction>
+<expression label="r" exp="IFactor(a^(2) - 5)"/><element type="symbolic" label="r"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect(suite.views.map((view) => view.cas?.lines)).toEqual([
+            undefined,
+            ["IFactor(a^(2) - 5)"],
+        ]);
+        suite.dispose();
+    }, 30000);
 });

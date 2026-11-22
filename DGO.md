@@ -280,6 +280,15 @@ tableur, une vue CAS n'a que `t`, `l` et `cw`, plus `w` et `h` si c'est
 `v`, et aucun objet n'y est dessiné (`vw` ou `vws` qui la nomme : fichier
 invalide). Une page dont `v` est une vue CAS et qui n'a pas de `vs` est un
 onglet CAS.
+Depuis le 2026-11-22 (étape 7 de `CAS.md`) : une ligne qui n'est qu'un
+texte entre guillemets (`"Calcul exact"`) est montrée comme un texte, sans
+calcul ; `Numeric(e)` et `Numeric(e, n)` (n chiffres) donnent la valeur
+approchée de e, `KeepInput(e)` montre e tel quel sans le calculer, comme
+les modes de la vue CAS de GeoGebra. Ces deux commandes n'existent que
+dans les lignes d'une vue CAS et n'agissent qu'en tête de la ligne ou de
+sa définition (`v := Numeric(…)`), valant e ailleurs ; une fonction de la vue ou de la figure du même nom
+garde la priorité. Les lignes restent écrites avec les noms anglais des
+commandes ; le lecteur et l'éditeur les montrent dans leur langue.
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par

@@ -33,8 +33,9 @@ export default defineConfig({
             input: ["index.html", "editor.html"],
             output: {
                 // Rather than named after one of its modules. What the
-                // importers share, loaded with the first .dgp or .ggb
-                // opened, isn't the engine.
+                // importers or the CAS view share, loaded with the first
+                // .dgp or .ggb opened or the first CAS view shown, isn't
+                // the engine.
                 chunkFileNames: ({ facadeModuleId, moduleIds }) =>
                     facadeModuleId
                         ? "assets/[name]-[hash].js"

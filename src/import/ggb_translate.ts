@@ -14,7 +14,8 @@ import {
     realPart,
     usesView,
 } from "./dgp_formula";
-import { casArity } from "./cas_formula";
+import { LINE_COMMANDS } from "./cas_names";
+import { CAS_DEFINITION, casArity } from "./cas_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 // A GeoGebra figure is translated into the same command list a .dgp file
@@ -106,6 +107,9 @@ export interface GgbTranslation {
     // Present for a 3D figure: its camera (see applyView3D in
     // ggb_importer.ts).
     view3D?: GgbView3D;
+    // The lines of its CAS view, its width in GeoGebra, in pixels, and
+    // whether it's on the left of the graphics.
+    cas?: { lines: string[]; width: number; first: boolean };
 }
 
 type TextPart = string | { formula: string };
@@ -251,6 +255,16 @@ const ITEM_FUNCTIONS: Record<string, string> = {
     y: "y",
 };
 const FUNCTION_DEFINITION = /^[^=]*\(\s*x\s*\)\s*=/;
+// What `name(…)` calls as a whole, null if it's not that.
+function wrapped(text: string, name: string): string | null {
+    if (!text.startsWith(`${name}(`) || !text.endsWith(")")) return null;
+    const inner = text.slice(name.length + 1, -1);
+    let depth = 0;
+    for (const character of inner)
+        if ((depth += character === "(" ? 1 : character === ")" ? -1 : 0) < 0)
+            return null;
+    return inner;
+}
 // A function GeoGebra has but DGP formulas don't, written with theirs, its
 // arguments being already translated.
 type Expansion = (args: string[]) => string;
@@ -1597,7 +1611,7 @@ export function translateGgb(
                                                 objects.get(start)!.variable;
                                             return `(y(${p})+${slopeFormula(word)}*((${x})-x(${p})))`;
                                         }
-                                      : FUNCTIONS[word];
+                                      : (FUNCTIONS[word] ?? locals.get(word));
                     if (!fn) return null;
                     const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
@@ -1725,6 +1739,63 @@ export function translateGgb(
             return null;
         }
         return result;
+    };
+
+    // The lines of DocGeo's CAS view (see CAS.md): the cells of GeoGebra's,
+    // and its Suite's symbolic rows that read free variables. A line is
+    // typed `name := …` or `f(x) := …`, of the figure's objects by their
+    // names, its other letters being free variables, `$n` the line of row
+    // n, and the functions the lines before define. Null if unread.
+    const casLines: string[] = [];
+    const casRows = new Map<number, number>();
+    const casFunctions = new Set<string>();
+    const casLine = (
+        typed: string,
+        evaluated: string,
+        keep: boolean,
+    ): string | null => {
+        const definition = CAS_DEFINITION.exec(typed);
+        let body = evaluated.trim();
+        // Nor GeoGebra's Evaluate, nor parentheses around it all.
+        let inner;
+        while (
+            (inner = wrapped(body, "Evaluate") ?? wrapped(body, "")) !== null
+        )
+            body = inner.trim();
+        const locals = new Map<string, string>();
+        for (const { 0: word, index } of body.matchAll(QUOTED_WORDS)) {
+            if (word.startsWith('"') || objects.has(word) || word === "π")
+                continue;
+            const row = /^\$(\d+)$/.exec(word);
+            if (row) {
+                const line = casRows.get(+row[1]);
+                if (line === undefined) return null;
+                locals.set(word, `dgrow${line}`);
+            } else if (!/^\s*\(/.test(body.slice(index + word.length)))
+                locals.set(word, word);
+            else if (casFunctions.has(word) || LINE_COMMANDS.includes(word))
+                locals.set(word, word);
+            else if (!(word in FUNCTIONS) && !FORMULA_COMMANDS.has(word))
+                return null;
+        }
+        const result = formula(body, VALUE_KINDS, locals);
+        // Nor what reads an object of a name DocGeo's formulas don't have.
+        if (result === null || /\$/.test(result)) return null;
+        const line = (keep ? `KeepInput(${result})` : result).replace(
+            /\bdgrow(\d+)/g,
+            "$$$1",
+        );
+        if (!definition) return line;
+        const [, name, variables] = definition;
+        if (variables !== undefined) casFunctions.add(name);
+        return `${name}${
+            variables === undefined
+                ? ""
+                : `(${variables
+                      .split(",")
+                      .map((variable) => variable.trim())
+                      .join(", ")})`
+        } := ${line}`;
     };
 
     // If(c1, v1, c2, v2, …, otherwise), undefined without otherwise.
@@ -6683,7 +6754,10 @@ export function translateGgb(
         // which its graphics don't draw: a hidden number of the figure.
         if (type === "symbolic" && source !== undefined) {
             const content = formula(source, VALUE_KINDS, new Map([["x", "x"]]));
-            if (content === null) return false;
+            if (content === null) {
+                const line = casLine(source, source, false);
+                return line !== null && casLines.push(line) > 0;
+            }
             const call = commandCall(content);
             return define(
                 label,
@@ -7918,7 +7992,49 @@ export function translateGgb(
             );
     });
 
+    // GeoGebra's CAS view, if its window shows it: a text cell in quotes, a
+    // cell kept as typed or computed numerically as GeoGebra's.
+    if (shownView("8"))
+        construction
+            .querySelectorAll(":scope > cascell")
+            .forEach((cell, row) => {
+                const input = cell.querySelector("inputCell > expression");
+                const typed = input?.getAttribute("value") ?? "";
+                const line = cell.querySelector("useAsText")
+                    ? `"${typed.replace(/"/g, "'")}"`
+                    : casLine(
+                          typed,
+                          input?.getAttribute("eval") ?? typed,
+                          input?.getAttribute("evalCmd") === "KeepInput",
+                      );
+                if (line === null) unsupported.push(`cascell ${typed}`);
+                else casRows.set(row + 1, casLines.push(line));
+            });
+    // In place of the CAS view, or of the algebra view showing the Suite's
+    // rows, as wide.
+    const casView = ["8", "2"].find(shownView);
+    const casAt = casView && location(casView);
+    const mainAt = location(is3D ? "512" : second === "alone" ? "16" : "1");
+    const cas = casLines.length
+        ? {
+              lines: casLines,
+              width: Number(
+                  document
+                      .querySelector(`gui view[id="${casView}"]`)
+                      ?.getAttribute("size") ?? 300,
+              ),
+              first:
+                  !!casAt &&
+                  !!mainAt &&
+                  ["0", "3"].includes(
+                      casAt.find((digit, index) => digit !== mainAt[index]) ??
+                          "",
+                  ),
+          }
+        : undefined;
+
     return {
+        cas,
         calls,
         targets,
         handles,

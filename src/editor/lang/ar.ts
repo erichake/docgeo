@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const ar: Texts = {
@@ -583,14 +584,7 @@ const ar: Texts = {
         Sequence: "متتالية",
         IterationList: "قائمةالتكرار",
         Element: "عنصر",
-        Integral: "تكامل",
-        Derivative: "مشتقة",
-        Factor: "تحليل",
-        Expand: "نشر",
-        Simplify: "تبسيط",
-        Solve: "حل",
-        IFactor: "تحليلغيرنسبي",
-        CSolve: "حلمركب",
+        ...CAS_NAMES.ar,
         LowerSum: "مجموعسفلي",
         UpperSum: "مجموععلوي",
         BoxPlot: "مخططالصندوق",

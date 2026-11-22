@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const nl: Texts = {
@@ -607,14 +608,7 @@ const nl: Texts = {
         Sequence: "Rij",
         IterationList: "IteratieLijst",
         Element: "Element",
-        Integral: "Integraal",
-        Derivative: "Afgeleide",
-        Factor: "Ontbind",
-        Expand: "Uitwerken",
-        Simplify: "Vereenvoudig",
-        Solve: "Los",
-        IFactor: "OntbindIrrationaal",
-        CSolve: "CLos",
+        ...CAS_NAMES.nl,
         LowerSum: "Ondersom",
         UpperSum: "Bovensom",
         BoxPlot: "Boxplot",

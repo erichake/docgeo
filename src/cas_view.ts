@@ -1,6 +1,8 @@
 import { cas } from "./cas";
+import { CAS_NAMES, LINE_COMMANDS } from "./import/cas_names";
 import type { construction, FigureView } from "./construction";
 import { $, type DOMElement } from "./dom";
+import { LANG } from "./i18n";
 import {
     CAS_DEFINITION,
     casRequest,
@@ -24,9 +26,12 @@ import { functionOf } from "./objects/expression_object";
 // objects of the figure a line reads are written by their values (exact),
 // its other letters are free variables; `$2` reads line 2, `a := …` and
 // `f(x) := …` define what the next lines read. Radians, as GeoGebra's.
+// `Numeric(e)` computes e numerically, `KeepInput(e)` shows e as typed; a
+// text (`"…"`) is shown as such. The commands are named in the language of
+// the page, written in English (see cas_names.ts).
 
 $("head").append(
-    `<style>.docgeo-cas{position:absolute;overflow:auto;background:#fff;color:#222;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}.docgeo-cas>div{display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:6px 10px;border-bottom:1px solid #e4e4e4}.docgeo-cas>div>span{grid-row:span 2;min-width:1.5em;color:#999;text-align:end}.docgeo-cas>div>div{overflow-x:auto;overflow-y:hidden}.docgeo-cas>div>div:last-child{padding-top:4px;min-height:1.2em}.docgeo-cas>div>div:last-child::before{content:"→ ";color:#999}</style>`,
+    `<style>.docgeo-cas{position:absolute;overflow:auto;background:#fff;color:#222;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}.docgeo-cas>div{display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:6px 10px;border-bottom:1px solid #e4e4e4}.docgeo-cas>div>span{grid-row:span 2;min-width:1.5em;color:#999;text-align:end}.docgeo-cas>div>div{overflow-x:auto;overflow-y:hidden}.docgeo-cas>div>div:last-child{padding-top:4px;min-height:1.2em}.docgeo-cas>div>div:last-child::before{content:"→ ";color:#999}.docgeo-cas>.t>span{grid-row:auto}.docgeo-cas>.t>div:last-child{display:none}</style>`,
 );
 
 interface Line {
@@ -55,6 +60,13 @@ void import("./objects/latex").then((module) => {
 });
 
 const REFERENCE = /^\$(\d+)$/;
+const NAMES = CAS_NAMES[LANG] ?? {};
+// A line as typed, its commands named in the language.
+const localized = (text: string): string =>
+    text.replace(
+        /"[^"]*"|(?<![\p{L}\p{N}_.$])(\p{L}+)(?=\s*\()/gu,
+        (match, name?: string) => (name && NAMES[name]) || match,
+    );
 const VARIABLES = ["x", "y", "z", "t"];
 
 export function show(c: construction): void {
@@ -97,14 +109,6 @@ function pane(c: construction, view: FigureView): Pane {
         box,
         lines: lines.map((text, k): Line => {
             const definition = definitions[k];
-            const output = $.create("div");
-            box.add(
-                $.create("div").add(
-                    $.create("span").text(String(k + 1)),
-                    $.create("div").text(text),
-                    output,
-                ),
-            );
             let node: FormulaNode | null;
             try {
                 node = withObjects(names, () =>
@@ -113,6 +117,16 @@ function pane(c: construction, view: FigureView): Pane {
             } catch {
                 node = null;
             }
+            const output = $.create("div");
+            const row = $.create("div").add(
+                $.create("span").text(String(k + 1)),
+                $.create("div").text(
+                    node?.kind === "string" ? node.value : localized(text),
+                ),
+                output,
+            );
+            if (node?.kind === "string") row.cls("t");
+            box.add(row);
             return {
                 name: definition?.[1],
                 variables: definition?.[2]
@@ -152,9 +166,21 @@ function compute(c: construction): void {
             functions.get(name) ?? figureFunction(name);
         const trees: (FormulaNode | null)[] = [];
         const requests: string[] = [];
+        // `Numeric(…)` or `KeepInput(…)`, unless the view or the figure
+        // defines a function of this name.
+        const lineCommand = (node: FormulaNode) =>
+            node.kind === "userCall" &&
+            LINE_COMMANDS.includes(node.name) &&
+            node.args.length &&
+            !casFunction(node.name)
+                ? node
+                : null;
         pane.lines.forEach((line, k) => {
+            const command = line.node && lineCommand(line.node);
+            const kept = command?.name === "KeepInput";
             const node = line.node && read(line.node, line.variables, k);
             trees.push(node);
+            if (node?.kind === "string") return;
             if (line.name && node)
                 if (line.variables)
                     functions.set(line.name, {
@@ -164,14 +190,23 @@ function compute(c: construction): void {
                         functionOf: casFunction,
                     });
                 else values.set(line.name, node);
-            const built = node && casRequest(node, false, casFunction, valueOf);
+            const built =
+                kept || !node
+                    ? null
+                    : casRequest(node, false, casFunction, valueOf);
+            // To the digits asked for if any.
+            if (built && command) {
+                const digits = command.args[1];
+                built.request = `evalf(${built.request}${digits?.kind === "number" && Number.isInteger(digits.value) && digits.value > 0 ? `,${digits.value}` : ""})`;
+            }
             if (built) requests.push(built.request);
             const answer = built && cas.read(line, built.request, refresh);
             const tree =
                 typeof answer === "string" &&
                 casTree(answer, built!.read, false);
             let tex = "";
-            if (tree) {
+            if (kept) tex = texOf(command.args[0], []);
+            else if (tree) {
                 const names = built!.parameters.map(({ node }) =>
                     node.kind === "identifier" ? node.name : "?",
                 );
@@ -180,9 +215,9 @@ function compute(c: construction): void {
                     unknown && tree.kind === "vector"
                         ? `\\left\\{${tree.items.map((item) => `${unknown} = ${texOf(item, names)}`).join(", ")}\\right\\}`
                         : texOf(tree, names);
-                if (line.name)
-                    tex = `${name(line.name)}${line.variables ? `(${line.variables.map(name).join(", ")})` : ""} := ${tex}`;
             } else if (answer !== undefined) tex = "?";
+            if (line.name && (kept || tree))
+                tex = `${name(line.name)}${line.variables ? `(${line.variables.map(name).join(", ")})` : ""} := ${tex}`;
             if (renderTeX && tex !== line.shown) {
                 line.shown = tex;
                 line.output.inner(tex && renderTeX(`\\displaystyle ${tex}`)[0]);
@@ -198,6 +233,8 @@ function compute(c: construction): void {
             bound: string[] = [],
             k: number,
         ): FormulaNode | null {
+            const command = lineCommand(node);
+            if (command) return read(command.args[0], bound, k);
             if (node.kind === "identifier") {
                 const reference = REFERENCE.exec(node.name);
                 if (reference) {
@@ -307,6 +344,7 @@ function texOf(node: FormulaNode, names: string[]): string {
         case "imaginary":
             return "i";
         case "identifier": {
+            if (node.name === "pi") return "\\pi";
             const symbol = SYMBOL.exec(node.name);
             return name(symbol ? names[+symbol[1]] : node.name);
         }
@@ -334,6 +372,10 @@ function texOf(node: FormulaNode, names: string[]): string {
         }
         case "vector":
             return `\\left\\{${node.items.map(tex).join(", ")}\\right\\}`;
+        // As typed, a line's input kept.
+        case "userCall":
+        case "cas":
+            return `${name(node.kind === "cas" ? (NAMES[node.fn] ?? node.fn) : node.name)}\\left(${node.args.map(tex).join(", ")}\\right)`;
         case "call": {
             const arg = tex(node.args[0]);
             if (node.fn === "sqrt") return `\\sqrt{${arg}}`;

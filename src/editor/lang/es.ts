@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const es: Texts = {
@@ -604,14 +605,7 @@ const es: Texts = {
         Sequence: "Secuencia",
         IterationList: "ListaIteración",
         Element: "Elemento",
-        Integral: "Integral",
-        Derivative: "Derivada",
-        Factor: "Factoriza",
-        Expand: "Desarrolla",
-        Simplify: "Simplifica",
-        Solve: "Resuelve",
-        IFactor: "FactorizaI",
-        CSolve: "ResoluciónC",
+        ...CAS_NAMES.es,
         LowerSum: "SumaInferior",
         UpperSum: "SumaSuperior",
         BoxPlot: "DiagramaCaja",

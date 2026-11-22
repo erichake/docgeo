@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const el: Texts = {
@@ -612,14 +613,7 @@ const el: Texts = {
         Sequence: "Ακολουθία",
         IterationList: "ΛίσταΕπανάληψης",
         Element: "Στοιχείο",
-        Integral: "Ολοκλήρωμα",
-        Derivative: "Παράγωγος",
-        Factor: "Παραγοντοποίηση",
-        Expand: "Ανάπτυξη",
-        Simplify: "Απλοποίηση",
-        Solve: "Λύση",
-        IFactor: "ΑρρητηΠαραγοντοποίηση",
-        CSolve: "ΛύσηΜιγαδική",
+        ...CAS_NAMES.el,
         LowerSum: "ΚάτωΆθροισμα",
         UpperSum: "ΆνωΆθροισμα",
         BoxPlot: "Θηκόγραμμα",

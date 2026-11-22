@@ -1,3 +1,4 @@
+import { CAS_NAMES } from "../../import/cas_names";
 import type { Texts } from "../messages";
 
 const de: Texts = {
@@ -616,14 +617,7 @@ const de: Texts = {
         Sequence: "Folge",
         IterationList: "Iterationsliste",
         Element: "Element",
-        Integral: "Integral",
-        Derivative: "Ableitung",
-        Factor: "Faktorisiere",
-        Expand: "Multipliziere",
-        Simplify: "Vereinfache",
-        Solve: "Löse",
-        IFactor: "IFaktorisiere",
-        CSolve: "KLöse",
+        ...CAS_NAMES.de,
         LowerSum: "Untersumme",
         UpperSum: "Obersumme",
         BoxPlot: "Boxplot",
