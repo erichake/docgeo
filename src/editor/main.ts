@@ -1,5 +1,5 @@
 // First, as in the player: the object classes import each other.
-import { AWAKE, construction } from "../construction";
+import { AWAKE, construction, isGraphic } from "../construction";
 import type { Animation } from "../animation";
 import {
     addDgoEntries,
@@ -1269,9 +1269,8 @@ const menus: Menu[] = [
                         label: message("delete_view"),
                         run: () => void deleteView(),
                         enabled: () =>
-                            !scene().views[scene().active].sheet &&
-                            scene().views.filter(({ sheet }) => !sheet).length >
-                                1,
+                            isGraphic(scene().views[scene().active]) &&
+                            scene().views.filter(isGraphic).length > 1,
                     },
                     null,
                     {
@@ -6000,7 +5999,7 @@ async function reframe(
     if (step) {
         c.views.forEach(({ grid, rect }, n) => {
             const m = match(n);
-            if (m < 0 || c.views[n].sheet) return;
+            if (m < 0 || !isGraphic(c.views[n])) return;
             const { o, u } = current[m];
             const [x, y] = o as Vec2;
             grid.ORG = [
@@ -7740,7 +7739,7 @@ async function deleteView(deleted = scene().active): Promise<void> {
     views.splice(deleted, 1);
     const graphic = c.views
         .map((_, n) => n)
-        .filter((n) => n !== deleted && !c.views[n].sheet)
+        .filter((n) => n !== deleted && isGraphic(c.views[n]))
         .sort((m, n) => Math.abs(m - deleted) - Math.abs(n - deleted))[0];
     const moved = (view: number): number =>
         view === deleted

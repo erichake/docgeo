@@ -13,6 +13,7 @@ import {
     viewDirection,
     type ProjectionFrame,
 } from "./projection";
+import { hideCas, showCas } from "./cas";
 import { hideSheet, showSheet, type Archive, type DocCells } from "./sheet";
 import { vAdd, vDot, vNormalize, vScale, type Vec2, type Vec3 } from "./vec";
 
@@ -76,7 +77,13 @@ export interface FigureView {
     measured: { pass: number; width: number; height: number };
     // A sheet view, which shows the figure's workbook (see sheet.ts).
     sheet?: boolean;
+    // A computer algebra view, which shows its lines (see cas_view.ts), and
+    // the requests they last read, whose answers its figure keeps.
+    cas?: { lines: string[]; requests: string[] };
 }
+
+// Where objects are drawn: neither a sheet nor a computer algebra view.
+export const isGraphic = ({ sheet, cas }: FigureView) => !sheet && !cas;
 
 export class construction {
     static constructions: construction[] = [];
@@ -126,6 +133,8 @@ export class construction {
         down: new Set(),
         up: new Set(),
     };
+    // After each update, what the computer algebra views compute.
+    updated?: () => void;
     private updateFrame: number | null = null;
     // Shown, rather than computed only (see workbook.ts).
     private revealed = false;
@@ -275,7 +284,10 @@ export class construction {
             this.dividers[index - 1]?.stl("left", `${x * 100}%`);
             x += width;
         });
-        if (this.revealed) showSheet(this);
+        if (this.revealed) {
+            showSheet(this);
+            showCas(this);
+        }
     }
 
     // Measured at once rather than by their observers, a 3D view keeping
@@ -548,6 +560,7 @@ export class construction {
         this.views.forEach(({ svg }) => svg.dispose());
         this.dividers.forEach((divider) => divider.dispose());
         hideSheet(this);
+        hideCas(this);
         $("body").off("keydown", this.keydownListener);
         VIEW_EVENTS.forEach((type, n) =>
             $(document.documentElement).off(type, this.viewListeners[n], true),
@@ -815,13 +828,17 @@ export class construction {
     // Its traces start once it's shown, not with the moves of its opening.
     reveal(): void {
         this.traceEpoch++;
-        this.views.forEach(({ svg, traceLayer, sheet }) => {
-            traceLayer.findAll("path").forEach((path) => path.att("d", ""));
-            // Under the sheet's frame (see sheet.ts).
-            svg.stl("visibility", sheet ? "hidden" : "");
+        this.views.forEach((view) => {
+            view.traceLayer
+                .findAll("path")
+                .forEach((path) => path.att("d", ""));
+            // Under the sheet's frame (see sheet.ts), or the computer
+            // algebra view's lines.
+            view.svg.stl("visibility", isGraphic(view) ? "" : "hidden");
         });
         this.revealed = true;
         showSheet(this);
+        showCas(this);
     }
 
     private bindSceneEvents(element: DOMElement): void {
@@ -881,6 +898,7 @@ export class construction {
 
     private update(): void {
         this.OBJS.update();
+        this.updated?.();
         Object.values(this.gestures).forEach((objects) => objects.clear());
     }
 }

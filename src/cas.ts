@@ -1,6 +1,7 @@
 import { CasCache, type CasResult } from "./cas_cache";
 import { answerCas } from "./import/dgp_formula";
 import { $ } from "./dom";
+import type { construction } from "./construction";
 import type { construction_object } from "./objects/construction_object";
 import { reading } from "./sheet";
 
@@ -11,7 +12,8 @@ type Giac = { eval(request: string): Promise<{ value: string }> };
 let giac: Promise<Giac> | undefined;
 
 // Beside DocGeo's page, as DocTools serves its applications (see CAS.md).
-export const cas = new CasCache<construction_object>(
+// Its readers: objects, or a computer algebra view's lines.
+export const cas = new CasCache<construction_object | (() => void)>(
     async (request) => {
         giac ??= import(
             /* @vite-ignore */ new URL("../giac/giac_host.js", document.baseURI)
@@ -19,8 +21,12 @@ export const cas = new CasCache<construction_object>(
         ).then(({ createGiac }) => createGiac({ timeout: TIMEOUT }));
         return (await (await giac).eval(request)).value;
     },
-    (objects) =>
-        objects.forEach((object) => object.C.invalidateGeometry(object)),
+    (readers) =>
+        readers.forEach((reader) =>
+            typeof reader === "function"
+                ? reader()
+                : reader.C.invalidateGeometry(reader),
+        ),
     // Its message, in no language: it is a name.
     () =>
         $("body").append(
@@ -44,16 +50,33 @@ export function readCas(site: object, request: string) {
 }
 answerCas(readCas);
 
-// The answers the objects read, for their .dgo.
+// The answers the objects and the computer algebra views read, for their
+// .dgo.
 export function casAnswers(
+    c: construction,
     objects: construction_object[],
 ): Record<string, CasResult> | undefined {
     const answers: Record<string, CasResult> = {};
-    objects.forEach((object) =>
-        requests.get(object)?.forEach((request) => {
-            const answer = cas.answer(request);
-            if (answer !== undefined) answers[request] = answer;
-        }),
-    );
+    [
+        ...objects.flatMap((object) => [
+            ...(requests.get(object)?.values() ?? []),
+        ]),
+        ...c.views.flatMap((view) => view.cas?.requests ?? []),
+    ].forEach((request) => {
+        const answer = cas.answer(request);
+        if (answer !== undefined) answers[request] = answer;
+    });
     return Object.keys(answers).length ? answers : undefined;
 }
+
+// Its computer algebra views, shown by a module loaded when a figure first
+// has one (see cas_view.ts).
+let views: Promise<typeof import("./cas_view")> | undefined;
+
+export function showCas(c: construction): void {
+    if (views || c.views.some((view) => view.cas))
+        void (views ??= import("./cas_view")).then((module) => module.show(c));
+}
+
+export const hideCas = (c: construction): void =>
+    void views?.then((module) => module.hide(c));

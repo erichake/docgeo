@@ -120,8 +120,8 @@ contenu, vérifié par DocCells, est son affaire.
 Réponses de Giac (depuis le 2026-11-22, `CAS.md`) : `cas` associe à
 chaque requête de calcul formel lue par un objet de la figure (texte
 construit par DocGeo depuis la formule, voir « Commandes de calcul
-formel » ci-après) la dernière réponse de Giac, `null` s'il n'en a pas
-donné. Le lecteur les reprend avant de calculer les objets : une figure
+formel » ci-après) ou par une ligne d'une vue CAS (`t` ci-après) la
+dernière réponse de Giac, `null` s'il n'en a pas donné. Le lecteur les reprend avant de calculer les objets : une figure
 dont les requêtes y sont s'affiche sans charger Giac, même hors ligne.
 Ce n'est qu'un cache : une requête absente (ou écrite autrement par une
 version ultérieure) est simplement redemandée à Giac. Une réponse n'est
@@ -267,6 +267,19 @@ Aucun objet n'y est dessiné : un style `vw` ou `vws` qui la nomme rend le
 fichier invalide ; un objet sans `vw` va dans la première vue graphique.
 Une page dont `v` est la vue tableur et qui n'a pas de `vs` est un onglet
 tableur.
+
+Vue CAS (depuis le 2026-11-22, `CAS.md`) : `"t": "c"` fait d'une vue une
+colonne qui montre des lignes de calcul formel, `l`, tableau de textes
+(requis), tels que tapés : une formule de DocGeo (`Factor(x^2 - a)`), une
+définition `nom := …` ou `f(x, y) := …`, `$n` désignant la ligne n
+(à partir de 1) quand elle la précède. Chaque ligne est calculée par
+Giac, les objets de la figure qu'elle lit écrits par leur valeur exacte
+(comme la vue CAS de GeoGebra), ses autres lettres étant des variables
+libres, en radians ; leurs réponses vont dans `cas`. Comme une vue
+tableur, une vue CAS n'a que `t`, `l` et `cw`, plus `w` et `h` si c'est
+`v`, et aucun objet n'y est dessiné (`vw` ou `vws` qui la nomme : fichier
+invalide). Une page dont `v` est une vue CAS et qui n'a pas de `vs` est un
+onglet CAS.
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par

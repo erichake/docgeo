@@ -95,11 +95,15 @@ const UNREAD = new Error("Not a computer algebra formula");
 
 // Giac's request, objects kept as symbols: a slider dragged changes no
 // request. Trigonometric functions in DGPad's degrees are written in
-// radians. Null when Giac couldn't read it.
+// radians. Null when Giac couldn't read it. A computer algebra view's line
+// (see cas_view.ts) writes the values of the objects it reads (`valueOf`,
+// null when Giac can't read them), its free variables (undefined) staying
+// symbols.
 export function casRequest(
-    node: CasNode,
+    node: FormulaNode,
     degrees: boolean,
     functionOf: (name: string) => CasFunction | null,
+    valueOf?: (part: FormulaNode) => string | null | undefined,
 ): { request: string; parameters: CasParameter[]; read: Set<string> } | null {
     const parameters: CasParameter[] = [];
     const symbols = new Map<string, string>();
@@ -113,6 +117,9 @@ export function casRequest(
             )
         )
             throw UNREAD;
+        const value = valueOf?.(part);
+        if (value === null) throw UNREAD;
+        if (value !== undefined) return value;
         const key = part.kind === "identifier" ? part.name : null;
         const known = key !== null && symbols.get(key);
         if (known) return known;
@@ -163,14 +170,20 @@ export function casRequest(
                     read.add(part.name);
                     return part.name;
                 }
+                // Named alone, of its variables, those of the function
+                // holding it if any (`g(x) = Derivative(f)`).
                 const fn = context.functionOf(part.name);
-                return fn && !context.owner
+                return fn
                     ? inline(
                           fn,
-                          fn.variables.map((variable) => {
-                              read.add(variable);
-                              return variable;
-                          }),
+                          fn.variables.map((variable) =>
+                              context.owner
+                                  ? write(
+                                        { kind: "identifier", name: variable },
+                                        context,
+                                    )
+                                  : (read.add(variable), variable),
+                          ),
                       )
                     : parameter(part, context);
             }
@@ -215,6 +228,12 @@ export function casRequest(
             if (arg.kind === "identifier" && VARIABLES.includes(arg.name))
                 read.add((variable = arg.name));
             else if (
+                arg.kind === "identifier" &&
+                valueOf &&
+                valueOf(arg) === undefined
+            )
+                variable = parameter(arg, context);
+            else if (
                 part.fn === "Derivative" &&
                 arg.kind === "number" &&
                 Number.isInteger(arg.value) &&
@@ -222,7 +241,10 @@ export function casRequest(
             )
                 order = `,${arg.value}`;
             else throw UNREAD;
-        variable ??= VARIABLES.find((name) => read.has(name)) ?? "x";
+        variable ??=
+            VARIABLES.find((name) => read.has(name)) ??
+            (valueOf && [...read].find((name) => SYMBOL.test(name))) ??
+            "x";
         return GIAC[part.fn].replace("%", () =>
             part.fn === "Expand" || part.fn === "Simplify"
                 ? text
@@ -231,11 +253,9 @@ export function casRequest(
     };
 
     try {
-        const request = command(node, {
-            owner: null,
-            functionOf,
-            variables: new Map(),
-        });
+        const context = { owner: null, functionOf, variables: new Map() };
+        const request =
+            node.kind === "cas" ? command(node, context) : write(node, context);
         return { request, parameters, read };
     } catch (error) {
         if (error !== UNREAD) throw error;
@@ -244,7 +264,7 @@ export function casRequest(
 }
 
 // Exact, as GeoGebra sends its numbers: 0.1 is 1/10.
-function rational(value: number): string {
+export function rational(value: number): string {
     const [, digits, decimals = "", exponent = "0"] =
         /^(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(Math.abs(value)))!;
     const shift = Number(exponent) - decimals.length;
@@ -305,7 +325,7 @@ export function casTree(
                     return { ...part, operand: tree(part.operand) };
                 break;
             case "binary":
-                if ("+-*/^".includes(part.op))
+                if (/^([-+*/^]|==)$/.test(part.op))
                     return {
                         ...part,
                         left: tree(part.left),

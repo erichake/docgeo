@@ -3,7 +3,7 @@ import {
     bandBackground,
     type BackgroundFit,
 } from "./background";
-import type { construction, FigureView } from "./construction";
+import { isGraphic, type construction, type FigureView } from "./construction";
 import { sheetArchive } from "./sheet";
 import { cas, casAnswers } from "./cas";
 import {
@@ -963,12 +963,17 @@ export async function describeDgo(
     };
     const several = c.views.length > 1;
     const view = (
-        { grid, rect, sheet }: FigureView,
+        { grid, rect, sheet, cas }: FigureView,
         [dx, dy]: Vec2,
         size: Settings,
     ): Settings => ({
-        ...(sheet
-            ? { t: "s", ...size, ...(several && { cw: rect[2] }) }
+        ...(sheet || cas
+            ? {
+                  t: sheet ? "s" : "c",
+                  ...(cas && { l: cas.lines }),
+                  ...size,
+                  ...(several && { cw: rect[2] }),
+              }
             : {
                   o: [grid.ORG[0] - dx, grid.ORG[1] - dy],
                   u: grid.UNIT[0],
@@ -1008,7 +1013,7 @@ export async function describeDgo(
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
     if (c.views.some(({ sheet }) => sheet)) figure.wb = sheetArchive(c);
-    const answers = casAnswers(objects);
+    const answers = casAnswers(c, objects);
     if (answers) figure.cas = answers;
     return figure;
 }
@@ -1252,7 +1257,20 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         else c.views[0].share = share;
         const grid = c.views[index].grid;
         apply(VIEW, grid, settings);
-        // A sheet view, with the figure's workbook, has no other settings.
+        // A sheet view, with the figure's workbook, or a computer algebra
+        // view, with its lines, has no other settings.
+        if (t === "c") {
+            const { l: lines } = settings;
+            check(
+                Array.isArray(lines) &&
+                    lines.every((line) => typeof line === "string"),
+            );
+            c.views[index].cas = {
+                lines: lines as string[],
+                requests: Object.keys(answers),
+            };
+            return grid;
+        }
         if (t !== undefined) {
             check(t === "s" && !c.workbook && isRecord(wb));
             c.workbook = wb;
@@ -1288,13 +1306,10 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
               ]
             : [0, 0];
     const [windowWidth, windowHeight] = c.windowSize;
-    // New objects in the first view which isn't a sheet's, if any.
-    c.view = c.active = Math.max(
-        0,
-        c.views.findIndex(({ sheet }) => !sheet),
-    );
+    // New objects in the first graphic view, if any.
+    c.view = c.active = Math.max(0, c.views.findIndex(isGraphic));
     grids.forEach((grid, index) => {
-        if (c.views[index].sheet) return;
+        if (!isGraphic(c.views[index])) return;
         const [x, y] = [view, ...views][index].o as Vec2;
         const [, , w, h] = c.views[index].rect;
         grid.ORG =
@@ -1555,7 +1570,7 @@ export function readEntries(
                     Number.isInteger(view) &&
                         (view as number) >= 0 &&
                         (view as number) < c.views.length &&
-                        !c.views[view as number].sheet,
+                        isGraphic(c.views[view as number]),
                 );
                 c.moveToView(object, view as number);
             }
@@ -1568,7 +1583,7 @@ export function readEntries(
                                 Number.isInteger(view) &&
                                 view >= 0 &&
                                 view < c.views.length &&
-                                !c.views[view].sheet,
+                                isGraphic(c.views[view]),
                         ),
                 );
                 c.alsoShow(object, also as number[]);

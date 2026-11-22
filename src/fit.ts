@@ -8,6 +8,7 @@ import {
 } from "./dgo";
 import { $ } from "./dom";
 import { DIR, t } from "./i18n";
+import { showCas } from "./cas";
 import { showSheet } from "./sheet";
 
 // index.html?fit=…&url=…: the figure in a web page's iframe, the region the
@@ -101,6 +102,7 @@ function place(): void {
             .stl("height", `${rh * h * scale}px`),
     );
     showSheet(app.scene);
+    showCas(app.scene);
 }
 
 function build(figure = pages.get(shown)!.figure): void {

@@ -1,8 +1,8 @@
 # Calcul formel (Giac) dans DocGeo — mémo de chantier
 
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
-Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules) et 4 (import
-GeoGebra) faites ; décisions de l'auteur prises le même jour (« Décisions de
+Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
+GeoGebra) et 5 (vue CAS dans le lecteur) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -415,6 +415,16 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 15. **Requêtes autonomes**, sans le mode GeoGebra de Giac (`init
     geogebra`) : DocGeo reste indépendant de GeoGebra, dont il ne reprend
     jamais le code, seulement le sens des commandes.
+16. **Vue CAS : objets lus par leur valeur**, comme dans GeoGebra, alors
+    qu'ils restent des symboles dans les formules de la figure.
+17. **Vue CAS en radians**, même dans une figure en degrés.
+18. **Une ligne qui définit un objet de la figure** : l'éditeur (étape 6)
+    crée un vrai objet de la figure, avec sa ligne dans la Construction,
+    que la ligne de la vue CAS nomme ; même traduction à l'import
+    (étape 7).
+19. **Modes numérique et « garder l'entrée »** : à l'étape 7, en
+    commandes `Numeric(…)` et `KeepInput(…)` d'une ligne.
+20. **Texte tapé montré tel quel**, seule la réponse en KaTeX.
 
 ## Étapes
 
@@ -469,7 +479,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   il est présent (repli actuel sinon), plus `IFactor`, `CSolve`, mode
   symbolique des suites. Mise à jour de `GGB_IMPORT.md` (exclusion
   levée, mesure du corpus).
-- [ ] **Étape 5 (CAS) — vue CAS dans le lecteur** : vue et onglet, lignes,
+- [x] **Étape 5 (CAS) — vue CAS dans le lecteur** : vue et onglet, lignes,
   résultats KaTeX, recalcul quand la figure bouge.
 - [ ] **Étape 6 (CAS) — vue CAS dans l'éditeur** : saisie, création et
   suppression de la vue et de l'onglet, insertion d'un objet à la souris
@@ -483,13 +493,12 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 
 ## Point de reprise
 
-Étapes 0, M, 1, 2, 3 et 4 faites le 2026-11-22 (comptes rendus
-ci-dessous), 2 à 4 committées sur la branche `cas` ; questions de l'étape 4
-tranchées (décisions 13 à 15) ;
-`giac_MAIN` n'a encore aucun commit (à demander par l'auteur dans une
-session de `giac_MAIN`). Le chantier compte +8,8 Ko au moteur sur 20.
-Prochaine action : étape 5, dans une session VS Code ouverte sur
-`docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
+Étapes 0, M, 1, 2, 3, 4 et 5 faites le 2026-11-22 (comptes rendus
+ci-dessous), 2 à 5 committées sur la branche `cas` ; questions de
+l'étape 5 tranchées (décisions 16 à 20) ; `giac_MAIN` n'a encore aucun
+commit (à demander par l'auteur dans une session de `giac_MAIN`). Le chantier compte +10,5 Ko au
+moteur sur 20. Prochaine action : étape 6, dans une session VS Code
+ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -1017,3 +1026,125 @@ montrée aussi pour une commande sans x (`Résoudre`, `Simplifier(√12 −
    demanderait une option d'initialisation au module générique
    (`giac_MAIN`) et une relecture de nouvelles formes de réponses ?
 
+### Étape 5 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`.
+
+**Sémantique des lignes, vérifiée dans GeoGebra** (sa vue CAS pilotée par
+`evalCommandCAS`, avec un curseur a = 2, `f(x) = x^2 + a` et `A = (1, 3)`) :
+`a^2` → 4, `Factor(x^2 - a)` → `x² - 2`, `f(x)` → `x² + 2`, `b^2` → `b²`,
+`x(A) + 1/2` → `3/2`. Dans la vue CAS de GeoGebra, les objets de la
+figure sont donc remplacés par **leur valeur**, à l'inverse des formules
+de la figure (décision 11), et les autres lettres sont des **variables
+libres**. DocGeo fait de même :
+- une ligne est une formule de DocGeo (`parseFormula`, les noms des objets
+  connus), ou une définition `a := …`, `f(x) := …`, qui vaut pour les
+  lignes suivantes ; `$n` est l'arbre de la ligne n, si elle précède
+  (sinon `?`) ;
+- la requête est construite depuis l'arbre, `$n` et les noms définis
+  remplacés par leur arbre : chaque requête reste **autonome**
+  (décision 15) ; une fonction de la vue ou de la figure est écrite par
+  sa formule, comme dans les formules (`functionOf`) ;
+- un objet (ou une partie sans variable, `x(A)`) est écrit par sa valeur
+  exacte (`rational`, arrondie à 15 chiffres significatifs : un curseur à
+  1,44 donne `144/100`), un point ou une liste par la liste de leurs
+  valeurs ; une valeur que Giac ne lit pas rend la ligne indéfinie ; une
+  lettre qui n'est pas un objet est un symbole `dg<n>`, montrée par son
+  nom, et peut être l'inconnue de `Solve` (`Solve(u^2 = 9, u)`) ;
+- `pi` et `ln`, tapés comme dans GeoGebra, sont π et le logarithme
+  népérien ;
+- **radians** toujours, comme la vue CAS de GeoGebra, même dans une figure
+  en degrés (DGPad) ;
+- `Solve` et `CSolve` montrent leurs solutions en équations, comme
+  GeoGebra : `{x = -√2, x = √2}`.
+
+**Code** :
+- `src/import/cas_formula.ts` : `casRequest` prend aussi une expression
+  quelconque (pas seulement une commande) et un `valueOf` (valeur écrite,
+  `null` illisible, `undefined` variable libre) ; une fonction nommée
+  seule dans une autre (`g(x) = Derivative(f)`) est écrite avec les
+  variables de celle-ci (trouvé à l'essai : `Solve(g(x) = 0)` était
+  indéfini ; vaut aussi pour les formules, `Factor(g(x))`) ; `casTree`
+  relit aussi une équation (`==`) ; `rational` exporté.
+- **Moteur** : `FigureView.cas` (`{ lines, requests }`), `isGraphic`
+  (ni tableur ni CAS : les vues où l'on dessine, aussi dans `dgo.ts` et
+  aux trois endroits de l'éditeur où « pas tableur » voulait dire
+  « graphique »), `construction.updated` (appelé après chaque mise à
+  jour), `showCas` / `hideCas` (`src/cas.ts`), appelés là où l'est
+  `showSheet` (`reveal`, `arrangeViews`, `fit.ts`, `dispose`) ; ils
+  chargent `src/cas_view.ts` **seulement** quand une figure montrée a une
+  vue CAS. Le lecteur d'un objet arrivé peut être une fonction
+  (`CasCache<construction_object | (() => void)>`). `casAnswers` garde
+  aussi les réponses des lignes (`requests` de chaque vue CAS, au départ
+  toutes les clés de `cas` du fichier, pour qu'un enregistrement avant le
+  premier calcul ne les perde pas).
+- **Module à la demande** `src/cas_view.ts` (5,5 Ko, morceau
+  `cas_view-*`) : un `div` par vue CAS, placé sur la colonne comme
+  l'iframe de DocCells (sous les panneaux de l'éditeur), son `svg`
+  masqué ; une ligne : numéro, texte tapé, puis `→` et la réponse en
+  KaTeX (`\displaystyle`), refaite seulement quand son TeX change.
+  KaTeX est chargé à la demande comme pour les textes (`latex.ts`) :
+  importé directement, Rollup le mettait dans un morceau `engine-*`.
+  Toutes les lignes sont recalculées après chaque mise à jour de la
+  figure (`updated`) et à l'arrivée d'une réponse ; une requête dépassée
+  pendant un glissement est remplacée (cache de l'étape 2). Réponse en
+  attente : la dernière de la ligne, sinon rien ; sans réponse ou
+  illisible : `?`. TeX écrit depuis l'arbre de la réponse (`texOf`) :
+  `2x`, fractions, racines, `|x|`, listes entre accolades.
+- **Format** (`DGO.md`, « Vue `v` ») : `"t": "c"` et `l` (textes des
+  lignes) ; réponses dans `cas` ; onglet CAS (page dont la seule vue est
+  la vue CAS). Le format permet plusieurs vues CAS par figure, chacune ses
+  lignes ; l'éditeur pourra se limiter à une.
+
+**Essais** :
+- `tests/browser/cas_view.test.ts` (vrai Giac) : aller-retour du format
+  (vue CAS à côté, onglet CAS), fichiers refusés (objet dans la vue CAS,
+  ligne qui n'est pas un texte) ; quinze lignes (commandes, objets par
+  valeur, variable libre, définitions de valeur et de fonction, fonction
+  de la figure, `$1`, `$20` indéfini, ligne illisible, inconnue libre,
+  fonction définie par une commande, `ln`, `pi`), curseur déplacé (les
+  lignes qui le lisent suivent), réponses enregistrées, vue retirée avec
+  la figure.
+- Figure de démonstration `tests/dgo/calcul_formel.dgo` : une page à
+  figure et vue CAS, un onglet CAS. Vue à l'œil dans le lecteur de
+  développement et dans le **lecteur construit** (avec `giac_MAIN/dist`
+  servi à côté) : rendu juste, aucune erreur ; une figure sans vue CAS ne
+  charge ni `cas_view`, ni KaTeX, ni Giac. Curseur glissé à la souris :
+  les lignes suivent pendant le glissement. Mode page web (`?fit`) : la
+  vue CAS est placée dans sa région, ses lignes à leur taille normale,
+  défilantes.
+- Suite complète : unitaires 303/303, navigateur 1 598/1 598.
+
+**Poids** (`npx vite build` dans des dossiers jetables, `HEAD` construit à
+part) : moteur `engine-*` 384 976 → 386 651 octets (**+1,7 Ko**, gzip
+126 813 → 128 568). Une partie vient du découpage : `cas_view`, entrée à
+la demande, importe une partie du moteur, que Rollup sépare en morceaux
+de plus (170 + 89 + 54 + 56 Ko au lieu de 256 + 56 + 56 Ko), d'où des
+noms d'import et d'export en plus. Éditeur `main-*` +26 octets.
+`cas_view-*` 5,5 Ko, hors du moteur. Chantier : +10,5 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : la vue CAS et l'onglet CAS (lecture),
+la syntaxe des lignes (`:=`, `$n`, variables libres, `pi`, `ln`), les
+objets lus par leur valeur (à l'inverse des formules de la figure), les
+radians, `?` pour une ligne sans réponse.
+
+**Questions pour l'auteur** (tranchées : décisions 16 à 20).
+1. **Objets par leur valeur** dans la vue CAS, comme GeoGebra (vérifié),
+   alors qu'ils restent des symboles dans les formules de la figure
+   (décision 11) : d'accord ?
+2. **Radians** toujours dans la vue CAS, comme GeoGebra, même dans une
+   figure DGPad en degrés : d'accord ?
+3. **Une ligne qui définit un objet de la figure** (prévu dans
+   « Trois usages » : `f(x) := x^2` montré dans la figure, comme dans
+   GeoGebra) : pas fait. `:=` ne vaut ici que pour les lignes suivantes
+   de la vue. Le montrer dans la figure créerait un objet sans ligne de
+   la Construction, contraire à « une ligne, un objet ». Recommandation :
+   à l'étape 6, l'éditeur crée alors un vrai objet de la figure
+   (`f(x) = x^2`, sa ligne dans la Construction), que la ligne de la vue
+   CAS nomme ; à l'import (étape 7), même traduction.
+4. **Modes** numérique et « garder l'entrée » de GeoGebra : pas faits.
+   Recommandation : à l'étape 7, où les cellules de GeoGebra les
+   emploient (`evalCommand` `Numeric`, `KeepInput`), en commandes
+   `Numeric(…)` et `KeepInput(…)` d'une ligne plutôt qu'en réglage.
+5. **Le texte tapé** est montré tel quel (police de l'interface), seule la
+   réponse est en KaTeX, comme dans GeoGebra. D'accord ?

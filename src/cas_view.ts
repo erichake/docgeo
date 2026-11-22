@@ -1,0 +1,345 @@
+import { cas } from "./cas";
+import type { construction, FigureView } from "./construction";
+import { $, type DOMElement } from "./dom";
+import {
+    casRequest,
+    casTree,
+    rational,
+    SYMBOL,
+    type CasFunction,
+} from "./import/cas_formula";
+import {
+    evaluateValue,
+    parseFormula,
+    withObjects,
+    type FormulaNode,
+    type ScriptValue,
+} from "./import/dgp_formula";
+import type { construction_object } from "./objects/construction_object";
+import { functionOf } from "./objects/expression_object";
+
+// A computer algebra view (see CAS.md), loaded when a figure shown first has
+// one: its lines, each computed by Giac, as in GeoGebra's CAS view. The
+// objects of the figure a line reads are written by their values (exact),
+// its other letters are free variables; `$2` reads line 2, `a := …` and
+// `f(x) := …` define what the next lines read. Radians, as GeoGebra's.
+
+$("head").append(
+    `<style>.docgeo-cas{position:absolute;overflow:auto;background:#fff;color:#222;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}.docgeo-cas>div{display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:6px 10px;border-bottom:1px solid #e4e4e4}.docgeo-cas>div>span{grid-row:span 2;min-width:1.5em;color:#999;text-align:end}.docgeo-cas>div>div{overflow-x:auto;overflow-y:hidden}.docgeo-cas>div>div:last-child{padding-top:4px;min-height:1.2em}.docgeo-cas>div>div:last-child::before{content:"→ ";color:#999}</style>`,
+);
+
+interface Line {
+    // What the line defines, with its variables if it is a function.
+    name?: string;
+    variables?: string[];
+    // Its formula, null if it doesn't read as one.
+    node: FormulaNode | null;
+    output: DOMElement;
+    shown?: string;
+}
+
+interface Pane {
+    view: FigureView;
+    box: DOMElement;
+    lines: Line[];
+}
+
+const panes = new Map<construction, Pane[]>();
+
+// KaTeX, as the texts load it: its own chunk.
+let renderTeX: typeof import("./objects/latex").renderTeX | undefined;
+void import("./objects/latex").then((module) => {
+    renderTeX = module.renderTeX;
+    panes.forEach((_, c) => compute(c));
+});
+
+const DEFINITION =
+    /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\(([^()]*)\))?\s*:=(.*)$/su;
+const REFERENCE = /^\$(\d+)$/;
+const VARIABLES = ["x", "y", "z", "t"];
+
+export function show(c: construction): void {
+    let shown = panes.get(c);
+    if (!shown) {
+        shown = c.views.filter((view) => view.cas).map((view) => pane(c, view));
+        panes.set(c, shown);
+        c.updated = () => compute(c);
+        compute(c);
+    }
+    shown.forEach(({ view, box }) => {
+        const { style } = view.svg.dom() as SVGElement;
+        box.att(
+            "style",
+            `left:${style.left};top:${style.top};width:${style.width};height:${style.height};box-shadow:${style.boxShadow}`,
+        );
+    });
+}
+
+export function hide(c: construction): void {
+    panes.get(c)?.forEach(({ box }) => box.dispose());
+    panes.delete(c);
+    c.updated = undefined;
+}
+
+// Its lines read, under the editor's panels, which come after it.
+function pane(c: construction, view: FigureView): Pane {
+    const { lines } = view.cas!;
+    const definitions = lines.map((text) => DEFINITION.exec(text));
+    const names = new Set([
+        ...c.OBJS.V.map(({ name }) => name),
+        ...definitions.flatMap((definition) =>
+            definition ? [definition[1]] : [],
+        ),
+    ]);
+    const box = $.create("div").cls("docgeo-cas");
+    document.body.prepend(box.dom());
+    return {
+        view,
+        box,
+        lines: lines.map((text, k) => {
+            const definition = definitions[k];
+            const output = $.create("div");
+            box.add(
+                $.create("div").add(
+                    $.create("span").text(String(k + 1)),
+                    $.create("div").text(text),
+                    output,
+                ),
+            );
+            let node: FormulaNode | null;
+            try {
+                node = withObjects(names, () =>
+                    parseFormula(definition ? definition[3] : text),
+                );
+            } catch {
+                node = null;
+            }
+            return {
+                name: definition?.[1],
+                variables: definition?.[2]
+                    ?.split(",")
+                    .map((variable) => variable.trim()),
+                node,
+                output,
+            };
+        }),
+    };
+}
+
+// Each line's request built, its answer read, shown if it changed.
+function compute(c: construction): void {
+    const refresh = () => compute(c);
+    const objects = {
+        get: (name: string) => c.getObj(name),
+    } as Map<string, construction_object>;
+    const figureFunction = functionOf(objects, () => c.formulaView());
+    const env = {
+        resolveIdentifier: (name: string) =>
+            c.getObj(name)?.scriptValue(c.space) ?? null,
+        view: () => c.formulaView(),
+    };
+    const valueOf = (part: FormulaNode): string | null | undefined => {
+        if (part.kind !== "identifier")
+            return written(evaluateValue(part, env));
+        const object = c.getObj(part.name);
+        return object ? written(object.scriptValue(c.space)) : undefined;
+    };
+    panes.get(c)?.forEach((pane) => {
+        const values = new Map<string, FormulaNode>();
+        const functions = new Map<string, CasFunction>();
+        const casFunction = (name: string) =>
+            functions.get(name) ?? figureFunction(name);
+        const trees: (FormulaNode | null)[] = [];
+        const requests: string[] = [];
+        pane.lines.forEach((line, k) => {
+            const node = line.node && read(line.node, line.variables, k);
+            trees.push(node);
+            if (line.name && node)
+                if (line.variables)
+                    functions.set(line.name, {
+                        node,
+                        variables: line.variables,
+                        value: () => null,
+                        functionOf: casFunction,
+                    });
+                else values.set(line.name, node);
+            const built = node && casRequest(node, false, casFunction, valueOf);
+            if (built) requests.push(built.request);
+            const answer = built && cas.read(line, built.request, refresh);
+            const tree =
+                typeof answer === "string" &&
+                casTree(answer, built!.read, false);
+            let tex = "";
+            if (tree) {
+                const names = built!.parameters.map(({ node }) =>
+                    node.kind === "identifier" ? node.name : "?",
+                );
+                const unknown = solved(node!, built!.read, names);
+                tex =
+                    unknown && tree.kind === "vector"
+                        ? `\\left\\{${tree.items.map((item) => `${unknown} = ${texOf(item, names)}`).join(", ")}\\right\\}`
+                        : texOf(tree, names);
+                if (line.name)
+                    tex = `${name(line.name)}${line.variables ? `(${line.variables.map(name).join(", ")})` : ""} := ${tex}`;
+            } else if (answer !== undefined) tex = "?";
+            if (renderTeX && tex !== line.shown) {
+                line.shown = tex;
+                line.output.inner(tex && renderTeX(`\\displaystyle ${tex}`)[0]);
+            }
+        });
+        pane.view.cas!.requests = requests;
+
+        // `$n` the tree of line n before it, a name defined before by its
+        // value, but a function's variables. Null if it reads a line after
+        // it.
+        function read(
+            node: FormulaNode,
+            bound: string[] = [],
+            k: number,
+        ): FormulaNode | null {
+            if (node.kind === "identifier") {
+                const reference = REFERENCE.exec(node.name);
+                if (reference) {
+                    const n = +reference[1] - 1;
+                    return n < k ? trees[n] : null;
+                }
+                // As typed in GeoGebra.
+                if (node.name === "pi" && !c.getObj("pi") && !values.has("pi"))
+                    return { kind: "constant", name: "PI" };
+                return (
+                    (!bound.includes(node.name) && values.get(node.name)) ||
+                    node
+                );
+            }
+            const copy: Record<string, unknown> =
+                node.kind === "userCall" &&
+                node.name === "ln" &&
+                !casFunction("ln")
+                    ? { kind: "call", fn: "log", args: node.args }
+                    : { ...node };
+            for (const [key, value] of Object.entries(copy)) {
+                const parts = Array.isArray(value) ? value : [value];
+                if (!parts.some(isNode)) continue;
+                const mapped = parts.map((part) =>
+                    isNode(part) ? read(part, bound, k) : part,
+                );
+                if (mapped.includes(null)) return null;
+                copy[key] = Array.isArray(value) ? mapped : mapped[0];
+            }
+            return copy as FormulaNode;
+        }
+    });
+}
+
+const isNode = (value: unknown): value is FormulaNode =>
+    typeof (value as FormulaNode | null)?.kind === "string";
+
+// A value Giac reads: an exact number, a list of them (a point…).
+function written(value: ScriptValue | null): string | null {
+    if (typeof value === "number")
+        return Number.isFinite(value)
+            ? rational(Number(value.toPrecision(15)))
+            : null;
+    if (!Array.isArray(value) || !value.length) return null;
+    const items = value.map(written);
+    return items.includes(null) ? null : `[${items.join(",")}]`;
+}
+
+// The unknown of a Solve or CSolve, whose solutions are shown as
+// equations, as GeoGebra's.
+function solved(
+    node: FormulaNode,
+    read: Set<string>,
+    names: string[],
+): string | null {
+    if (node.kind !== "cas" || !node.fn.endsWith("Solve")) return null;
+    const [, unknown] = node.args;
+    if (unknown?.kind === "identifier") return name(unknown.name);
+    const variable =
+        VARIABLES.find((variable) => read.has(variable)) ??
+        [...read].find((symbol) => SYMBOL.test(symbol));
+    return variable
+        ? texOf({ kind: "identifier", name: variable }, names)
+        : "x";
+}
+
+const name = (text: string): string =>
+    text.length > 1
+        ? `\\mathrm{${text.replace(/_/g, "\\_")}}`
+        : text.replace(/_/g, "\\_");
+
+const FUNCTIONS: Record<string, string> = {
+    log: "\\ln",
+    sin: "\\sin",
+    cos: "\\cos",
+    tan: "\\tan",
+    asin: "\\arcsin",
+    acos: "\\arccos",
+    atan: "\\arctan",
+};
+
+// As GeoGebra shows it: 2x, fractions, roots, lists in braces.
+function texOf(node: FormulaNode, names: string[]): string {
+    const tex = (part: FormulaNode) => texOf(part, names);
+    // In parentheses where an operator binds tighter.
+    const operand = (part: FormulaNode, sums: boolean, products = false) =>
+        (part.kind === "binary" &&
+            ((sums && /^[-+]|==$/.test(part.op)) ||
+                (products && "*/".includes(part.op)))) ||
+        (part.kind === "unary" && products)
+            ? `\\left(${tex(part)}\\right)`
+            : tex(part);
+    switch (node.kind) {
+        case "number":
+            return String(node.value).replace(
+                /e\+?(-?\d+)$/,
+                " \\cdot 10^{$1}",
+            );
+        case "constant":
+            return node.name === "PI"
+                ? "\\pi"
+                : node.name === "E"
+                  ? "e"
+                  : node.name === "INFINITY"
+                    ? "\\infty"
+                    : `\\sqrt{${node.name === "SQRT2" ? 2 : "\\frac{1}{2}"}}`;
+        case "imaginary":
+            return "i";
+        case "identifier": {
+            const symbol = SYMBOL.exec(node.name);
+            return name(symbol ? names[+symbol[1]] : node.name);
+        }
+        case "unary":
+            return `-${operand(node.operand, true)}`;
+        case "binary": {
+            const { op, left, right } = node;
+            if (op === "==") return `${tex(left)} = ${tex(right)}`;
+            if (op === "/") return `\\frac{${tex(left)}}{${tex(right)}}`;
+            if (op === "^")
+                return `${
+                    left.kind === "identifier" ||
+                    left.kind === "constant" ||
+                    (left.kind === "number" && left.value >= 0)
+                        ? tex(left)
+                        : `\\left(${tex(left)}\\right)`
+                }^{${tex(right)}}`;
+            if (op === "+") {
+                const sum = tex(right);
+                return `${tex(left)} ${sum.startsWith("-") ? "" : "+ "}${sum}`;
+            }
+            if (op === "-") return `${tex(left)} - ${operand(right, true)}`;
+            const factor = operand(right, true, right.kind === "unary");
+            return `${operand(left, true)}${/^\d/.test(factor) ? " \\cdot " : " "}${factor}`;
+        }
+        case "vector":
+            return `\\left\\{${node.items.map(tex).join(", ")}\\right\\}`;
+        case "call": {
+            const arg = tex(node.args[0]);
+            if (node.fn === "sqrt") return `\\sqrt{${arg}}`;
+            if (node.fn === "abs") return `\\left|${arg}\\right|`;
+            if (node.fn === "exp") return `e^{${arg}}`;
+            return `${FUNCTIONS[node.fn]}\\left(${arg}\\right)`;
+        }
+    }
+    return "?";
+}

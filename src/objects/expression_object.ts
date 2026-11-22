@@ -274,7 +274,7 @@ export function evaluateFunction(
 
 // A function-valued object among `refs`, which a computer algebra command
 // writes in its request (see cas_formula.ts).
-const functionOf =
+export const functionOf =
     (refs: Map<string, construction_object>, view: () => FormulaView) =>
     (name: string): CasFunction | null => {
         const formula = functionFormula(refs.get(name));
