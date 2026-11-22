@@ -604,6 +604,8 @@ const nl: Texts = {
         Net: "Uitslag",
         NetVertex: "HoekpuntUitslag",
         Locus: "MeetkundigePlaats",
+        LocusEquation: "VergelijkingMP",
+        Envelope: "OmhullendeVergelijking",
         List: "Lijst",
         Sequence: "Rij",
         IterationList: "IteratieLijst",

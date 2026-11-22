@@ -597,6 +597,8 @@ const hi: Texts = {
         Net: "जाल",
         NetVertex: "जालशीर्ष",
         Locus: "बिन्दुपथ",
+        LocusEquation: "बिंदुपथसमीकरण",
+        Envelope: "एन्वेलप",
         List: "सूची",
         Sequence: "अनुक्रम",
         IterationList: "चलनसूची",

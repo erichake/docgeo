@@ -104,6 +104,7 @@ import {
     type ListNature,
 } from "./objects/list_object";
 import { createLocus, locus_object } from "./objects/locus_object";
+import { createAlgebraic } from "./objects/algebraic_object";
 import {
     createSequence,
     SEQUENCE_VARIABLE,
@@ -338,6 +339,8 @@ export const LOOKS: Record<string, Look> = {
     PlO: POLYGON,
     PlE: POLYGON,
     Loc: CURVE,
+    LocE: CURVE,
+    EqA: CIRCLE,
     Cur: CURVE,
     Reg: POLYGON,
     Box: POLYGON,
@@ -540,7 +543,8 @@ const STYLE: Record<string, Property> = {
     p: field(
         object,
         "precision",
-        (tag) => (tag === "Loc" ? 1000 : tag === "Html" ? 4 : -1),
+        (tag) =>
+            tag === "Loc" || tag === "LocE" ? 1000 : tag === "Html" ? 4 : -1,
         isNumber,
     ),
     l: field(object, "level", 0, Number.isInteger),
@@ -2504,6 +2508,7 @@ const BUILDERS: Record<string, Builder> = {
     EqL: equation(createEquationLine),
     EqC: equation(createEquationCircle),
     EqQ: equation(createEquationConic),
+    EqA: equation(createAlgebraic),
     Sph: twoPoints(createSphere),
     CyS: (parameters, { c, name, at }) => {
         const [solid, plane] = list(parameters, 2);
@@ -2677,6 +2682,16 @@ const BUILDERS: Record<string, Builder> = {
             name,
             at(target, point_object, primitive_line_object),
             at(driver, point_on_object, expression_object),
+        );
+    },
+    LocE: (parameters, { c, name, at }) => {
+        const [target, driver] = list(parameters, 2);
+        return createAlgebraic(
+            c,
+            name,
+            null,
+            at(target, point_object, primitive_line_object),
+            at(driver, point_on_object),
         );
     },
     Ang: threePoints(createAngle),

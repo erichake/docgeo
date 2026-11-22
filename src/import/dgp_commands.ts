@@ -1,6 +1,7 @@
 // First, as in the player: the object classes import each other.
 import "../construction";
 import type { construction, Gesture } from "../construction";
+import { createAlgebraic } from "../objects/algebraic_object";
 import { createAngleBisector } from "../objects/angle_bisector_object";
 import {
     angle_object,
@@ -1880,20 +1881,30 @@ const COMMANDS = new Map<string, CommandDefinition>([
             },
         },
     ],
-    [
-        "Envelope",
-        {
-            parameters: [string, line, pointOn],
-            result: "locus",
-            execute: (context, args) =>
-                createLocus(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as primitive_line_object,
-                    args[2] as point_on_object,
-                ),
-        },
-    ],
+    // Not DGPad commands: GeoGebra's, the whole algebraic curve (see
+    // algebraic_object.ts).
+    ...(["LocusEquation", "Envelope"] as const).map(
+        (command) =>
+            [
+                command,
+                {
+                    parameters: [
+                        string,
+                        command === "Envelope" ? line : point,
+                        pointOn,
+                    ],
+                    result: "locus",
+                    execute: (context, args) =>
+                        createAlgebraic(
+                            context.construction,
+                            args[0] as string,
+                            null,
+                            args[1] as point_object | primitive_line_object,
+                            args[2] as point_on_object,
+                        ),
+                },
+            ] as [string, CommandDefinition],
+    ),
     ["X_axis", axis([1, 0, 0])],
     ["Y_axis", axis([0, 1, 0])],
     [

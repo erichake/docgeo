@@ -3,8 +3,9 @@
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
 Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
 GeoGebra), 5 (vue CAS dans le lecteur), 6 (vue CAS dans l'éditeur), 7
-(cellules CAS de GeoGebra), 8 (étude du raisonnement automatique) et 9
-(commandes des cellules réelles) faites ; décisions de l'auteur prises le même jour (« Décisions de
+(cellules CAS de GeoGebra), 8 (étude du raisonnement automatique), 9
+(commandes des cellules réelles) et 10 (courbe algébrique,
+`LocusEquation`, `Envelope`) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -463,6 +464,10 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
     fusion. Une question soulevée par une étape est tranchée dans cette
     étape ou notée « hors chantier », jamais transformée en étape
     nouvelle ; `ProveDetails` et l'outil Relation sont hors chantier.
+35. **Équations non polynomiales** (`sin(x) = y`) : des courbes `EqA`,
+    comme les courbes implicites de GeoGebra (étape 10).
+36. **Repli de `LocusEquation`** : le lieu balayé, comme `Envelope`.
+37. **Noms** de `LocusEquation` et `Envelope` acceptés.
 
 ## Étapes
 
@@ -531,7 +536,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 - [x] **Étape 9 (CAS) — commandes des cellules réelles** : `Sum`,
   `Limit`, intégrale définie, `TaylorPolynomial` (décision 24), toutes
   les lignes `symbolic` de la Suite dans la vue CAS (décision 26).
-- [ ] **Étape 10 (CAS) — courbe algébrique, `LocusEquation` et
+- [x] **Étape 10 (CAS) — courbe algébrique, `LocusEquation` et
   `Envelope`** (décisions 28 à 31).
 - [ ] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
   (`AreCollinear`…, décision 32).
@@ -544,15 +549,15 @@ Liste figée (décision 34) : aucune étape ne s'y ajoute.
 
 ## Point de reprise
 
-Étapes 0, M, 1 à 9 faites le 2026-11-22 (comptes rendus ci-dessous), 2
-à 8 committées sur la branche `cas`, 9 à committer quand l'auteur
-l'accepte ; questions des étapes 7 à 9 tranchées (décisions 24 à 34) ; `giac_MAIN` n'a encore aucun commit (à
+Étapes 0, M, 1 à 10 faites le 2026-11-22 (comptes rendus ci-dessous), 2
+à 10 committées sur la branche `cas` ; questions des étapes 7 à 10 tranchées (décisions 24 à 37),
+sauf la question 4 de l'étape 10 (ce qui reste hors chantier), à
+expliquer à l'auteur ; `giac_MAIN` n'a encore aucun commit (à
 demander par l'auteur dans une session de `giac_MAIN`). Le chantier
-compte +11,7 Ko au moteur sur 20. Liste des étapes figée (décision
-34) : restent 10, 11, le manuel et la fin du chantier. Prochaine
-action : étape 10 (d'abord la somme sans forme close, décision 33, puis
-courbe algébrique, `LocusEquation`, `Envelope`), dans une session VS Code
-ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
+compte +14,5 Ko au moteur sur 20. Liste des étapes figée (décision
+34) : restent 11, le manuel et la fin du chantier. Prochaine action :
+étape 11 (`Prove` et ses prédicats), dans une session VS Code ouverte
+sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -1705,3 +1710,136 @@ importées dans la vue CAS.
    vue sur la seule figure du corpus qui en a (zxmurptj) : à confirmer
    si l'auteur a d'autres figures de la Suite.
 
+### Étape 10 : ce qui est fait
+
+Faite le 2026-11-22 dans `docgeo_CAS`.
+
+**Somme sans forme close** (décision 33) : une somme dont Giac ne donne
+qu'une réponse illisible (`Sum(1/k, k, 1, n)` → `Psi`) est redemandée avec
+ses bornes par leur valeur (des entiers, sinon indéfinie) :
+`expand(sum(1/dk0,dk0,1,3))` → `11/6`. Seconde requête sur son propre site
+(`node.args`), pour que le `.dgo` garde les deux réponses ; un curseur n
+demande une somme par entier, comme l'ordre de Taylor. Dans la vue CAS,
+où n non objet est une variable libre, rien ne change.
+
+**Courbe algébrique** (décision 29), `src/objects/algebraic_object.ts`,
+dans le moteur : une sous-classe de `locus_object`, dont elle garde les
+points, le rendu, le pointage, les points sur objet, les intersections et
+les images par une transformation (le constructeur du lieu accepte
+maintenant de n'avoir ni cible ni pilote).
+- **Tracé** : la fenêtre en cellules de 8 pixels, le signe de g − d à
+  chaque nœud (environ 10 000 évaluations pour 800 × 600), les arêtes où
+  il change affinées par 8 dichotomies, un col départagé par la valeur au
+  centre de sa cellule ; un changement de signe où la fonction grandit est
+  un pôle, écarté (`y = 1/x` n'a pas de trait vertical). Les segments sont
+  enchaînés en polylignes, les courbes ouvertes depuis leurs bouts, les
+  fermées refermées. Retracée quand la vue bouge (`readsView`).
+- **Points sur la courbe** : recalés sur le point le plus proche de leur
+  position après chaque tracé (sinon, l'indice de leur échantillon les
+  faisait sauter quand on déplace la vue ; le test échoue sans).
+- **`EqA`** : l'équation tapée, `f = x^3 + y^3 = a x y`, lue et écrite
+  comme `EqQ`. L'éditeur la crée quand l'équation n'est ni de degré 1
+  ni de degré 2 (où il refusait « degré »), aussi pour une équation non
+  polynomiale (`sin(x) = y`, question 1) ; toujours refusée dans une
+  figure 3D, et `x = x` aussi. Couleur des coniques.
+
+**`LocusEquation(P, M)` et `Envelope(d, M)`** (décisions 28, 30, 31) :
+balise `LocE` `[P, M]`, M point sur objet.
+- **Traducteur** `src/import/locus_equation.ts`, chargé à la demande
+  (morceau `locus_equation-*`, 2,9 Ko), sans méthode dans les classes :
+  chaque objet de la chaîne entre M et P est lu par sa balise `.dgo`
+  (`object.dgo` avec un contexte qui rend les objets eux-mêmes) ; le reste
+  de la figure par ses coordonnées arrondies à 6 chiffres (décision 31),
+  une droite par un point et sa direction, un cercle par son centre et
+  son rayon. Couverts : `On` (M seul, sur une droite, un segment, une
+  demi-droite, un cercle, un arc), `Mid`, `Sym`, `Ctr`, `Int` (droites
+  et cercles, toutes les intersections à la fois), `Refl`, `TC` (centre
+  de gravité, centre du cercle circonscrit, orthocentre, centre du cercle
+  d'Euler), `Rot` et `Dil` d'un point (angle ou rapport ne lisant rien qui
+  bouge avec M, lus depuis l'image), `Line`, `Seg`, `Ray`, `Par`, `Perp`,
+  `Med`, `Cir`, `C1`, `C3`, `C3p`. Le reste (macros, bissectrices, centre
+  du cercle inscrit, translations, un curseur pour pilote, 3D) n'est pas
+  traduit : la courbe est alors le lieu balayé.
+- **Requête** :
+  `map(eliminate([équations], [variables]), p->normal(p/gcd(gcd(p,
+  diff(p,x)), diff(p,y))))`, chaque facteur une seule fois pour que le
+  signe change à la traversée de la courbe. Pour une enveloppe, la droite
+  et le déterminant de la matrice jacobienne du système (`det(diff([…],
+  [variables]))` : Giac n'a pas de `jacobian`), vérifié sur la parabole de
+  l'étape 8. Seuls des noms générés (`dv0`…), des rationnels et des
+  commandes fixes : aucun texte de la figure.
+- **Réponse** : relue par `casTree`, une liste d'un seul polynôme en x et
+  y, sinon le lieu balayé. Gardée dans le cache et dans `cas` du `.dgo`
+  (le site est l'objet) : la figure s'affiche sans Giac. Pendant un
+  glissement d'un autre point libre, la courbe garde son dernier polynôme
+  jusqu'à l'arrivée du suivant.
+- **Repli** (décision 30, étendue à `LocusEquation`, question 2) : tant
+  que le traducteur se charge, que la réponse n'est pas arrivée, sans Giac
+  ou pour une construction non traduite, le lieu balayé de `Loc`.
+- **Éditeur** : commandes `LocusEquation(point, point sur objet)` et
+  `Envelope(droite, point sur objet)`, noms de GeoGebra
+  (`properties_keys_*`) sauf ar `Envelope` (GeoGebra : `منحن0مغلّف`, avec un
+  zéro) et zh-TW (non traduit chez GeoGebra) :
+
+| Commande | fr | de | es | it | pt | nl |
+| -------- | -- | -- | -- | -- | -- | -- |
+| LocusEquation | EquationLieu | Ortsliniengleichung | EcuaciónLugar | EquazioneLuogo | EquaçãoDoLugarGeométrico | VergelijkingMP |
+| Envelope | Enveloppe | Einhüllende | Envolvente | Inviluppo | Envelope | OmhullendeVergelijking |
+
+  el : ΕξίσωσηΓεωμετρικούΤόπου, Περιβάλλουσα ; ar : معادلةمحلهندسي،
+  منحنىمغلّف ; hi : बिंदुपथसमीकरण, एन्वेलप ; zh : 轨迹方程、包络 ; zh-TW :
+  軌跡方程、包絡.
+- **Import** : `Envelope` de GeoGebra devient `LocE` (la courbe entière,
+  `GGB_IMPORT.md` item 96), `LocusEquation` aussi ; DGPad garde son lieu
+  d'une droite (`Loc`), qui reste la partie balayée. Corpus inchangé
+  (333 / 460) : aucune figure n'emploie ces commandes (étape 8).
+- **Format** : `EqA`, `LocE`, note 39 de `DGO.md`, défaut de `p` (1000)
+  et styles.
+
+**Essais** :
+- `tests/browser/cas_locus.test.ts` (vrai Giac, lignes tapées dans
+  l'éditeur) : folium tapé (lignes relues, points sur la courbe, boucle
+  passant par (3/2, 3/2)), point sur la courbe qui suit son curseur et
+  reste en place quand la vue bouge, `y = 1/x` sans trait à travers son
+  pôle, conique restée `EqQ` ; M sur un
+  segment : d'abord le lieu et l'enveloppe balayés (bornés), puis la
+  droite y = 1 et la parabole x² = 4y entières, recalcul quand un autre
+  point bouge, deux réponses dans le `.dgo`, figure rouverte ; somme sans
+  forme close (11/6, puis 25/12 quand n change).
+- `tests/unit/cas_formula.test.ts` : bornes d'une somme par leur valeur.
+- `tests/browser/editor.test.ts` : `x^3 = y` et `sin(x) = y` ne sont plus
+  refusées, elles sont `EqA`.
+- `tests/browser/cas_commands.test.ts` : le test attend aussi les réponses
+  de `Expand` et `Factor` avant de les lire (il échouait sous charge,
+  passant seul).
+- Figure `tests/dgo/courbes_algebriques.dgo` (folium, lieu, enveloppe,
+  lieu circulaire) ouverte dans le **lecteur construit** sans Giac : rendu
+  juste sur toute la fenêtre, aucune requête vers `giac/`, aucune erreur.
+- Suite complète : unitaires 306/306 ; navigateur 1 604/1 606, puis les
+  deux en échec relancés seuls 21/21 (`cas_commands`, corrigé ; `sheet`,
+  pointage `GEO`, instable sous charge, connu).
+
+**Poids** (`npx vite build` dans un dossier jetable) : moteur `engine-*`
+387 924 → 390 697 octets (**+2,8 Ko**, gzip 128 405 → 129 609) ; lecteur
+`main` 16 368 inchangé ; éditeur `main-*` 335 707 → 335 906 ; traducteur
+`locus_equation-*` 2 961 (à la demande) ; importeur GeoGebra 106 189 →
+106 294. Chantier : +14,5 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : une équation de degré quelconque tapée
+(`x^3 + y^3 = 3x y`), une courbe qui suit la fenêtre ; `ÉquationLieu`
+(`EquationLieu`) et `Enveloppe` et leurs noms, la courbe entière (toutes
+ses branches, comme GeoGebra), le lieu balayé en attendant Giac ou pour
+une construction qu'il ne traduit pas ; la somme sans forme close.
+
+**Questions pour l'auteur** (1 à 3 tranchées : décisions 35 à 37).
+1. **Équations non polynomiales** : `sin(x) = y`, refusée jusqu'ici, est
+   maintenant une courbe `EqA` (tracée comme les autres, pôles écartés),
+   comme une courbe implicite de GeoGebra. Recommandation : garder.
+2. **Repli de `LocusEquation`** : le lieu balayé, comme `Envelope`
+   (décision 30), plutôt que rien. Recommandation : garder.
+3. **Noms** : fr `EquationLieu` est celui de GeoGebra, sans accent
+   (`ÉquationLieu` serait plus juste) ; ar `Envelope` corrigé
+   (`منحنىمغلّف`) ; zh-TW repris du chinois traditionnel. À relire.
+4. **Hors chantier** (décision 34) : la traduction des macros, des
+   bissectrices, du centre du cercle inscrit et d'un curseur pour pilote ;
+   la section plane d'un cône en 3D (les 7 `implicitpoly` du corpus).

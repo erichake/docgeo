@@ -609,6 +609,8 @@ const el: Texts = {
         Net: "Ανάπτυγμα",
         NetVertex: "ΚορυφήΑναπτύγματος",
         Locus: "ΓεωμετρικόςΤόπος",
+        LocusEquation: "ΕξίσωσηΓεωμετρικούΤόπου",
+        Envelope: "Περιβάλλουσα",
         List: "Λίστα",
         Sequence: "Ακολουθία",
         IterationList: "ΛίσταΕπανάληψης",

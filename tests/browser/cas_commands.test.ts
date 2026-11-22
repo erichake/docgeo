@@ -86,10 +86,16 @@ describe("Computer algebra commands", () => {
             const object = c.getObj(name)!;
             return valueText(object, lineOf(object, index, objects), false);
         };
-        expect(shown("h")).toBe("= (x-a)*(x+a)");
-        expect(shown("k")).toBe("= x^2+2*x+1");
-        expect(shown("g")).toBe("= 3*a*x^2");
-        expect(drawn(c, "h")).toBe("h = (x-a)*(x+a)");
+        await vi.waitFor(
+            () => {
+                c.flush();
+                expect(shown("h")).toBe("= (x-a)*(x+a)");
+                expect(shown("k")).toBe("= x^2+2*x+1");
+                expect(shown("g")).toBe("= 3*a*x^2");
+                expect(drawn(c, "h")).toBe("h = (x-a)*(x+a)");
+            },
+            { timeout: 20000, interval: 50 },
+        );
         expect(c.getObj("I")!.scriptValue(false)).toBeCloseTo(0.5, 9);
         // A slider dragged: computed at once, with no new request.
         const a = c.getObj("a") as expression_object;

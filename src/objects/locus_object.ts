@@ -47,8 +47,11 @@ export class locus_object extends construction_object {
     projectionDefined = true;
     path!: DOMElement;
     hitArea!: DOMElement;
-    private dependencyChain: construction_object[];
+    // Between the driver and the target, in order.
+    dependencyChain: construction_object[] = [];
 
+    // Without target nor driver, an algebraic curve's (see
+    // algebraic_object.ts).
     constructor(
         c: construction,
         name: string | null | undefined,
@@ -60,8 +63,10 @@ export class locus_object extends construction_object {
         this.driver = driver;
         this.precision = DEFAULT_SAMPLES;
         this.familytype = "locus";
-        this.dependencyChain = this.findDependencyChain();
-        this.addParents(target, driver);
+        if (target) {
+            this.dependencyChain = this.findDependencyChain();
+            this.addParents(target, driver);
+        }
     }
 
     dgo(context: DgoContext): [string, unknown] {

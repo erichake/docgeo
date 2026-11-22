@@ -5751,13 +5751,17 @@ export function translateGgb(
                 (is(q, ["expression"]) &&
                     !!elements.get(q)?.querySelector(":scope > slider"))) &&
             define(label, "locus", "Locus", [ref(p), ref(q)]),
-        // On its swept part only, as for a locus, where GeoGebra draws the
-        // whole algebraic curve.
+        // The whole algebraic curve, by Giac, else the swept part.
         Envelope: ([d, q, extra], [label]) =>
             extra === undefined &&
             is(d, ["line"]) &&
             is(q, ["pointOn"]) &&
             define(label, "locus", "Envelope", [ref(d), ref(q)]),
+        LocusEquation: ([p, q, extra], [label]) =>
+            extra === undefined &&
+            points(p) &&
+            is(q, ["pointOn"]) &&
+            define(label, "locus", "LocusEquation", [ref(p), ref(q)]),
     };
 
     const expressionStyle = (element: Element, slider: boolean): string => {

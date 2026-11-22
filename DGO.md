@@ -533,7 +533,8 @@ DocGeo (`dgp_derivative.ts`), de même valeur. Une expression dont la
 formule est une seule commande montre la réponse de Giac plutôt que sa
 formule.
 Depuis le 2026-11-22 (étape 9) : `Sum(e, k, a, b)` (somme de e pour k
-entier de a à b, développée), `Limit(e, a)`, `Limit(e, v, a)` (a pouvant
+entier de a à b, développée ; sans forme close, comme `Sum(1/k, k, 1, n)`,
+redemandée avec a et b par leur valeur, des entiers, étape 10), `Limit(e, a)`, `Limit(e, v, a)` (a pouvant
 être `∞`, écrit aussi `Infinity`), `Integral(e, a, b)`, `Integral(e, v,
 a, b)` (intégrale définie, exacte) et `TaylorPolynomial(e, a, n)`,
 `TaylorPolynomial(e, v, a, n)` (polynôme de Taylor d'ordre n en a). L'indice
@@ -608,6 +609,7 @@ pour une seule valeur (2026-11-17).
 | `Hyp1`  | hyperbole de foyers F, G et demi-axe a                                      | `[F, G, a]` (5)                                          |
 | `Prb`   | parabole de foyer F, de directrice d                                        | `[F, d]`                                                 |
 | `EqQ`   | conique d'équation g = d                                                    | `[g, d]` (14)                                            |
+| `EqA`   | courbe d'équation g = d, de degré quelconque                                | `[g, d]` (39)                                            |
 | `QArc`  | arc du cercle ou de l'ellipse c, P à Q                                      | `[c, P, Q]` (27)                                         |
 | `QSec`  | secteur, idem                                                               | `[c, P, Q]` (27)                                         |
 | `Sph`   | sphère de centre O passant par A                                            | `[O, A]`                                                 |
@@ -652,6 +654,7 @@ pour une seule valeur (2026-11-17).
 | `PolyL` | polygone sur les points d'une liste, autant qu'elle en a                    | `[liste]` (29)                                           |
 | `RegP`  | polygone régulier de n côtés sur [AB]                                       | `[A, B, n]`, `[A, B, n, plan]` (18)                      |
 | `Loc`   | lieu de P quand M (sur objet ou curseur, 34) varie ; P droite : l'enveloppe | `[P, M]`                                                 |
+| `LocE`  | équation du lieu de P (point) ou de l'enveloppe de P (droite), M sur objet  | `[P, M]` (39)                                            |
 | `Ex`    | expression                                                                  | objet (6)                                                |
 | `Cur`   | courbe y = f(x)                                                             | `[formule, min, max]` (23)                               |
 | `Reg`   | région du plan où une formule de x et y est vraie (33)                      | `formule`                                                |
@@ -1071,6 +1074,18 @@ n)` et `UpperSum(f, a, b, n)` de GeoGebra : a, b et n sont des nombres
     étant une formule de la variable z (comme celle d'une boucle de `Seq`),
     s et n des formules qui ne la lisent pas. Lue par son nom, la liste de
     ces valeurs ; dessinée comme une liste de points.
+39. Ajoutés le 2026-11-22 (`CAS.md`, étape 10) : courbes algébriques du
+    plan, tracées là où elles traversent la fenêtre (cellules de 8 pixels,
+    où g − d change de signe), qu'elles suivent ; un point sur l'une
+    d'elles (`On`) ou une intersection les lit comme un lieu (`Loc`).
+    `EqA` est l'équation tapée, comme `EqQ`, que l'éditeur écrit quand elle
+    n'est pas de degré 1 ou 2 (`x^3 + y^3 = 3x y`, `sin(x) = y`). `LocE`
+    est `LocusEquation(P, M)` ou `Envelope(d, M)` de GeoGebra : la courbe
+    entière, toutes ses branches, que Giac trouve par élimination (méthode
+    de Botana) depuis ce qui dépend de M, le reste de la figure étant écrit
+    par ses coordonnées arrondies à 6 chiffres ; sa réponse est gardée dans
+    `cas`. Sans réponse (Giac absent, pas encore arrivée, ou construction
+    que la traduction ne connaît pas), c'est le lieu balayé de `Loc`.
 
 ### Macro-constructions
 
@@ -1348,7 +1363,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `no` | tous                     | place du nom déplacé (point : ci-après)                                                    | `null` (place de GeoGebra)        |
 | `cp` | tous                     | légende, écrite à la place du nom                                                          | `null` (le nom)                   |
 | `f`  | tous                     | taille de police                                                                           | 16                                |
-| `p`  | tous                     | précision (lieu : nombre d'échantillons)                                                   | -1 (`Loc` : 1000, `Html` : 4)     |
+| `p`  | tous                     | précision (lieu : nombre d'échantillons)                                                   | -1 (`Loc`, `LocE` : 1000, `Html` : 4) |
 | `l`  | tous                     | calque (entier, sous les `Html`)                                                           | 0                                 |
 | `sp` | points, listes de points | `circle`, `cross`, `diamond`, `rect`                                                       | `circle`                          |
 | `pb` | points                   | épaisseur du contour                                                                       | 1                                 |
@@ -1467,7 +1482,7 @@ non définie).
 | `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                                                    | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Arcs`, `Secs`, `CArcs`, `CSecs`, `QArc`, `QSec`                                          | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`, `EqA`                                 | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `PrsH`, `PyrH`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Tetr`, `TetP`, `TetZ`, `Octa`, `OctP`, `OctZ` (opacité 0,4)                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
@@ -1475,7 +1490,7 @@ non définie).
 | `Surf` (opacité 0,4)                                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Box`, `Itg`, `LSum`, `USum`                                                              | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |
+| `Loc`, `LocE`, `Cur`                                                                      | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`, `ItL`                                                               | `#656148`, `#656148`, 2                   |
 | `Ex`                                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
 | `Txt`                                                                                     | `#000000`, `#000000`, 1                   |

@@ -897,7 +897,7 @@ cause.
       autre qu'une droite reste ignoré et signalé. Corpus inchangé (aucune
       figure n'utilise `Envelope`) ; vérifié sur `tests/ggb/enveloppe.ggb`,
       dont les points suivent l'équation enregistrée. Moteur +0,7 Ko, import
-      +0,2 Ko.
+      +0,2 Ko. Depuis l'item 96, la courbe entière par Giac.
 - [x] **44. Tangente à une abscisse** : `Tangent(2, f)` et `Tangent(a + 1, f)`
       étaient ignorés et signalés : `Tangent` n'acceptait qu'un point. Traduit
       en `Tangent(P, f)`, P étant un point auxiliaire masqué de cette abscisse,
@@ -1899,3 +1899,12 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       cellule, d'où des réponses nulles dans ksughxrj.
       **+0 figure** (333 / 460). Moteur +1,1 Ko, importeur GeoGebra
       105,4 → 106,2 Ko.
+- [x] **96. `LocusEquation` et `Envelope` par Giac (étape 10 de
+      `CAS.md`, branche `cas`)** : `LocusEquation(P, M)` (P point, M sur
+      objet) et `Envelope(d, M)` deviennent une courbe algébrique (`LocE`
+      de `DGO.md`), la courbe entière que Giac trouve par élimination,
+      comme GeoGebra ; sans Giac, le lieu balayé de l'item 43. Les
+      `implicitpoly` du corpus (7 figures, toutes une section plane d'un
+      cône) restent hors de portée : courbes de l'espace. **+0 figure**
+      (aucune n'emploie ces commandes, étude de l'étape 8). Importeur
+      GeoGebra 106,2 → 106,3 Ko.

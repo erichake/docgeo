@@ -598,6 +598,8 @@ const it: Texts = {
         Net: "Sviluppo",
         NetVertex: "VerticeSviluppo",
         Locus: "Luogo",
+        LocusEquation: "EquazioneLuogo",
+        Envelope: "Inviluppo",
         List: "Lista",
         Sequence: "Successione",
         IterationList: "IterazioneLista",

@@ -2001,11 +2001,12 @@ function curve(
 const INTERVAL =
     /^(.*),\s*\(\s*(?:(.+?)\s*(?:≤|<=)\s*)?x\s*(?:(?:≤|<=)\s*(.+?)\s*)?\)$/;
 
-const EQUATIONS = ["EqL", "EqC", "EqQ", "PlE"];
+const EQUATIONS = ["EqL", "EqC", "EqQ", "EqA", "PlE"];
 
 // A line, a circle or a conic, as the equation's coefficients are now: of
-// degree 1, 2 with one coefficient for x² and y² and none for xy, or 2; a
-// plane, of degree 1, when it reads z, which names no object.
+// degree 1, 2 with one coefficient for x² and y² and none for xy, or 2,
+// else an algebraic curve; a plane, of degree 1, when it reads z, which
+// names no object.
 function equation(
     c: construction,
     sides: string[],
@@ -2064,9 +2065,9 @@ function conicTag(formulas: Equation, c: construction): string {
     const coeffs = equationCoeffs(formulas, c);
     const scale = Math.max(...(coeffs ?? []).map(Math.abs));
     const zero = (value: number) => Math.abs(value) <= 1e-9 * scale;
+    if (coeffs && !scale) throw new TextError("degree");
     if (
         !coeffs ||
-        !scale ||
         OTHERS.some(([x, y]) => {
             const [a, b, cc, d, e, f] = coeffs;
             return !zero(
@@ -2074,8 +2075,10 @@ function conicTag(formulas: Equation, c: construction): string {
                     (a * x * x + b * x * y + cc * y * y + d * x + e * y + f),
             );
         })
-    )
-        throw new TextError("degree");
+    ) {
+        if (c.space) throw new TextError("degree");
+        return "EqA";
+    }
     const [a, b, cc] = coeffs;
     return zero(a) && zero(b) && zero(cc)
         ? "EqL"
@@ -2161,7 +2164,10 @@ for (const [c, tags] of [
     ["#396D26", ["Cir", "C1", "CAx", "C3", "C3p", "C3s", "EqC", "SphC"]],
     ["#AD494A", ["Arc", "Arcs", "CArc", "CArcs", "QArc", "Semi"]],
     ["#CE6DBD", ["Sec", "Secs", "CSec", "CSecs", "QSec"]],
-    ["#0E7C7B", ["Quad", "Ell", "Ell1", "Hyp", "Hyp1", "Prb", "EqQ", "CyS"]],
+    [
+        "#0E7C7B",
+        ["Quad", "Ell", "Ell1", "Hyp", "Hyp1", "Prb", "EqQ", "EqA", "CyS"],
+    ],
 ] as const)
     for (const tag of tags) CREATED_COLORS[tag] = { c };
 for (const tag of ["Poly", "RegP", "PlS", "Pl", "PlP", "PlL", "PlO", "PlE"])

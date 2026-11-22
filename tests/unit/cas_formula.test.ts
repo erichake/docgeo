@@ -134,6 +134,22 @@ describe("computer algebra requests", () => {
         expect(taylor(null)).toBeNull();
     });
 
+    it("writes the bounds of a sum by their value, when asked", () => {
+        const sum = (bounds: boolean, n: ScriptValue | null = 4) =>
+            casRequest(
+                parseFormula("Sum(a / k, k, 1, n)") as CasNode,
+                false,
+                () => null,
+                undefined,
+                (part) => (part.kind === "identifier" ? n : null),
+                bounds,
+            )?.request ?? null;
+        expect(sum(false)).toBe("expand(sum(dg0/dk0,dk0,1,dg1))");
+        expect(sum(true)).toBe("expand(sum(dg0/dk0,dk0,1,4))");
+        expect(sum(true, -2)).toBe("expand(sum(dg0/dk0,dk0,1,-2))");
+        expect(sum(true, 2.5)).toBeNull();
+    });
+
     it("binds Solve's unknown", () => {
         expect([...formulaIdentifiers(parseFormula("Solve(x^2 = a)"))]).toEqual(
             ["a"],

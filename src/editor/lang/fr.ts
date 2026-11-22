@@ -600,6 +600,8 @@ const fr: Texts = {
         Net: "Patron",
         NetVertex: "SommetPatron",
         Locus: "Lieu",
+        LocusEquation: "EquationLieu",
+        Envelope: "Enveloppe",
         List: "Liste",
         Sequence: "Séquence",
         IterationList: "ItérationListe",

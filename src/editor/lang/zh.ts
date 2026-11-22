@@ -565,6 +565,8 @@ const zh: Texts = {
         Net: "展开图",
         NetVertex: "展开图顶点",
         Locus: "轨迹",
+        LocusEquation: "轨迹方程",
+        Envelope: "包络",
         List: "列表",
         Sequence: "序列",
         IterationList: "迭代列表",

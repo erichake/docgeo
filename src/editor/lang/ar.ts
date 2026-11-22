@@ -580,6 +580,8 @@ const ar: Texts = {
         Net: "شبكة",
         NetVertex: "رأسالشبكة",
         Locus: "محلهندسي",
+        LocusEquation: "معادلةمحلهندسي",
+        Envelope: "منحنىمغلّف",
         List: "قائمة",
         Sequence: "متتالية",
         IterationList: "قائمةالتكرار",

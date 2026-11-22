@@ -2943,24 +2943,40 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
     let derived: Code | null | undefined;
     return (frame) => {
         const { degrees } = frame.env.view();
-        const built = casRequest(
-            node,
-            degrees,
-            (name) => frame.env.functionOf?.(name) ?? null,
-            undefined,
-            (part) => code(part)(frame),
-        );
-        const answer = built && casAnswer(node, built.request);
-        if (typeof answer !== "string") {
+        const ask = (bounds?: boolean) => {
+            const built = casRequest(
+                node,
+                degrees,
+                (name) => frame.env.functionOf?.(name) ?? null,
+                undefined,
+                (part) => code(part)(frame),
+                bounds,
+            );
+            // Its own site, so that both answers are kept.
+            const answer =
+                built && casAnswer(bounds ? node.args : node, built.request);
+            return typeof answer === "string"
+                ? {
+                      built: built!,
+                      answer,
+                      tree: casTree(answer, built!.read, degrees),
+                  }
+                : null;
+        };
+        let asked = ask();
+        // A sum without closed form (Psi…), asked again with its bounds by
+        // their value.
+        if (asked && !asked.tree && node.fn === "Sum") asked = ask(true);
+        if (!asked) {
             if (node.fn !== "Derivative") return null;
             derived ??= derivedCode(node, frame, compile);
             return derived && derived(frame);
         }
-        const tree = casTree(answer, built!.read, degrees);
-        const values = built!.parameters.map(({ node: part, owner }) =>
+        const { built, answer, tree } = asked;
+        const values = built.parameters.map(({ node: part, owner }) =>
             owner ? owner.value(part) : code(part)(frame),
         );
-        LAST.set(node, { answer, parameters: built!.parameters, values });
+        LAST.set(node, { answer, parameters: built.parameters, values });
         return (
             tree &&
             evaluateValue(tree, {

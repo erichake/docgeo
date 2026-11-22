@@ -597,6 +597,8 @@ const pt: Texts = {
         Net: "Planificação",
         NetVertex: "VérticePlanificação",
         Locus: "LugarGeométrico",
+        LocusEquation: "EquaçãoDoLugarGeométrico",
+        Envelope: "Envelope",
         List: "Lista",
         Sequence: "Sequência",
         IterationList: "ListaDeIteração",

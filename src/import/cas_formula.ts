@@ -129,13 +129,15 @@ const UNREAD = new Error("Not a computer algebra formula");
 // null when Giac can't read them), its free variables (undefined) staying
 // symbols. The order of a Taylor polynomial is written by its value
 // (`valueOf`, or else `numberOf`): a slider gives the polynomials of its
-// integers.
+// integers; so are the bounds of a sum when `bounds`, asked again so when
+// it has no closed form.
 export function casRequest(
     node: FormulaNode,
     degrees: boolean,
     functionOf: (name: string) => CasFunction | null,
     valueOf?: (part: FormulaNode) => string | null | undefined,
     numberOf?: (part: FormulaNode) => ScriptValue | null,
+    bounds?: boolean,
 ): { request: string; parameters: CasParameter[]; read: Set<string> } | null {
     const parameters: CasParameter[] = [];
     const symbols = new Map<string, string>();
@@ -291,7 +293,12 @@ export function casRequest(
         }
         const body = write(args[0], inner);
         const rest = args.slice(named ? 2 : 1).map((arg, k, all) => {
-            if (fn !== "TaylorPolynomial" || k < all.length - 1 || valueOf)
+            if (
+                valueOf ||
+                (fn === "TaylorPolynomial"
+                    ? k < all.length - 1
+                    : fn !== "Sum" || !bounds)
+            )
                 return write(arg, context);
             const value =
                 arg.kind === "number"
@@ -302,7 +309,7 @@ export function casRequest(
             if (
                 typeof value !== "number" ||
                 !Number.isInteger(value) ||
-                value < 0
+                (value < 0 && fn !== "Sum")
             )
                 throw UNREAD;
             return String(value);

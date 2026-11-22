@@ -601,6 +601,8 @@ const es: Texts = {
         Net: "Desarrollo",
         NetVertex: "VérticeDesarrollo",
         Locus: "LugarGeométrico",
+        LocusEquation: "EcuaciónLugar",
+        Envelope: "Envolvente",
         List: "Lista",
         Sequence: "Secuencia",
         IterationList: "ListaIteración",

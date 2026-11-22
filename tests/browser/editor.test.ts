@@ -564,19 +564,23 @@ describe("Editor", () => {
             "e = x^2/9 + y^2/4 = 1",
             "h = x*y = a",
             "p = y = x^2",
+            "k = x^3 = y",
+            "s = sin(x) = y",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
         expect(lines(c)).toEqual(text);
         const index = figureIndex(c);
         const tag = (name: string) => entryOf(c.getObj(name)!, index)[0];
-        expect(["d", "v", "c", "e", "h", "p"].map(tag)).toEqual([
+        expect(["d", "v", "c", "e", "h", "p", "k", "s"].map(tag)).toEqual([
             "EqL",
             "EqL",
             "EqC",
             "EqQ",
             "EqQ",
             "EqQ",
+            "EqA",
+            "EqA",
         ]);
         expect(entryOf(c.getObj("c")!, index)[1]).toEqual([
             ["(x - a)^2 + y^2", { a: 0 }],
@@ -590,8 +594,6 @@ describe("Editor", () => {
         readDgo(other, await describeDgo(c));
         expect(lines(other)).toEqual([...text, "b = y = 2x - 1"]);
         for (const [line, key] of [
-            ["q = sin(x) = y", "degree"],
-            ["q = x^3 = y", "degree"],
             ["q = x = x", "degree"],
             ["q = x^2 = r", "unknown_object"],
             ["q = x^2 = ", "syntax"],

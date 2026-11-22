@@ -1418,6 +1418,12 @@ export const COMMANDS: Command[] = [
             objects("Loc", ["traced", "slider"]),
         ],
     },
+    // The whole algebraic curve, by Giac (see algebraic_object.ts).
+    {
+        name: "LocusEquation",
+        overloads: [objects("LocE", ["point", "pointOn"])],
+    },
+    { name: "Envelope", overloads: [objects("LocE", ["line", "pointOn"])] },
     // The points of an expression's value (see expression_list_object.ts).
     { name: "List", overloads: [objects("ELst", ["expression"])] },
     // A formula for a variable from a to b, by s: see sequence in

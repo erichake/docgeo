@@ -613,6 +613,8 @@ const de: Texts = {
         Net: "Netz",
         NetVertex: "Netzecke",
         Locus: "Ortslinie",
+        LocusEquation: "Ortsliniengleichung",
+        Envelope: "Einhüllende",
         List: "Liste",
         Sequence: "Folge",
         IterationList: "Iterationsliste",
