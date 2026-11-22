@@ -468,6 +468,9 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
     comme les courbes implicites de GeoGebra (étape 10).
 36. **Repli de `LocusEquation`** : le lieu balayé, comme `Envelope`.
 37. **Noms** de `LocusEquation` et `Envelope` acceptés.
+38. **Hors chantier** : la traduction des macros, des bissectrices et du
+    centre du cercle inscrit, un curseur pour pilote, et les courbes de
+    l'espace (section plane d'un cône) ; ces cas gardent le lieu balayé.
 
 ## Étapes
 
@@ -550,9 +553,7 @@ Liste figée (décision 34) : aucune étape ne s'y ajoute.
 ## Point de reprise
 
 Étapes 0, M, 1 à 10 faites le 2026-11-22 (comptes rendus ci-dessous), 2
-à 10 committées sur la branche `cas` ; questions des étapes 7 à 10 tranchées (décisions 24 à 37),
-sauf la question 4 de l'étape 10 (ce qui reste hors chantier), à
-expliquer à l'auteur ; `giac_MAIN` n'a encore aucun commit (à
+à 10 committées sur la branche `cas` ; questions des étapes 7 à 10 tranchées (décisions 24 à 38) ; `giac_MAIN` n'a encore aucun commit (à
 demander par l'auteur dans une session de `giac_MAIN`). Le chantier
 compte +14,5 Ko au moteur sur 20. Liste des étapes figée (décision
 34) : restent 11, le manuel et la fin du chantier. Prochaine action :
@@ -1831,7 +1832,7 @@ balise `LocE` `[P, M]`, M point sur objet.
 ses branches, comme GeoGebra), le lieu balayé en attendant Giac ou pour
 une construction qu'il ne traduit pas ; la somme sans forme close.
 
-**Questions pour l'auteur** (1 à 3 tranchées : décisions 35 à 37).
+**Questions pour l'auteur** (tranchées : décisions 35 à 38).
 1. **Équations non polynomiales** : `sin(x) = y`, refusée jusqu'ici, est
    maintenant une courbe `EqA` (tracée comme les autres, pôles écartés),
    comme une courbe implicite de GeoGebra. Recommandation : garder.
