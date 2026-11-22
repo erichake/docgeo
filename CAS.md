@@ -2,7 +2,8 @@
 
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
 Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
-GeoGebra) et 5 (vue CAS dans le lecteur) faites ; décisions de l'auteur prises le même jour (« Décisions de
+GeoGebra), 5 (vue CAS dans le lecteur) et 6 (vue CAS dans l'éditeur)
+faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -425,6 +426,14 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 19. **Modes numérique et « garder l'entrée »** : à l'étape 7, en
     commandes `Numeric(…)` et `KeepInput(…)` d'une ligne.
 20. **Texte tapé montré tel quel**, seule la réponse en KaTeX.
+21. **Lignes CAS traduites dans le lecteur** (langue du navigateur), les
+    noms des commandes de calcul formel dans `cas_view`, chargé à la
+    demande, pas dans le moteur : à l'étape 7.
+22. **Objet défini par une ligne CAS : lien à sens unique** (la ligne CAS
+    redéfinit l'objet, pas l'inverse), à revoir seulement si l'usage le
+    demande.
+23. **Ligne CAS par valeur, objet créé par symbole** (décisions 11 et
+    16), accepté.
 
 ## Étapes
 
@@ -481,11 +490,12 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   levée, mesure du corpus).
 - [x] **Étape 5 (CAS) — vue CAS dans le lecteur** : vue et onglet, lignes,
   résultats KaTeX, recalcul quand la figure bouge.
-- [ ] **Étape 6 (CAS) — vue CAS dans l'éditeur** : saisie, création et
+- [x] **Étape 6 (CAS) — vue CAS dans l'éditeur** : saisie, création et
   suppression de la vue et de l'onglet, insertion d'un objet à la souris
   (comme les étapes 15 et 16 de `TABLEUR.md`).
 - [ ] **Étape 7 (CAS) — import des cellules CAS de GeoGebra** (`cascell`, qui
-  sont aujourd'hui ignorées sans être signalées).
+  sont aujourd'hui ignorées sans être signalées), plus les lignes
+  traduites dans le lecteur (décision 21).
 - [ ] **Étape 8 (CAS) — raisonnement automatique** : d'abord une étude
   (traduction de la construction en équations, objets couverts), puis
   `LocusEquation` et `Envelope`, puis `Prove`.
@@ -493,12 +503,13 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 
 ## Point de reprise
 
-Étapes 0, M, 1, 2, 3, 4 et 5 faites le 2026-11-22 (comptes rendus
-ci-dessous), 2 à 5 committées sur la branche `cas` ; questions de
-l'étape 5 tranchées (décisions 16 à 20) ; `giac_MAIN` n'a encore aucun
-commit (à demander par l'auteur dans une session de `giac_MAIN`). Le chantier compte +10,5 Ko au
-moteur sur 20. Prochaine action : étape 6, dans une session VS Code
-ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
+Étapes 0, M, 1 à 6 faites le 2026-11-22 (comptes rendus ci-dessous), 2
+à 6 committées sur la branche `cas` ; questions de l'étape 6 tranchées
+(décisions 21 à 23) ; `giac_MAIN`
+n'a encore aucun commit (à demander par l'auteur dans une session de
+`giac_MAIN`). Le chantier compte +10,6 Ko au moteur sur 20. Prochaine
+action : étape 7 (avec la décision 21), dans une session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il
+dit »).
 
 ## Comptes rendus des étapes
 
@@ -1148,3 +1159,118 @@ radians, `?` pour une ligne sans réponse.
    `Numeric(…)` et `KeepInput(…)` d'une ligne plutôt qu'en réglage.
 5. **Le texte tapé** est montré tel quel (police de l'interface), seule la
    réponse est en KaTeX, comme dans GeoGebra. D'accord ?
+
+### Étape 6 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`. Éditeur seul, sauf un crochet.
+
+**Moteur** (+76 octets) :
+- `casShown(box, view)`, crochet du `DgpadLike` (`construction.ts`),
+  appelé par `cas_view.ts` après avoir construit les lignes d'une vue
+  CAS : l'éditeur les rend modifiables. Le lecteur ne le définit pas.
+- `CAS_DEFINITION` (l'expression de `a := …`, `f(x) := …`) passe de
+  `cas_view.ts` à `cas_formula.ts`, pour être lue aussi par l'éditeur.
+
+**Éditeur** (`src/editor/main.ts`, section « COMPUTER ALGEBRA ») :
+- **Saisie**, comme la vue CAS de GeoGebra : chaque ligne est un champ
+  (le texte tapé, à la place du texte montré) ; un champ vide, numéroté,
+  ajoute une ligne à la fin. Entrée calcule la ligne et passe au champ
+  suivant ; Échap rend le texte d'avant ; ↑ et ↓ passent d'une ligne à
+  l'autre. Une ligne illisible (`2*(`) est refusée, en rouge, avec le
+  message « Écriture incomprise » des lignes de la Construction. Une
+  ligne vidée puis validée est supprimée ; les `$n` des lignes suivantes
+  suivent (`$12` → `$11`), et une référence à la ligne supprimée est
+  remplacée par sa formule entre parenthèses (`$1` →
+  `(Factor(x^2 - a^2))`). Chaque changement est une étape d'annulation
+  (la vue CAS est rebâtie, ses réponses relues dans le cache, sans
+  nouvelle requête à Giac pour les lignes inchangées).
+- **Langue** : les commandes sont montrées et tapées dans la langue
+  (`Factoriser(x^2 - a^2)`), et écrites en anglais dans le `.dgo`
+  (`casNames.canonical`, `casName`, comme les lignes de la
+  Construction). Le lecteur montre le texte enregistré, donc en anglais
+  (question 1).
+- **Définition d'un objet** (décision 18) : une ligne `nom := …` ou
+  `nom(x) := …` qui ne lit que des objets de la figure (et x, y, z, t ou
+  ses variables) crée aussi l'objet, avec sa ligne `nom(x) = …` dans la
+  Construction (`enterLine`, comme une ligne tapée), ou le redéfinit s'il
+  existe. Une définition qui lit une variable libre (`n := b^2`), un `$n`
+  ou un nom défini seulement dans la vue reste propre à la vue : aucun
+  curseur créé. Si la ligne de la Construction est refusée (nom pris par
+  un autre type d'objet…), son message est montré et la ligne CAS gardée.
+- **Insertion à la souris** (comme les étapes 15 et 16 de `TABLEUR.md`) :
+  pendant la saisie d'une ligne déjà commencée, un objet pressé dans la
+  figure (ou un curseur, un texte…) écrit son nom au curseur, le menu de
+  choix s'ouvrant si plusieurs objets sont sous le pointeur ; ni
+  sélection, ni déplacement, ni point créé, le focus reste dans le
+  champ. Une ligne vide laisse la figure répondre comme d'habitude (sinon
+  le champ vide, focalisé après chaque Entrée, capterait tous les clics).
+  Une autre ligne pressée (son numéro ou sa réponse) écrit `$n`.
+- **Renommer un objet** réécrit les lignes CAS qui le lisent
+  (`x(A)` → `x(P)`), comme les références des autres pages.
+- **Menus** : Fichier › Vue › « Nouvelle vue calcul formel » (une seule
+  par figure dans l'éditeur, le format en permettant plusieurs) et
+  « Supprimer la vue calcul formel » ; Fichier › « Nouvel onglet calcul
+  formel » (page nommée `CAS1`, `CAS2`…). Mêmes mécanismes que la vue et
+  l'onglet tableur (`addView`, `deleteView`, `addPage`, une vue
+  graphique gardée au moins). Noms dans les 12 langues :
+
+| Clé | fr | en | de |
+| --- | -- | -- | -- |
+| `new_cas_view` | Nouvelle vue calcul formel | New CAS view | Neue CAS-Ansicht |
+| `delete_cas_view` | Supprimer la vue calcul formel | Delete the CAS view | CAS-Ansicht löschen |
+| `new_cas_page` | Nouvel onglet calcul formel | New CAS tab | Neuer CAS-Tab |
+
+  es, it, pt, nl, el, ar, hi, zh, zh-TW : « CAS » dans la tournure de la
+  vue tableur de chaque langue ; nom d'onglet `CAS%` partout.
+- La frappe dans un champ CAS n'atteint pas les touches propres de la
+  figure (`p`, `s` d'une vue 3D).
+
+**Tests** : `tests/browser/cas_editor.test.ts` (vrai Giac, vraie souris
+et vrai clavier, éditeur en français sur `tests/dgo/calcul_formel.dgo`) :
+lignes montrées en français, ligne ajoutée calculée et focus sur la
+suivante, point `A` pressé → `2*A`, réponse pressée → `$12`, aucune
+sélection ni objet créé, Échap, ligne illisible refusée, `m(x) := x^2 +
+a` crée `m(x) = x^2 + a` dans la Construction, `n := b^2` ne crée ni `n`
+ni `b`, première ligne supprimée (`$1` remplacé, réponse `x + 1`, a
+valant 1), annulation ; vue supprimée puis recréée par les menus, ligne
+calculée, onglet `CAS1` ; réécriture d'une ligne au renommage. Suite
+complète : unitaires 303/303, navigateur 1 601/1 601.
+
+**Poids** (`npx vite build` dans des dossiers jetables, `HEAD` construit à
+part) : moteur `engine-*` 386 651 → 386 727 octets (**+76**) ; lecteur
+`main` 16 343 inchangé ; `cas_view` 5 468 → 5 448 ; éditeur `main-*`
+332 000 → 334 991 (+3,0 Ko). Chantier : +10,6 Ko sur 20.
+
+**Pas fait** : insertion d'une ligne entre deux autres, complétion des
+commandes dans les champs CAS, aller-retour entre une ligne qui définit
+un objet et la ligne de cet objet (question 2).
+
+**Manuel, à couvrir plus tard** : créer et supprimer la vue et l'onglet
+calcul formel ; taper, valider, annuler, supprimer une ligne ; `$n` et
+leur renumérotation ; objet ou ligne pressés pendant la saisie ; une
+définition qui crée un objet de la figure, et quand elle reste propre à
+la vue.
+
+**Questions pour l'auteur** (tranchées : décisions 21 à 23).
+1. **Langue des lignes dans le lecteur** : l'éditeur les montre dans sa
+   langue, le `.dgo` les garde en anglais, et le lecteur montre le texte
+   enregistré, donc `Factor(x^2 - 1)` à un élève français. Le traduire
+   dans le lecteur demanderait les noms des commandes de calcul formel
+   dans les 12 langues hors de l'éditeur (moins de 1 Ko, dans
+   `cas_view`, chargé à la demande, pas dans le moteur). Recommandation :
+   le faire, à l'étape 7 ou maintenant, la langue du lecteur étant celle
+   du navigateur.
+2. **Objet défini par une ligne** (décision 18) : la ligne CAS et la
+   ligne de l'objet ne se suivent que dans un sens. Taper la ligne CAS
+   redéfinit l'objet ; mais changer la ligne de l'objet dans la
+   Construction ne réécrit pas la ligne CAS, supprimer la ligne CAS garde
+   l'objet, et supprimer l'objet laisse la définition propre à la vue. Un
+   renommage suit (les deux s'écrivent avec le nouveau nom). GeoGebra les
+   lie dans les deux sens. Recommandation : garder ce sens unique (une
+   ligne, un objet ; la vue CAS n'est qu'une façon de le taper), et lier
+   les deux seulement si l'usage le demande.
+3. **Sémantique** : la ligne CAS lit les objets par leur valeur
+   (décision 16), l'objet créé par sa formule les lit comme symboles
+   (décision 11). Les valeurs sont les mêmes, seules les réponses
+   montrées diffèrent (`m(x) := x^2 + 1` dans la vue, `m(x) = x^2 + a`
+   dans la Construction). D'accord ?

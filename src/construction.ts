@@ -50,6 +50,9 @@ export interface DgpadLike {
     // made the active one.
     sheetReady?: (cells: DocCells) => void;
     sheetActivated?: () => void;
+    // A computer algebra view's lines shown, which the editor makes typed
+    // in (see cas_view.ts).
+    casShown?: (box: HTMLElement, view: FigureView) => void;
 }
 
 // Left, top, width and height of a view, in fractions of the window's.

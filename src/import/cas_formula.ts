@@ -84,6 +84,10 @@ export interface CasParameter {
 
 export const SYMBOL = /^dg(\d+)$/;
 
+// A line of a computer algebra view that defines `a := …` or `f(x) := …`.
+export const CAS_DEFINITION =
+    /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\(([^()]*)\))?\s*:=(.*)$/su;
+
 interface Context {
     owner: CasFunction | null;
     functionOf: (name: string) => CasFunction | null;

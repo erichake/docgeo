@@ -1,5 +1,17 @@
 // First, as in the player: the object classes import each other.
-import { AWAKE, construction, isGraphic } from "../construction";
+import {
+    AWAKE,
+    construction,
+    isGraphic,
+    type FigureView,
+} from "../construction";
+import { hideCas, showCas } from "../cas";
+import { CAS_DEFINITION } from "../import/cas_formula";
+import {
+    formulaIdentifiers,
+    parseFormula,
+    withObjects,
+} from "../import/dgp_formula";
 import type { Animation } from "../animation";
 import {
     addDgoEntries,
@@ -59,6 +71,7 @@ import {
 } from "../vec";
 import {
     accepts,
+    casName,
     commandName,
     commandsStarting,
     crossable,
@@ -175,12 +188,14 @@ import {
     type Hit,
 } from "./pick";
 import {
+    casNames,
     completionAt,
     formatName,
     parseLine,
     pointFormulaText,
     quoteText,
     renameExternals,
+    renameFormula,
     TextError,
     type ArgumentCompletion,
     type ArgText,
@@ -326,6 +341,7 @@ const studio = {
         pickCells(cells);
     },
     sheetActivated: () => showActiveView(),
+    casShown: (box, view) => editCas(box, view),
 } as Studio;
 
 // The cells aren't undone with the figure (see TABLEUR.md): the step shown
@@ -418,6 +434,9 @@ $("head").append(`<style>
     .dge-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
     .dge-value:empty { display: none; }
+    .dge-cas-line { width: 100%; box-sizing: border-box; padding: 0; border: 0; background: none; font: inherit; color: inherit; outline: none; }
+    .dge-cas-line:focus { box-shadow: 0 1px #2563eb; }
+    .dge-cas-line.dge-error { color: #dc2626; }
     .dge-later > .dge-dot, .dge-later > .dge-text { opacity: 0.3; }
     .dge-properties-open .dge-text, .dge-properties-open .dge-row { cursor: pointer; }
     .dge-rows:not(.dge-taking) .dge-item.dge-shown { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
@@ -1207,7 +1226,11 @@ const menus: Menu[] = [
             },
             {
                 label: message("new_sheet_page"),
-                run: () => void addPage(true),
+                run: () => void addPage("s"),
+            },
+            {
+                label: message("new_cas_page"),
+                run: () => void addPage("c"),
             },
             null,
             {
@@ -1275,7 +1298,7 @@ const menus: Menu[] = [
                     null,
                     {
                         label: message("new_sheet_view"),
-                        run: () => void addView(true),
+                        run: () => void addView("s"),
                         enabled: () => sheetView() < 0,
                     },
                     {
@@ -1283,6 +1306,17 @@ const menus: Menu[] = [
                         run: () => void deleteView(sheetView()),
                         enabled: () =>
                             sheetView() >= 0 && scene().views.length > 1,
+                    },
+                    {
+                        label: message("new_cas_view"),
+                        run: () => void addView("c"),
+                        enabled: () => casView() < 0,
+                    },
+                    {
+                        label: message("delete_cas_view"),
+                        run: () => void deleteView(casView()),
+                        enabled: () =>
+                            casView() >= 0 && scene().views.length > 1,
                     },
                     null,
                     {
@@ -6064,14 +6098,23 @@ let renaming: construction_object | null = null;
 const nameInput = () => nameField.dom() as HTMLInputElement;
 
 async function rename(object: construction_object, name: string) {
+    const old = object.name;
     if (book) {
         const page = book.pages[book.current].name;
-        const old = object.name;
         renameReferences((other, target) =>
             other === page && target === old ? [page, name] : undefined,
         );
     }
     const figure = await describeDgo(scene());
+    // The computer algebra lines that read it.
+    [figure.v, ...(figure.vs ?? [])].forEach((view) => {
+        if (view.t === "c")
+            view.l = (view.l as string[]).map((line) =>
+                renameFormula(line, (other) =>
+                    other === old ? formatName(name) : undefined,
+                ),
+            );
+    });
     const index = figureObjects(scene()).indexOf(object);
     (figure.o[index] as unknown[])[1] = name;
     rebuild(studio, figure);
@@ -6405,6 +6448,30 @@ $("body").on(
                 }),
             );
             relaying = false;
+            return;
+        }
+        // While a computer algebra line begun is typed, an object pressed
+        // gives it its name.
+        const casTyped = casField();
+        if (casTyped?.value.trim()) {
+            const c = scene();
+            const give = ({ name }: { name: string }) =>
+                replaceText(
+                    casTyped,
+                    casTyped.selectionStart!,
+                    casTyped.selectionEnd!,
+                    formatName(name),
+                );
+            const hits = pick(c, c.pointerPosition(event));
+            const widget = !hits[0] && propertyObject(event);
+            if (widget) give(widget);
+            else if (hits[0])
+                chooseHit(hits, [event.clientX, event.clientY], ({ object }) =>
+                    give(object),
+                );
+            down = null;
+            event.preventDefault();
+            event.stopPropagation();
             return;
         }
         // While a formula is typed in a cell, an object pressed gives it
@@ -7640,25 +7707,31 @@ const reshape = (): void => {
 };
 
 // A new page, empty, after the others, shown: the figure is the first page
-// of a workbook if it wasn't one.
-async function addPage(sheet = false): Promise<void> {
+// of a workbook if it wasn't one; or a sheet's or a computer algebra
+// view's tab.
+async function addPage(tab?: "s" | "c"): Promise<void> {
     await recording;
     book ??= {
         pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
         current: 0,
     };
     useWorkbook(book);
-    const key = sheet ? "sheet_page_name" : "page_name";
-    let n = sheet ? 1 : book.pages.length + 1;
+    const key =
+        tab === "s"
+            ? "sheet_page_name"
+            : tab === "c"
+              ? "cas_page_name"
+              : "page_name";
+    let n = tab ? 1 : book.pages.length + 1;
     while (pageNamed(message(key, String(n)))) n++;
     const figure = blank(scene());
     await insertPage(book.pages.length, {
         name: message(key, String(n)),
-        figure: sheet
+        figure: tab
             ? {
                   ...figure,
-                  v: { t: "s", w: figure.v.w, h: figure.v.h },
-                  wb: emptySheet(),
+                  v: { ...newView(tab), w: figure.v.w, h: figure.v.h },
+                  ...(tab === "s" && { wb: emptySheet() }),
               }
             : figure,
     });
@@ -7673,14 +7746,17 @@ const emptySheet = () => ({
 
 // The index of the figure's sheet view, -1 if it has none.
 const sheetView = (): number => scene().views.findIndex(({ sheet }) => sheet);
+// Its computer algebra view's: the editor makes one at most.
+const casView = (): number => scene().views.findIndex(({ cas }) => cas);
+const newView = (t: "s" | "c") => (t === "s" ? { t } : { t, l: [] });
 
 // ************************** VIEWS *******************************
 
 // A new view, a column at the right of the others, all as wide, each
 // keeping its center: with the settings of the view last pressed (a sheet
 // view's are a new figure's), its origin at its center; or a sheet view,
-// with an empty workbook.
-async function addView(sheet = false): Promise<void> {
+// with an empty workbook, or a computer algebra view, without lines.
+async function addView(other?: "s" | "c"): Promise<void> {
     await recording;
     const c = scene();
     const figure = await asSaved(() => describeDgo(c));
@@ -7693,7 +7769,7 @@ async function addView(sheet = false): Promise<void> {
         h: _h,
         cw: _cw,
         ...settings
-    } = c.views[c.active].sheet ? blank(c).v : views[c.active];
+    } = isGraphic(c.views[c.active]) ? views[c.active] : blank(c).v;
     const columns: DgoFigure["v"][] = views.map((view, n) => {
         if (!view.o) return { ...view, cw: share };
         const [x, y] = view.o as Vec2;
@@ -7704,8 +7780,8 @@ async function addView(sheet = false): Promise<void> {
         };
     });
     columns.push(
-        sheet
-            ? { t: "s", cw: share }
+        other
+            ? { ...newView(other), cw: share }
             : { ...settings, o: [(share * width) / 2, height / 2], cw: share },
     );
     const [v, ...vs] = columns;
@@ -7714,7 +7790,7 @@ async function addView(sheet = false): Promise<void> {
     await reframe({}, undefined, {
         v,
         vs,
-        ...(sheet && { wb: emptySheet() }),
+        ...(other === "s" && { wb: emptySheet() }),
     });
     changed();
 }
@@ -7889,6 +7965,159 @@ function pickCells(cells: DocCells): void {
         updateCompletion(field);
         if (done) picked = null;
     });
+}
+
+// ************************** COMPUTER ALGEBRA ********************
+
+// A computer algebra view's lines typed in, as in GeoGebra's CAS view (see
+// CAS.md): Enter computes the line and goes to the next one, Escape gives
+// it back, a line emptied is deleted; the last field adds a line. Its
+// commands are named in the language, written in English. While a line is
+// typed, another line pressed gives `$n` at the caret, and an object
+// pressed in the figure its name (see the pointerdown listener).
+// The field to focus once the lines are shown again, after a line entered.
+let casFocus: number | null = null;
+function editCas(box: HTMLElement, view: FigureView): void {
+    const { lines } = view.cas!;
+    const rows = [...box.children];
+    const added = $.create("div").add(
+        $.create("span").text(String(lines.length + 1)),
+    );
+    box.append(added.dom());
+    const fields: HTMLInputElement[] = [...lines, ""].map((text, k) => {
+        const field = $.create("input").cls("dge-cas-line");
+        const input = field.dom() as HTMLInputElement;
+        input.value = casShown(text);
+        if (k < lines.length) rows[k].children[1].replaceWith(input);
+        else added.add(field);
+        field.on(
+            "keydown",
+            (event: KeyboardEvent) => {
+                const next = fields[k + (event.key === "ArrowUp" ? -1 : 1)];
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (casText(input.value) === (lines[k] ?? ""))
+                        next?.focus();
+                    else void enterCas(view, k, input);
+                } else if (event.key === "Escape") {
+                    input.value = casShown(lines[k] ?? "");
+                    field.removeClass("dge-error");
+                    input.blur();
+                } else if (
+                    (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+                    next
+                ) {
+                    event.preventDefault();
+                    next.focus();
+                }
+                // Not the figure's own keys (3D view, floor).
+                if (!event.metaKey && !event.ctrlKey) event.stopPropagation();
+            },
+            false,
+        );
+        field.on("input", () => field.removeClass("dge-error"), false);
+        return input;
+    });
+    rows.forEach((row, k) =>
+        $(row).on(
+            "pointerdown",
+            (event: PointerEvent) => {
+                const field = casField();
+                if (!field || field === fields[k] || event.target === fields[k])
+                    return;
+                event.preventDefault();
+                replaceText(
+                    field,
+                    field.selectionStart!,
+                    field.selectionEnd!,
+                    `$${k + 1}`,
+                );
+            },
+            false,
+        ),
+    );
+    if (casFocus !== null) fields[Math.min(casFocus, lines.length)].focus();
+}
+
+const casShown = (text: string): string =>
+    renameFormula(text, (name, called) => (called ? casName(name) : undefined));
+const casText = (typed: string): string =>
+    renameFormula(typed.trim(), (name, called) =>
+        called ? casNames.canonical(name) : undefined,
+    );
+const casField = (): HTMLInputElement | null =>
+    document.activeElement?.classList.contains("dge-cas-line")
+        ? (document.activeElement as HTMLInputElement)
+        : null;
+const CAS_VARIABLES = ["x", "y", "z", "t"];
+
+// The line k of the view, or a line added, as typed in its field; emptied,
+// deleted, the lines reading it reading its formula. A definition that
+// reads only objects of the figure (and x, y, z, t, or its variables) also
+// defines its object, with its line in the Construction panel (decision 18
+// of CAS.md).
+async function enterCas(
+    view: FigureView,
+    k: number,
+    field: HTMLInputElement,
+): Promise<void> {
+    await recording;
+    const c = scene();
+    const { lines } = view.cas!;
+    const text = casText(field.value);
+    const definition = CAS_DEFINITION.exec(text);
+    let objectLine: string | null = null;
+    if (text) {
+        const names = new Set([
+            ...c.OBJS.V.map(({ name }) => name),
+            ...lines.flatMap((line) => CAS_DEFINITION.exec(line)?.[1] ?? []),
+        ]);
+        let node;
+        try {
+            node = withObjects(names, () =>
+                parseFormula(definition ? definition[3] : text),
+            );
+        } catch {
+            field.classList.add("dge-error");
+            showHint(message("syntax", field.value.trim()), true);
+            return;
+        }
+        lines[k] = text;
+        if (definition && !CAS_VARIABLES.includes(definition[1])) {
+            const [, name, variables, source] = definition;
+            const bound = [
+                ...CAS_VARIABLES,
+                ...(variables?.split(",").map((name) => name.trim()) ?? []),
+            ];
+            if (
+                [...formulaIdentifiers(node)].every(
+                    (name) => bound.includes(name) || c.getObj(name),
+                )
+            )
+                objectLine = `${name}${variables === undefined ? "" : `(${variables})`} = ${source.trim()}`;
+        }
+    } else {
+        if (k === lines.length) return;
+        const [deleted] = lines.splice(k, 1);
+        const formula = `(${(CAS_DEFINITION.exec(deleted)?.[3] ?? deleted).trim()})`;
+        for (let n = k; n < lines.length; n++)
+            lines[n] = lines[n].replace(/\$(\d+)/g, (reference, m: string) =>
+                +m === k + 1 ? formula : +m > k + 1 ? `$${+m - 1}` : reference,
+            );
+    }
+    casFocus = text ? k + 1 : k;
+    hideCas(c);
+    showCas(c);
+    try {
+        if (objectLine) await enterLine(objectLine, null);
+        else changed();
+    } catch (error) {
+        if (!(error instanceof TextError)) throw error;
+        showHint(message(error.key as MessageKey, error.detail), true);
+        changed();
+    }
+    await recording;
+    casFocus = null;
 }
 
 // Pressed or typed in, the Construction panel leaves the sheet view for the

@@ -2,6 +2,7 @@ import { cas } from "./cas";
 import type { construction, FigureView } from "./construction";
 import { $, type DOMElement } from "./dom";
 import {
+    CAS_DEFINITION,
     casRequest,
     casTree,
     rational,
@@ -53,8 +54,6 @@ void import("./objects/latex").then((module) => {
     panes.forEach((_, c) => compute(c));
 });
 
-const DEFINITION =
-    /^\s*([\p{L}_][\p{L}\p{N}_]*)\s*(?:\(([^()]*)\))?\s*:=(.*)$/su;
 const REFERENCE = /^\$(\d+)$/;
 const VARIABLES = ["x", "y", "z", "t"];
 
@@ -84,7 +83,7 @@ export function hide(c: construction): void {
 // Its lines read, under the editor's panels, which come after it.
 function pane(c: construction, view: FigureView): Pane {
     const { lines } = view.cas!;
-    const definitions = lines.map((text) => DEFINITION.exec(text));
+    const definitions = lines.map((text) => CAS_DEFINITION.exec(text));
     const names = new Set([
         ...c.OBJS.V.map(({ name }) => name),
         ...definitions.flatMap((definition) =>
@@ -93,10 +92,10 @@ function pane(c: construction, view: FigureView): Pane {
     ]);
     const box = $.create("div").cls("docgeo-cas");
     document.body.prepend(box.dom());
-    return {
+    const pane = {
         view,
         box,
-        lines: lines.map((text, k) => {
+        lines: lines.map((text, k): Line => {
             const definition = definitions[k];
             const output = $.create("div");
             box.add(
@@ -124,6 +123,8 @@ function pane(c: construction, view: FigureView): Pane {
             };
         }),
     };
+    c.dgpad.casShown?.(box.dom() as HTMLElement, view);
+    return pane;
 }
 
 // Each line's request built, its answer read, shown if it changed.
