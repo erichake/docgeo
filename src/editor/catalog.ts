@@ -29,7 +29,8 @@ import { STYLE_NUMBER } from "../import/dgp_expression";
 import { formulaSource } from "../import/dgp_formula";
 import { formula_point_object } from "../objects/formula_point_object";
 import { TEXTS } from "./messages";
-import { formatName } from "./text";
+import { casNames, formatName } from "./text";
+import { CAS_ARITY, type CasFn } from "../import/cas_formula";
 
 // The commands that build objects, in the text and by gestures: see
 // EDITOR.md.
@@ -1702,6 +1703,13 @@ export const FUNCTIONS: Command[] = [
     formulaFunction("eccentricity", ["conic"]),
 ];
 
+// The computer algebra commands of the formulas (see CAS.md), named in the
+// language as the catalog's.
+const CAS = Object.keys(CAS_ARITY).map((name) =>
+    formulaFunction(name, ["real"], CAS_ARITY[name as CasFn] > 1),
+);
+FUNCTIONS.push(...CAS);
+
 export const commandName = (command: Command): string =>
     TEXTS.commands?.[command.name] ?? command.name;
 
@@ -1735,6 +1743,19 @@ export const findCommand = (name: string): Command | undefined =>
     FUNCTIONS.find((command) => command.name === name);
 
 export const isCommand = (name: string): boolean => BY_NAME.has(fold(name));
+
+casNames.canonical = (name) =>
+    CAS.find((command) =>
+        [command.name, commandName(command)].some(
+            (other) => fold(other) === fold(name),
+        ),
+    )?.name;
+
+// A computer algebra command's name in the language.
+export const casName = (name: string): string | undefined => {
+    const command = CAS.find((command) => command.name === name);
+    return command && commandName(command);
+};
 
 // The commands, or the functions, whose localized name starts with
 // `prefix`, each name once.

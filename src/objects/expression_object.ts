@@ -3,9 +3,12 @@ import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
 import { t } from "../i18n";
 import { derivative } from "../import/dgp_derivative";
+import type { CasFunction } from "../import/cas_formula";
 import {
+    casShown,
     evaluateFormula,
     evaluateProgram,
+    evaluateValue,
     programSteps,
     formulaIdentifiers,
     formulaSource,
@@ -265,8 +268,38 @@ export function evaluateFunction(
         view,
         callFunction: (name, callArgs, derivatives) =>
             callFunction(formula.refs, name, callArgs, view, derivatives),
+        functionOf: functionOf(formula.refs, view),
     });
 }
+
+// A function-valued object among `refs`, which a computer algebra command
+// writes in its request (see cas_formula.ts).
+const functionOf =
+    (refs: Map<string, construction_object>, view: () => FormulaView) =>
+    (name: string): CasFunction | null => {
+        const formula = functionFormula(refs.get(name));
+        return (
+            formula && {
+                node: formula.node,
+                variables: formula.variables,
+                value: (node) =>
+                    evaluateValue(node, {
+                        resolveIdentifier: (name) =>
+                            formula.refs.get(name)!.scriptValue(formula.vec3),
+                        view,
+                        callFunction: (name, args, derivatives) =>
+                            callFunction(
+                                formula.refs,
+                                name,
+                                args,
+                                view,
+                                derivatives,
+                            ),
+                    }),
+                functionOf: functionOf(formula.refs, view),
+            }
+        );
+    };
 
 // DGPad's SET_EXP, as a manipulation: the value of a constant expression,
 // a Blockly global among them, where a free point is, or a point on an
@@ -345,6 +378,7 @@ export function runProgram(
         view,
         callFunction: (name, args, derivatives) =>
             callFunction(refs, name, args, view, derivatives),
+        functionOf: functionOf(refs, view),
         callMethod: (name, method, args) => {
             const target = targets.get(name);
             if (!target) return;
@@ -810,6 +844,9 @@ export class expression_object extends construction_object {
             this.max = realPart(evaluateFormula(max, env));
         }
         if (!this.viewDependent) this.evaluateProgram();
+        // Giac's answer, which it shows (see casShown).
+        if (this.formula?.node.kind === "cas")
+            evaluateFunction(this.formula, [], () => this.C.formulaView());
     }
 
     project(): void {
@@ -846,6 +883,7 @@ export class expression_object extends construction_object {
             },
             callFunction: (name, args, derivatives) =>
                 callFunction(refs, name, args, view, derivatives),
+            functionOf: functionOf(refs, view),
             center: (name) => scriptCenter(refs.get(name)!, vec3),
             // An expression_list_object's, which this file can't import.
             turtlePoints: (name) =>
@@ -1041,7 +1079,11 @@ export class expression_object extends construction_object {
                 this.precision < 0
                     ? ""
                     : this.formula
-                      ? this.formula.source
+                      ? (casShown(this.formula.node, (value) =>
+                            value === null
+                                ? "?"
+                                : formatShown(value, this.precision),
+                        ) ?? this.formula.source)
                       : this.degrees && typeof this.value === "number"
                         ? `${formatNumber((this.value * 180) / Math.PI, this.precision)}°`
                         : formatShown(this.value!, this.precision);

@@ -315,8 +315,11 @@ export class construction_object {
         this.virtualParts?.forEach((part) => part.computeGeometry());
         reading.object = outer;
         provide(this.C, [this]);
+        // A curve samples its function as it projects.
+        reading.object = this;
         this.project();
         this.virtualParts?.forEach((part) => part.project());
+        reading.object = outer;
         if (this.hasView) this.draw();
         this.geometryDirty = false;
         this.projectionDirty = false;

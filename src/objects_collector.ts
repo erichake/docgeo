@@ -190,10 +190,13 @@ export class objects_collector {
                 object.virtualParts?.forEach((part) => part.project());
         });
         let polygonsProjected = false;
+        // A curve samples its function as it projects.
         objects.forEach((object) => {
             c.view = object.view;
             if (object.projectionDirty) {
+                reading.object = object;
                 object.project();
+                reading.object = null;
                 object.projectionDirty = false;
                 if (
                     object.familytype === "polygon" ||

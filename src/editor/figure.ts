@@ -19,6 +19,7 @@ import {
 } from "../import/dgp_expression";
 import {
     formulaIdentifiers,
+    casShown,
     formulaSource,
     parseFormula,
     parseProgram,
@@ -88,6 +89,7 @@ import type { iteration_list_object } from "../objects/iteration_list_object";
 import { vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import { unreadable } from "../workbook";
 import {
+    casName,
     commandName,
     COMMANDS,
     decodeEntry,
@@ -382,9 +384,11 @@ function renamed(
         taken.add(`${local}${k}`);
         fresh.set(local, `${local}${k}`);
     });
-    return renameFormula(source, (name) => {
+    return renameFormula(source, (name, called) => {
         const ref = refs.get(name);
-        return ref ? formatName(ref.name) : fresh.get(name);
+        return ref
+            ? formatName(ref.name)
+            : (fresh.get(name) ?? (called ? casName(name) : undefined));
     });
 }
 
@@ -477,6 +481,11 @@ export function valueText(
     line: string | null,
     vec3: boolean,
 ): string {
+    // Giac's answer to the computer algebra command it is.
+    const { formula } = object as { formula?: { node: FormulaNode } };
+    const answer =
+        formula && casShown(formula.node, (value) => formatValue(value ?? NaN));
+    if (answer) return `= ${answer}`;
     // A list's values are what it draws.
     const value =
         object instanceof list_object ? null : object.scriptValue(vec3);

@@ -108,6 +108,7 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
 | `mac` | macro-constructions (ci-après)           | `[]`       |
 | `wb`  | classeur DocCells de la vue tableur      | `null`     |
+| `cas` | réponses de Giac, par requête            | `{}`       |
 
 Classeur DocCells (depuis le 2026-11-20, `TABLEUR.md`) : `wb` est
 l'archive DocCells (`{ format: "doccells", version, … }`), recopiée telle
@@ -115,6 +116,16 @@ que DocCells la donne (`save`) et lui est rendue (`load`). Elle va avec la
 vue tableur de la figure (`t` ci-après) : requise s'il y en a une, ignorée
 sinon. DocGeo n'en lit pour l'instant rien d'autre que sa présence : son
 contenu, vérifié par DocCells, est son affaire.
+
+Réponses de Giac (depuis le 2026-11-22, `CAS.md`) : `cas` associe à
+chaque requête de calcul formel lue par un objet de la figure (texte
+construit par DocGeo depuis la formule, voir « Commandes de calcul
+formel » ci-après) la dernière réponse de Giac, `null` s'il n'en a pas
+donné. Le lecteur les reprend avant de calculer les objets : une figure
+dont les requêtes y sont s'affiche sans charger Giac, même hors ligne.
+Ce n'est qu'un cache : une requête absente (ou écrite autrement par une
+version ultérieure) est simplement redemandée à Giac. Une réponse n'est
+jamais exécutée, seulement relue par la grammaire des formules.
 
 Motif de fond (depuis le 2026-11-15) : l'image `bgi` est peinte derrière
 toute la figure, par-dessus la couleur `bg`, selon `bgf`, comme en CSS :
@@ -476,6 +487,24 @@ Une surface (`Surf`) s'appelle par son nom comme une fonction de x et y :
 [PQ] rencontre le cylindre, le cône, la sphère ou la surface s, les points
 triés de P vers Q, indéfini hors du segment, comme `Intersect(Segment(P,
 Q), s, n)` de GeoGebra (2026-11-17).
+Commandes de calcul formel (depuis le 2026-11-22, `CAS.md`), calculées
+par Giac, avec les noms anglais de GeoGebra (traduits dans l'éditeur),
+sauf si un objet porte ce nom : `Derivative(e)`, `Derivative(e, v)`,
+`Derivative(e, n)`, `Derivative(e, v, n)` (dérivée n-ième, n entier écrit),
+`Integral(e)`, `Integral(e, v)` (primitive), `Factor(e)`, `Expand(e)`,
+`Simplify(e)`, `Solve(e)`, `Solve(e, v)` (e une équation `g = d` ou une
+expression nulle ; la liste des solutions réelles). v est l'une des
+variables x, y, z, t, par défaut la première que lit e (x sinon) ; elle
+est liée dans `Solve`. Dans e, un objet est un symbole pour Giac (un
+curseur déplacé ne change pas la requête), une expression de fonction ou
+une courbe appelée est remplacée par sa formule, et une partie sans
+variable que Giac ne lit pas (`d(A, B)`) est un symbole aussi ; une partie
+qui lit une variable et que Giac ne lit pas rend la commande indéfinie.
+Les nombres sont envoyés exacts (0,1 est 1/10). La valeur est la réponse
+de Giac, relue comme une formule et évaluée avec les valeurs du moment ;
+indéfinie tant qu'elle n'est pas arrivée, ou si la grammaire des formules
+ne la lit pas (`erf`). Une expression dont la formule est une seule
+commande montre la réponse de Giac plutôt que sa formule.
 `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont la
 moyenne, la médiane, les quartiles et les écarts types (de la population,
 d'un échantillon) d'une liste de nombres, comme `Mean`, `Median`, `Q1`,

@@ -70,6 +70,18 @@ export class CasCache<R> {
         return this.last.get(site);
     }
 
+    // The answer known, none if undefined.
+    answer(request: string): CasResult | undefined {
+        return this.results.get(request);
+    }
+
+    // Answers kept with a figure (see DGO.md).
+    keep(answers: Record<string, CasResult>): void {
+        Object.entries(answers).forEach(([request, answer]) =>
+            this.results.set(request, answer),
+        );
+    }
+
     private send(): void {
         const [request] = this.wanted.keys();
         if (this.sent !== null || request === undefined) return;

@@ -1,7 +1,7 @@
 # Calcul formel (Giac) dans DocGeo — mémo de chantier
 
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
-Giac) et 2 (Giac dans DocGeo) faites ; décisions de l'auteur prises le même jour (« Décisions de
+Giac), 2 (Giac dans DocGeo) et 3 (commandes dans les formules) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -237,7 +237,7 @@ pendant un glissement (voir « Modèle »).
     Le Worker est alors relancé sans recompiler Giac : le
     `WebAssembly.Module` compilé lui est transmis.
 - Le **lecteur** ne contient que le chargeur, le cache et le protocole des
-  requêtes (10 Ko au plus, décision 4). Giac et son Worker ne comptent
+  requêtes (20 Ko au plus, décisions 4 et 9). Giac et son Worker ne comptent
   pas dans le poids du build.
 - Giac est chargé **la première fois qu'une page montrée a besoin d'un
   calcul** dont le résultat n'est pas déjà connu, jamais à l'ouverture
@@ -375,8 +375,8 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   résultat enregistré, sinon ils sont indéfinis, et un message le dit. La
   dérivation symbolique et les calculs numériques actuels restent le
   repli.
-- **Poids** : 10 Ko au plus pour le lecteur et le moteur sur tout le
-  chantier (décision 4), mesuré à chaque étape. Le code
+- **Poids** : 20 Ko au plus pour le lecteur et le moteur sur tout le
+  chantier (décisions 4 et 9), mesuré à chaque étape. Le code
   de la saisie dans la vue CAS va dans `src/editor/`. L'affichage de la vue
   CAS, nécessaire au lecteur, est un module chargé à la demande.
 
@@ -397,6 +397,14 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
    énorme donne `crash` et le Worker est relancé (compte rendu de
    l'étape 1).
 8. **Exception d'`AGENTS.md`** validée telle que rédigée à l'étape 2.
+9. **Budget porté à 20 Ko** (+10 Ko) pour le moteur et le lecteur sur
+   tout le chantier, après la mesure de l'étape 3 (`AGENTS.md` mis à
+   jour).
+10. **`Intégrale(f)`** (primitive) garde ce nom, à côté de
+    `Intégrale(f, a, b)` du catalogue.
+11. **Curseurs symboliques**, comme dans GeoGebra : `Factor(x^2 - a)`
+    montre `x^2-a`.
+12. **Noms des commandes** de l'étape 3 acceptés dans les 12 langues.
 
 ## Étapes
 
@@ -443,7 +451,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   recalcul des objets à leur arrivée, message si Giac est absent, tests
   unitaires du cache, poids mesuré. Exception `AGENTS.md` (rédigée avec
   l'auteur), `GGB_IMPORT.md` (exclusion du calcul formel levée).
-- [ ] **Étape 3 (CAS) — commandes dans les formules** : une première liste fermée
+- [x] **Étape 3 (CAS) — commandes dans les formules** : une première liste fermée
   (`Derivative`, `Integral`, `Factor`, `Expand`, `Simplify`, `Solve`), relue
   dans le moteur, résultat enregistré dans le `.dgo`, recalcul pendant un
   glissement. Éditeur : commandes dans les 12 langues.
@@ -465,11 +473,13 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 
 ## Point de reprise
 
-Étapes 0, M, 1 et 2 faites le 2026-11-22 (comptes rendus ci-dessous).
-Étape 2 committée sur la branche `cas` ; `giac_MAIN` n'a encore aucun
-commit (à demander par l'auteur dans une session de `giac_MAIN`).
-Prochaine action : étape 3, dans une session VS Code ouverte sur
-`docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
+Étapes 0, M, 1, 2 et 3 faites le 2026-11-22 (comptes rendus ci-dessous).
+Étapes 2 et 3 committées sur la branche `cas` ;
+`giac_MAIN` n'a encore aucun commit (à demander par l'auteur dans une
+session de `giac_MAIN`). Questions de l'étape 3 tranchées (décisions 9
+à 12). Le chantier compte +8,1 Ko au moteur sur 20. Prochaine action : étape 4, dans une
+session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il
+dit »).
 
 ## Comptes rendus des étapes
 
@@ -758,4 +768,136 @@ n'est encore importé par aucun code du moteur.
   moteur sous 10 Ko, aucun texte de la figure passé à Giac, branche
   `cas` dans `docgeo_CAS`).
 - **Manuel** : rien à couvrir à cette étape (aucune commande visible).
+
+### Étape 3 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`.
+
+**Commandes** (décrites dans `DGO.md`, « Commandes de calcul formel ») :
+`Derivative(e[, v][, n])`, `Integral(e[, v])` (primitive), `Factor(e)`,
+`Expand(e)`, `Simplify(e)`, `Solve(e[, v])` (`Solve(x^2 = 2)`, l'équation
+écrite avec `=`, ou une expression nulle), dans toute formule. Un objet du
+même nom garde la priorité (règle 2 de `DGO.md`).
+
+- **Grammaire** (`dgp_formula.ts`) : un nœud `cas`, lu par `call` ; `Solve`
+  lie son inconnue (`formulaIdentifiers` ne la compte pas : `s =
+  Solve(x^2 = 2)` est une valeur, pas une fonction de x).
+- **Requête** (`src/import/cas_formula.ts`, `casRequest`), construite depuis
+  l'arbre, jamais depuis le texte :
+  - les variables x, y, z, t restent des variables ; tout objet est un
+    symbole `dg0`, `dg1`… (un même nom, un même symbole) : la requête ne
+    dépend pas des valeurs, **un curseur glissé ne demande rien à Giac**
+    (`Derivative(a x^3)` demandé une fois, `3*dg0*x^2` évalué à chaque
+    image) ;
+  - une expression de fonction ou une courbe nommée (`Derivative(f)`,
+    `Factor(f(2x))`) est remplacée par sa formule, ses objets étant lus
+    dans son propre environnement (`functionOf` de `FormulaEnv`, fourni
+    par `expression_object.ts`) ;
+  - une partie sans variable que Giac ne lit pas (`d(A, B)`, `x(A)`) est
+    un symbole aussi ; une partie qui lit une variable et que Giac ne lit
+    pas (`floor(x)`) rend la commande indéfinie ;
+  - nombres exacts (`0.25` → `25/100`), fonctions sin, cos, tan, asin,
+    acos, atan, sqrt, abs, exp, log (`ln`), constantes π, e, i ;
+  - `Derivative` et `Integral` passent par `regroup` (sinon
+    `dg0*4*2*x`), comme GeoGebra ;
+  - degrés de DGPad : `sin(u)` envoyé `sin(u*pi/180)`, et la réponse
+    reconvertie (dérivée juste en degrés comme en radians).
+- **Réponse** (`casTree`) : relue par `parseFormula` après deux
+  réécritures (`list[` → `[`, `√x` → `sqrt(x)`), puis vérifiée nœud par
+  nœud : nombres, + − × ÷ ^, fonctions de la liste ci-dessus, `ln`,
+  `sign`, listes, `pi`, `e`, `i`, et seulement les variables et symboles
+  de la requête. Autre chose (`undef`, `erf`, une variable inconnue) :
+  valeur indéfinie. L'arbre est gardé par texte de réponse et compilé une
+  fois.
+- **Calcul** (`compileCas`) : la requête est reconstruite à chaque
+  évaluation (quelques dizaines de nœuds), la réponse lue dans le cache
+  (`readCas`, étape 2), puis évaluée avec les valeurs des symboles.
+  Mesuré : une courbe de 800 échantillons reste fluide (essai
+  ci-dessous).
+- **Lecteurs** : `reading.object` couvre maintenant aussi la projection
+  (`objects_collector`, `computeAll`), où une courbe échantillonne sa
+  fonction : sans cela, une courbe n'était pas redessinée à l'arrivée de
+  la réponse (trouvé à l'essai).
+- **Affichage** : une expression dont la formule est une seule commande
+  montre la réponse de Giac (`h = (x-a)*(x+a)`), les objets par leur nom,
+  les autres symboles par leur valeur (`casShown`) ; dans l'éditeur, la
+  même réponse sous la ligne (`valueText`). Forme brute de Giac (`√`,
+  `π`, `*`) en attendant KaTeX (étape 5).
+- **`.dgo`** : clé `cas` de la figure, `{ requête: réponse }` des requêtes
+  lues par ses objets (`casAnswers`), reprises avant le calcul
+  (`cas.keep`) : la figure s'affiche sans Giac. Additif (`DGO.md`).
+- **Éditeur** : noms traduits dans les 12 langues (`commands` des fichiers
+  `lang`, mêmes clés que le catalogue, `Integral` partagé) ; une ligne est
+  ramenée aux noms anglais à la lecture (`parseLine`, `casNames`) et
+  écrite dans la langue (`renamed`) ; complétion par `FUNCTIONS`.
+  `Intégrale(f)` (un ou deux arguments) est la primitive,
+  `Intégrale(f, a, b)` reste l'intégrale du catalogue (`Itg`).
+
+| Commande  | fr          | de            | es         | it          | pt          | nl           |
+| --------- | ----------- | ------------- | ---------- | ----------- | ----------- | ------------ |
+| Derivative | Dérivée    | Ableitung     | Derivada   | Derivata    | Derivada    | Afgeleide    |
+| Factor    | Factoriser  | Faktorisiere  | Factoriza  | Fattorizza  | Fatorar     | Ontbind      |
+| Expand    | Développer  | Multipliziere | Desarrolla | Sviluppa    | Expandir    | Uitwerken    |
+| Simplify  | Simplifier  | Vereinfache   | Simplifica | Semplifica  | Simplificar | Vereenvoudig |
+| Solve     | Résoudre    | Löse          | Resuelve   | Risolvi     | Resolver    | Los          |
+
+el : Παράγωγος, Παραγοντοποίηση, Ανάπτυξη, Απλοποίηση, Λύση ;
+ar : مشتقة، تحليل، نشر، تبسيط، حل ; hi : अवकलज, गुणनखंड, प्रसार, सरलीकरण,
+हल ; zh : 导数、因式分解、展开、化简、求解 ; zh-TW : 導數、因式分解、展開、
+化簡、求解.
+
+**Tests** :
+- `tests/unit/cas_formula.test.ts` (9) : requêtes (symboles, nombres
+  exacts, variable, ordre, équation, partie lue en symbole ou refusée,
+  fonction remplacée par sa formule, degrés), inconnue de `Solve` liée,
+  formes de réponse de GeoGebra lues ou refusées, évaluation avec Giac
+  simulé (une seule requête pour deux valeurs du curseur, réponse
+  montrée avec le nom de l'objet) ; `tests/unit/cas.test.ts` : réponses
+  reprises d'une figure sans appel à Giac.
+- `tests/browser/cas_commands.test.ts` (vrai Giac) : huit lignes tapées
+  et relues à l'identique (`g(x) = Derivative(f)`, `h = Factor(x^2 -
+  a^2)`, `s = Solve(x^2 = 2)`, `F(x) = Integral(x^2, x)`, `Integral(f, 0,
+  1)` du catalogue…), valeurs à l'arrivée des réponses, réponses montrées,
+  curseur déplacé calculé aussitôt sans requête, `cas` du `.dgo` et figure
+  rouverte ; réponse illisible (`erf`) et partie illisible (`floor(x)`)
+  indéfinies.
+- `tests/browser/editor.test.ts` : le contrôle des langues couvre les
+  noms des commandes de calcul formel et leurs collisions.
+- Suite complète : unitaires 302/302 ; navigateur 1 592/1 595, puis les
+  trois fichiers en échec relancés seuls : 105/105. Échecs : le contrôle
+  des langues (mon tri sur place, corrigé) ; `editor_properties`
+  (« Frame was detached ») et `sheet` (pointage `GEO`, délai de 15 s),
+  sous charge, qui passent seuls.
+
+**Poids** (`npx vite build` dans un dossier jetable) : moteur `engine-*`
+376 181 → 384 301 octets (**+8,1 Ko**, gzip 123 222 → 126 152,
++2,9 Ko), dont `cas_formula.ts` ≈ 4,3 Ko, `cas_cache.ts` ≈ 1,4 Ko,
+`cas.ts` ≈ 0,8 Ko, le reste dans la grammaire, les expressions et le
+`.dgo` ; éditeur `main-*` 347 850 → 348 292 (+0,4 Ko). Le budget de
+10 Ko du chantier (décision 4) était presque atteint : porté à 20 Ko
+(décision 9).
+
+**Manuel, à couvrir plus tard** : les six commandes et leurs noms, la
+réponse montrée par une expression, `Intégrale(f)` (primitive) à côté
+de `Intégrale(f, a, b)`, le message « ⚠ Giac ».
+
+**Questions pour l'auteur** (tranchées : décisions 9 à 12).
+1. **Poids** : +8,1 Ko sur 10. Recommandation : charger à la demande
+   `cas_formula.ts` (requête et relecture, ≈ 4,3 Ko), comme l'importeur,
+   au premier nœud `cas` évalué : le moteur ne garderait que le cache et
+   le chargeur (≈ 3,5 Ko pour l'étape). Coût : un module de plus à
+   attendre (local, quelques millisecondes) avant d'afficher une figure
+   qui en a. Autres leviers plus petits : abandonner les degrés de DGPad
+   dans les commandes (≈ 0,4 Ko, commande indéfinie en degrés), ou
+   relever le budget.
+2. **`Intégrale(f)`** : primitive comme dans GeoGebra, alors que
+   `Intégrale(f, a, b)` est une commande du catalogue : une forme en
+   prolonge une autre, ce qu'interdit la règle de l'éditeur (sans gêne
+   au clic : la primitive ne se tape qu'au clavier). Garder, ou nommer
+   la primitive autrement (`Primitive`) ?
+3. **Symboles** : comme dans GeoGebra (`FunctionNVar.evalCasCommand`), un
+   curseur reste un symbole : `Factor(x^2 - a)` avec a = 4 montre
+   `x^2-a`, pas `(x-2)*(x+2)`. D'accord ?
+4. **Noms** en néerlandais, hindi et arabe choisis sans référence de
+   GeoGebra sous la main : à relire.
 

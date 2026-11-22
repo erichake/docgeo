@@ -112,4 +112,13 @@ describe("CAS cache", () => {
         expect(cache.read({}, "2+2")).toBe("4");
         expect(sent).toEqual(["2+2", "3+3"]);
     });
+
+    it("reads the answers kept with a figure without Giac", () => {
+        const { cache, sent } = setup();
+        cache.keep({ "factor(x^2-1)": "(x-1)*(x+1)", "factor(": null });
+        expect(cache.read({}, "factor(x^2-1)")).toBe("(x-1)*(x+1)");
+        expect(cache.read({}, "factor(")).toBeNull();
+        expect(cache.answer("factor(x^2-1)")).toBe("(x-1)*(x+1)");
+        expect(sent).toEqual([]);
+    });
 });

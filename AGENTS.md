@@ -54,7 +54,7 @@ chargé dans un Web Worker seulement quand une page montrée a besoin d'un
 calcul dont le résultat n'est pas connu ; jamais embarqué dans le build
 de DocGeo. Son chargeur, son cache et la relecture de ses réponses vont
 dans le moteur, puisque le lecteur doit ouvrir les figures qui en
-emploient, dans un budget de 10 Ko mesuré à chaque étape ; la saisie dans
+emploient, dans un budget de 20 Ko mesuré à chaque étape ; la saisie dans
 la vue CAS relève de l'éditeur. Aucun texte de la figure n'est passé tel
 quel à Giac : chaque appel est construit depuis un arbre validé, avec une
 liste fermée de commandes. Le chantier se fait dans `docgeo_CAS`, sur la

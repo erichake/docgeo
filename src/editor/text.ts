@@ -1,5 +1,12 @@
 import { FUNCTION_VARIABLES } from "../import/dgp_expression";
 import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
+import { casArity } from "../import/cas_formula";
+
+// Set by the catalog: a computer algebra command's name in the formulas,
+// of its name in any language (see CAS.md).
+export const casNames = {
+    canonical: (_name: string): string | undefined => undefined,
+};
 
 // The text of a construction, one line per object: `name = Command(args)`,
 // `A = (x, y)` for a free point, `M = (x(A) + 1, y(B))` or
@@ -141,7 +148,9 @@ export function parseLine(
     written: string,
     isCommand: (name: string) => boolean,
 ): Line {
-    const text = formulaSigns(written);
+    const text = renameFormula(formulaSigns(written), (name, called) =>
+        called ? casNames.canonical(name) : undefined,
+    );
     const { tokens, starts, ends } = lex(text);
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
@@ -207,10 +216,14 @@ export function parseLine(
         };
     }
     const head = peek()!;
+    // `Integral(f)`, the computer algebra command, `Integral(f, a, b)` the
+    // catalog's.
+    const arity = casArity(head.value as string);
     if (
         head.type === "identifier" &&
         peek(1)?.type === "(" &&
-        isCommand(head.value as string)
+        isCommand(head.value as string) &&
+        !(arity && (whole(position + 1)?.commas.length ?? arity) < arity)
     ) {
         // `Point(2*B - A)`: one argument, which no point on an object takes.
         const inner = whole(position + 1);
@@ -477,7 +490,7 @@ export function formatNumber(value: number): string {
 // own to the objects' (see Ex in DGO.md): names after "." are methods.
 export function renameFormula(
     source: string,
-    rename: (name: string) => string | undefined,
+    rename: (name: string, called: boolean) => string | undefined,
 ): string {
     const { tokens, starts, ends } = lex(source);
     let text = "";
@@ -486,12 +499,15 @@ export function renameFormula(
         const name = token.value as string;
         // `f'(x)`, f's derivative.
         const primes = /'*$/.exec(name)![0];
+        const called = tokens[index + 1]?.type === "(";
         const renamed =
             token.type === "identifier" &&
             tokens[index - 1]?.type !== "." &&
-            (rename(name) ??
+            (rename(name, called) ??
                 (primes &&
-                    rename(name.slice(0, -primes.length))?.concat(primes)));
+                    rename(name.slice(0, -primes.length), called)?.concat(
+                        primes,
+                    )));
         if (!renamed) return;
         text += source.slice(end, starts[index]) + renamed;
         end = ends[index];

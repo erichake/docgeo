@@ -1,4 +1,5 @@
-import { CasCache } from "./cas_cache";
+import { CasCache, type CasResult } from "./cas_cache";
+import { answerCas } from "./import/dgp_formula";
 import { $ } from "./dom";
 import type { construction_object } from "./objects/construction_object";
 import { reading } from "./sheet";
@@ -27,6 +28,32 @@ export const cas = new CasCache<construction_object>(
         ),
 );
 
-// What a formula of the object computed reads (see objects_collector).
-export const readCas = (site: object, request: string) =>
-    cas.read(site, request, reading.object ?? undefined);
+// The request each object last read at each site, whose answer its figure
+// keeps.
+const requests = new WeakMap<construction_object, Map<object, string>>();
+
+// What a formula of the object computed or drawn reads (see
+// objects_collector).
+export function readCas(site: object, request: string) {
+    const { object } = reading;
+    if (object)
+        (
+            requests.get(object) ?? requests.set(object, new Map()).get(object)!
+        ).set(site, request);
+    return cas.read(site, request, object ?? undefined);
+}
+answerCas(readCas);
+
+// The answers the objects read, for their .dgo.
+export function casAnswers(
+    objects: construction_object[],
+): Record<string, CasResult> | undefined {
+    const answers: Record<string, CasResult> = {};
+    objects.forEach((object) =>
+        requests.get(object)?.forEach((request) => {
+            const answer = cas.answer(request);
+            if (answer !== undefined) answers[request] = answer;
+        }),
+    );
+    return Object.keys(answers).length ? answers : undefined;
+}

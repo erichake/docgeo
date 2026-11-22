@@ -5,6 +5,7 @@ import {
 } from "./background";
 import type { construction, FigureView } from "./construction";
 import { sheetArchive } from "./sheet";
+import { cas, casAnswers } from "./cas";
 import {
     formulaIdentifiers,
     parseFormula,
@@ -219,6 +220,9 @@ export interface DgoFigure {
     mac?: Settings[];
     // The DocCells workbook of its sheet view (see TABLEUR.md).
     wb?: Settings;
+    // Giac's last answers to its computer algebra commands, by request
+    // (see CAS.md).
+    cas?: Record<string, string | null>;
 }
 
 // ************************** DEFAULTS ****************************
@@ -1004,6 +1008,8 @@ export async function describeDgo(
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
     if (c.views.some(({ sheet }) => sheet)) figure.wb = sheetArchive(c);
+    const answers = casAnswers(objects);
+    if (answers) figure.cas = answers;
     return figure;
 }
 
@@ -1202,10 +1208,18 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         o: entries,
         mac: macros = [],
         wb,
+        cas: answers = {},
     } = figure;
     check(isRecord(view) && isFlag(deg) && isFlag(sop) && isColor(bg));
     check(Array.isArray(styles) && styles.every(isRecord));
     check(isRecord(images) && Array.isArray(entries));
+    check(
+        isRecord(answers) &&
+            Object.values(answers).every(
+                (answer) => answer === null || typeof answer === "string",
+            ),
+    );
+    cas.keep(answers as Record<string, string | null>);
     c.degrees = deg === 1;
     c.segmentsOverPolygons = sop === 1;
     // A background image, by its key.

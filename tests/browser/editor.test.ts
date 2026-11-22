@@ -118,6 +118,7 @@ import { importDgp } from "../../src/dgp_importer";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
+import { CAS_ARITY } from "../../src/import/cas_formula";
 
 disposeFigures();
 
@@ -165,11 +166,18 @@ describe("Editor", () => {
                     placeholders(en[key]),
                 );
             }
+            // The computer algebra commands of the formulas too.
+            const names = [
+                ...new Set([
+                    ...COMMANDS.map(({ name }) => name),
+                    ...Object.keys(CAS_ARITY),
+                ]),
+            ];
             expect(Object.keys(commands!).sort(), path).toEqual(
-                COMMANDS.map(({ name }) => name).sort(),
+                [...names].sort(),
             );
             const named = new Map<string, Set<string>>();
-            for (const { name } of COMMANDS)
+            for (const name of names)
                 for (const each of [name, commands![name]!]) {
                     expect(each, path).toMatch(identifier);
                     const set = named.get(fold(each)) ?? new Set();

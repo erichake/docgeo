@@ -8,6 +8,18 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+import {
+    CAS_ARITY,
+    casArity,
+    casRequest,
+    casText,
+    casTree,
+    SYMBOL,
+    type CasFn,
+    type CasFunction,
+    type CasNode,
+    type CasParameter,
+} from "./cas_formula";
 
 export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
 export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
@@ -370,6 +382,8 @@ export type FormulaNode =
     // functions, e.g. "E1(x)" referencing another named Expression: resolved
     // at evaluation time through FormulaEnv.callFunction, not evalCall.
     | { kind: "userCall"; name: string; args: FormulaNode[] }
+    // "Factor(x^2 - a^2)": computed by Giac (see cas_formula.ts).
+    | CasNode
     // "h.dt(t)": the value of a function-valued object's derivative with
     // respect to each of `variables` in turn (see dgp_derivative.ts).
     | {
@@ -1321,6 +1335,8 @@ class FormulaParser {
 
     private call(name: string): FormulaNode {
         this.take("(");
+        if (casArity(name) && !objects.has(name) && !this.isLocal(name))
+            return this.cas(name as CasFn);
         const args = this.arguments();
         if ((name === "IF" || name === "test") && args.length === 3)
             return {
@@ -1452,6 +1468,28 @@ class FormulaParser {
         return { kind: "call", fn, args };
     }
 
+    // Solve's equation written with "=".
+    private cas(fn: CasFn): FormulaNode {
+        const args: FormulaNode[] = [];
+        do {
+            const left = this.conditional();
+            args.push(
+                this.skip("=")
+                    ? {
+                          kind: "binary",
+                          op: "==",
+                          left,
+                          right: this.conditional(),
+                      }
+                    : left,
+            );
+        } while (this.skip(","));
+        this.take(")");
+        if (args.length > CAS_ARITY[fn])
+            throw new Error(`Invalid DGP formula function "${fn}" arity`);
+        return { kind: "cas", fn, args };
+    }
+
     // After "(": the arguments up to and including ")".
     private arguments(): FormulaNode[] {
         const args: FormulaNode[] = [];
@@ -1578,6 +1616,7 @@ function children(node: FormulaNode): FormulaNode[] {
         case "call":
         case "userCall":
         case "derivative":
+        case "cas":
             return node.args;
         default:
             return [];
@@ -1695,14 +1734,24 @@ function ownTurtles(program: Program): string[] {
     );
 }
 
+// But the unknown of a Solve, which it binds.
 export function formulaIdentifiers(node: FormulaNode): Set<string> {
-    return new Set(
-        programNodes({
-            body: [{ kind: "expression", node }],
-            locals: new Set(),
-        }).flatMap(nodeNames),
-    );
+    const names = new Set<string>();
+    const walk = (node: FormulaNode, bound: ReadonlySet<string>): void => {
+        nodeNames(node).forEach((name) => bound.has(name) || names.add(name));
+        const unknown = node.kind === "cas" && node.fn === "Solve";
+        const inner = unknown
+            ? new Set([...bound, ...solveUnknown(node)])
+            : bound;
+        children(node).forEach((child) => walk(child, inner));
+    };
+    walk(node, new Set());
+    return names;
 }
+
+// Its variable, else those of the functions.
+const solveUnknown = ({ args: [, variable] }: CasNode): string[] =>
+    variable?.kind === "identifier" ? [variable.name] : ["x", "y", "z", "t"];
 
 // The figure's objects the program reads.
 export function programReferences(program: Program): Set<string> {
@@ -1819,6 +1868,9 @@ export interface FormulaEnv {
         args: FormulaValue[],
         derivatives: string[],
     ): FormulaValue | null;
+    // A function-valued object, which a computer algebra command writes in
+    // its request (see cas_formula.ts).
+    functionOf?(name: string): CasFunction | null;
     // The points another turtle drew (see turtleList).
     turtlePoints?(list: string): readonly ScriptValue[] | null;
     // DGPad's restrictTheta and restrictPhi, which also turn the view as
@@ -2808,6 +2860,8 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             }
             return callCode(fn as Exclude<FormulaFn, ListFn | "isNaN">, args);
         }
+        case "cas":
+            return compileCas(node, compile);
         case "userCall":
         case "derivative": {
             const { name } = node;
@@ -2829,6 +2883,87 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             };
         }
     }
+}
+
+// Giac's answer to a request (see cas.ts): undefined until it comes, null
+// when it has none.
+let casAnswer = (_site: object, _request: string): string | null | undefined =>
+    undefined;
+
+export function answerCas(read: typeof casAnswer): void {
+    casAnswer = read;
+}
+
+// Of each command, what it last computed, which casShown writes.
+const LAST = new WeakMap<
+    CasNode,
+    {
+        answer: string;
+        parameters: CasParameter[];
+        values: (ScriptValue | null)[];
+    }
+>();
+
+// Its answer, the objects read by name, else by value.
+export function casShown(
+    node: FormulaNode,
+    format: (value: ScriptValue | null) => string,
+): string | null {
+    const last = node.kind === "cas" && LAST.get(node);
+    return last
+        ? casText(
+              last.answer,
+              last.parameters.map(({ node }, k) =>
+                  node.kind === "identifier"
+                      ? node.name
+                      : format(last.values[k]),
+              ),
+          )
+        : null;
+}
+
+// Giac's answer, a formula of the request's variables and symbols, worth
+// the values of the parameters they stand for: requested once for any of
+// these values.
+function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
+    const codes = new Map<FormulaNode | string, Code>();
+    const code = (part: FormulaNode | string) =>
+        codes.get(part) ??
+        codes
+            .set(
+                part,
+                compile(
+                    typeof part === "string"
+                        ? { kind: "identifier", name: part }
+                        : part,
+                ),
+            )
+            .get(part)!;
+    return (frame) => {
+        const { degrees } = frame.env.view();
+        const built = casRequest(
+            node,
+            degrees,
+            (name) => frame.env.functionOf?.(name) ?? null,
+        );
+        const answer = built && casAnswer(node, built.request);
+        if (typeof answer !== "string") return null;
+        const tree = casTree(answer, built!.read, degrees);
+        const values = built!.parameters.map(({ node: part, owner }) =>
+            owner ? owner.value(part) : code(part)(frame),
+        );
+        LAST.set(node, { answer, parameters: built!.parameters, values });
+        return (
+            tree &&
+            evaluateValue(tree, {
+                resolveIdentifier: (name) => {
+                    const symbol = SYMBOL.exec(name);
+                    return symbol ? values[+symbol[1]] : code(name)(frame);
+                },
+                view: frame.env.view,
+            })
+        );
+    };
 }
 
 // A list reversed in place if the script owns it, as JavaScript's.
