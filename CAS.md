@@ -2043,9 +2043,10 @@ Faite le 2026-11-22, à la demande de l'auteur.
 - **Lecteur construit** dans DocTools, servi avec `apps/giac`, sur une
   figure sans réponses enregistrées : Giac chargé depuis `../giac/`,
   `Prouver` répond (`true`, `false`), aucune erreur.
-- Le dossier `docgeo_CAS` (worktree de `cas`) n'a plus d'usage ;
-  l'auteur peut le retirer (`git worktree remove ../docgeo_CAS` depuis
-  `docgeo_MAIN`).
+- `docgeo_CAS` : branche `cas` supprimée (fusionnée), le dossier détaché
+  puis détruit par l'auteur, ainsi que `docgeo_CAS_build` (builds
+  jetables). Son inscription dans `git worktree list` disparaît par `git
+  worktree prune`. `giac_MAIN` renvoie à `docgeo_MAIN` (`4431dac`, poussé).
 - **Publication**, à la demande de l'auteur : dépôt public
   `erichake/giac` créé, `master` poussé (`bb086c7`) ;
   `install_doctools.sh` relancé : Giac recompilé, d'origine et modifié,
