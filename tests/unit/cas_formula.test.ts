@@ -204,7 +204,7 @@ describe("computer algebra formulas", () => {
                 "[with_sqrt(0),factor((x^2)-(dg0^2),x),with_sqrt(1)][1]"
                 ? "(x-dg0)*(x+dg0)"
                 : undefined;
-        });
+        }, () => null);
         const node = parseFormula("Factor(x^2-a^2)");
         const values: Record<string, ScriptValue> = { x: 5, a: 2 };
         const env: FormulaEnv = {
@@ -220,7 +220,7 @@ describe("computer algebra formulas", () => {
     });
 
     it("derive without Giac's answer, a function named alone too", () => {
-        answerCas(() => undefined);
+        answerCas(() => undefined, () => null);
         const values: Record<string, ScriptValue> = { x: 2, a: 3 };
         const env: FormulaEnv = {
             resolveIdentifier: (name) => values[name],

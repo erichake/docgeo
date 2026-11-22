@@ -160,6 +160,14 @@ const GGB_DASHES: Record<string, (width: number) => number[]> = {
 const COMMAND_EXPRESSION = /^([A-Za-z][A-Za-z\d]*)\((.*)\)$/;
 // "+ 0.7" after a point, the whole of its sum's right operand.
 const POINT_SHIFT = /^ ?([+-]) ?(\d+(?:\.\d*)?|\.\d+)(?= ?(?:[)+,-]|$))/;
+const PREDICATES = [
+    "AreCollinear",
+    "AreParallel",
+    "ArePerpendicular",
+    "AreConcyclic",
+    "AreConcurrent",
+    "AreEqual",
+];
 // The commands a formula rewrites as a whole (see commandFormula).
 const FORMULA_COMMANDS = new Set([
     "Radius",
@@ -288,6 +296,13 @@ const FUNCTIONS: Record<string, string | Expansion> = {
     Simplify: "Simplify",
     Solve: "Solve",
     CSolve: "CSolve",
+    Prove: "Prove",
+    AreCollinear: "AreCollinear",
+    AreParallel: "AreParallel",
+    ArePerpendicular: "ArePerpendicular",
+    AreConcyclic: "AreConcyclic",
+    AreConcurrent: "AreConcurrent",
+    AreEqual: "AreEqual",
     Distance: "d",
     Dot: "dot",
     Midpoint: ([p, q]) => (q ? `((${p})+(${q}))/2` : "?"),
@@ -4208,6 +4223,18 @@ export function translateGgb(
             return true;
         };
 
+    const predicate = (
+        name: string,
+        inputs: string[],
+        label: string,
+        prove?: string,
+    ): boolean => {
+        const element = elements.get(label);
+        const read = inputs.map((input) => objects.get(input.trim())?.variable);
+        if (!element || !read.every(Boolean)) return false;
+        const call = `${name}(${read.join(", ")})`;
+        return checkbox(label, element, prove ? `${prove}(${call})` : call);
+    };
     const HANDLERS: Record<string, Handler> = {
         // On a path, or a point translated by a vector.
         Point: ([support, extra, rest], [label]) => {
@@ -5762,6 +5789,23 @@ export function translateGgb(
             points(p) &&
             is(q, ["pointOn"]) &&
             define(label, "locus", "LocusEquation", [ref(p), ref(q)]),
+        // A boolean, and so a checkbox, of a predicate's objects (see
+        // predicates.ts).
+        ...Object.fromEntries(
+            PREDICATES.map((name) => [
+                name,
+                (inputs: string[], [label]: string[]) =>
+                    predicate(name, inputs, label),
+            ]),
+        ),
+        Prove: ([p, extra], [label]) => {
+            const call = extra === undefined && commandCall(p);
+            return (
+                !!call &&
+                PREDICATES.includes(call[0]) &&
+                predicate(call[0], call[1], label, "Prove")
+            );
+        },
     };
 
     const expressionStyle = (element: Element, slider: boolean): string => {

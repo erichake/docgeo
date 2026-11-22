@@ -48,7 +48,28 @@ export function readCas(site: object, request: string) {
         ).set(site, request);
     return cas.read(site, request, object ?? undefined);
 }
-answerCas(readCas);
+
+let prover: typeof import("./import/locus_equation") | undefined;
+
+// Prove's answer: true where Giac finds the predicate's polynomial in the
+// ideal of the construction's, but for degenerate cases, false where its
+// elimination leaves nothing (see locus_equation.ts).
+function prove(site: object, fn: string, objects: construction_object[]) {
+    const { object } = reading;
+    if (!prover) {
+        void import("./import/locus_equation").then((module) => {
+            prover = module;
+            if (object) object.C.invalidateGeometry(object);
+        });
+        return null;
+    }
+    const request = prover.proveRequest(fn, objects);
+    const answer = request && readCas(site, request);
+    return typeof answer === "string" && answer.startsWith("[[")
+        ? +!answer.includes("[]")
+        : null;
+}
+answerCas(readCas, prove);
 
 // The answers the objects and the computer algebra views read, for their
 // .dgo.

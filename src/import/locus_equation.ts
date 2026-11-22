@@ -2,23 +2,37 @@ import type { algebraic_object } from "../objects/algebraic_object";
 import type { construction_object } from "../objects/construction_object";
 import { rational } from "./cas_formula";
 
-// The equation of a locus or of an envelope (see CAS.md, step 8), as
-// GeoGebra finds it (Botana's method): what depends on the driver M becomes
-// polynomial equations of Giac's variables, from which Giac eliminates all
-// but x and y. The rest of the figure is written by its coordinates,
-// rounded to 6 digits. Over the complex numbers, an intersection gives all
-// its points, a curve all its branches.
+// The construction as polynomial equations of Giac's variables (Botana's
+// method, GeoGebra's, see CAS.md, step 8), over the complex numbers, where
+// an intersection gives all its points, a curve all its branches.
+// - The equation of a locus or of an envelope: what depends on the driver
+//   M, from which Giac eliminates all but x and y, the rest of the figure
+//   written by its coordinates, rounded to 6 digits.
+// - Prove: the whole construction of a predicate's objects, its free points
+//   and the parameters of its points on objects staying symbols, which
+//   only the figure's fixed points and exact numbers keep from being
+//   general.
 
 type Point = [string, string];
 // A point, a line by a point and its direction, or a circle by its center
 // and its squared radius.
 type Shape = Point | { p: Point; d: Point } | { c: Point; r: string };
+type Fields = Record<string, never>;
 
 const UNREAD = new Error("Not an algebraic construction");
 
 const number = (value: number): string => {
     if (!Number.isFinite(value)) throw UNREAD;
     return rational(+value.toPrecision(6));
+};
+// A fraction of small denominator, for Prove: a number rounded would make a
+// statement false.
+const exact = (value: number): string => {
+    for (let q = 1; q <= 64; q++) {
+        const p = Math.round(value * q);
+        if (Math.abs(value - p / q) < 1e-9) return `(${p}/${q})`;
+    }
+    throw UNREAD;
 };
 const plus = (a: Point, b: Point, k = "1"): Point => [
     `${a[0]}+${k}*(${b[0]})`,
@@ -31,18 +45,41 @@ const half = (a: Point, b: Point): Point => [
 ];
 const square = ([x, y]: Point): string => `(${x})^2+(${y})^2`;
 const normal = ([x, y]: Point): Point => [`-(${y})`, x];
+const cross = (u: Point, v: Point) => `(${u[0]})*(${v[1]})-(${u[1]})*(${v[0]})`;
+const dot = (u: Point, v: Point) => `(${u[0]})*(${v[0]})+(${u[1]})*(${v[1]})`;
 
-// The request, null for a construction this translation doesn't know.
-export function locusRequest(curve: algebraic_object): string | null {
-    const { target, driver } = curve;
+// Whether the point is on the line or the circle, now.
+const through = (object: construction_object, point: construction_object) => {
+    const o = object as unknown as {
+        CENTER?: number[];
+        R: number;
+        P1: { coords: number[] };
+        VEC: number[];
+    };
+    const [x, y] = (point as unknown as { coords: number[] }).coords;
+    const [a, b] = o.CENTER ?? o.P1.coords;
+    const [u, v] = [x - a, y - b];
+    const value = o.CENTER
+        ? Math.hypot(u, v) - o.R
+        : (u * o.VEC[1] - v * o.VEC[0]) / Math.hypot(o.VEC[0], o.VEC[1]);
+    return Math.abs(value) < 1e-9 * (1 + Math.hypot(x, y));
+};
+
+function system(prove: boolean, driver?: construction_object) {
     const shapes = new Map<construction_object, Shape>();
     const equations: string[] = [];
+    // Eliminated, or else kept: Prove's free points and parameters.
     const variables: string[] = [];
-    const fresh = (): Point => {
-        const k = variables.length;
-        variables.push(`dv${k}`, `dv${k + 1}`);
-        return [`dv${k}`, `dv${k + 1}`];
+    const kept: string[] = [];
+    let absolute = false;
+    let origin: Point | undefined;
+    const variable = (keep?: boolean) => {
+        const name = `dv${variables.length + kept.length}`;
+        (keep && prove ? kept : variables).push(name);
+        return name;
     };
+    const fresh = (keep?: boolean): Point => [variable(keep), variable(keep)];
+    const scalar = (value: number) => (prove ? exact(value) : number(value));
     const parts = (object: construction_object) =>
         object.dgo({
             index: (o) => o as never,
@@ -52,7 +89,12 @@ export function locusRequest(curve: algebraic_object): string | null {
     const shape = (object: construction_object): Shape => {
         const known = shapes.get(object);
         if (known) return known;
-        const o = object as unknown as Record<string, never>;
+        if (prove) {
+            const built = build(object);
+            shapes.set(object, built);
+            return built;
+        }
+        const o = object as unknown as Fields;
         const coords = (v: number[]): Point => [number(v[0]), number(v[1])];
         if (o.VEC) return { p: coords(o.P1["coords"]), d: coords(o.VEC) };
         if (o.CENTER) return { c: coords(o.CENTER), r: `${number(o.R)}^2` };
@@ -93,15 +135,16 @@ export function locusRequest(curve: algebraic_object): string | null {
         );
         return o;
     };
-    // Its number (an angle, a ratio, a radius) reads no object that moves
-    // with the driver.
+    // Its number (an angle, a ratio, a radius) reads nothing that moves: no
+    // object moved by the driver, and for Prove, no object at all.
     const fixed = (
         object: construction_object,
         ...read: (construction_object | null)[]
     ) => {
         if (
             object.parents.some(
-                (parent) => !read.includes(parent) && shapes.has(parent),
+                (parent) =>
+                    !read.includes(parent) && (prove || shapes.has(parent)),
             )
         )
             throw UNREAD;
@@ -122,8 +165,8 @@ export function locusRequest(curve: algebraic_object): string | null {
         const o: Point = center ? point(center) : ["0", "0"];
         const [x, y] = minus(point(source), o);
         return plus(o, [
-            `${number(cos)}*(${x})-${number(sin)}*(${y})`,
-            `${number(sin)}*(${x})+${number(cos)}*(${y})`,
+            `${scalar(cos)}*(${x})-${scalar(sin)}*(${y})`,
+            `${scalar(sin)}*(${x})+${scalar(cos)}*(${y})`,
         ]);
     };
 
@@ -132,11 +175,28 @@ export function locusRequest(curve: algebraic_object): string | null {
         const [a, b, c, k] = args;
         const ends = () => (b ? [a, b] : parts(a)[1]).map(point);
         switch (tag) {
+            case "Pt": {
+                if (!prove) break;
+                const p = fresh(true);
+                origin ??= p;
+                return p;
+            }
+            case "Fix": {
+                absolute = true;
+                const [x, y] = (object as unknown as { coords: number[] })
+                    .coords;
+                return [scalar(x), scalar(y)];
+            }
+            // By a parameter, kept by Prove: its position in general.
             case "On": {
-                if (object !== driver) throw UNREAD;
-                const m = fresh();
-                on(a, m);
-                return m;
+                if (!prove && object !== driver) throw UNREAD;
+                const s = shape(a);
+                const u = variable(true);
+                if ("d" in s) return plus(s.p, s.d, u);
+                const { c: center, r } = circle(a);
+                const v = variable();
+                equations.push(`${u}^2+${v}^2-(${r})`);
+                return plus(center, [u, v]);
             }
             case "Mid": {
                 const [p, q] = ends();
@@ -148,6 +208,31 @@ export function locusRequest(curve: algebraic_object): string | null {
                 return circle(a).c;
             case "Int": {
                 const m = fresh();
+                const away = k as unknown as construction_object | undefined;
+                const [s, t] = [a, b].map(shape);
+                // The second point of a line and a circle, or of two circles,
+                // through a point known.
+                if (away && through(a, away) && through(b, away)) {
+                    const p = point(away);
+                    if ("d" in s !== "d" in t) {
+                        const { d } = line("d" in s ? a : b);
+                        const { c: o } = circle("d" in s ? b : a);
+                        on("d" in s ? a : b, m);
+                        equations.push(
+                            `${dot(minus(m, p), d)}+2*(${dot(minus(p, o), d)})`,
+                        );
+                        return m;
+                    }
+                    if (!("d" in s)) {
+                        const [o, q] = [a, b].map((x) => circle(x).c);
+                        const d = minus(q, o);
+                        equations.push(
+                            cross(minus(half(m, p), o), d),
+                            dot(minus(m, p), d),
+                        );
+                        return m;
+                    }
+                }
                 on(a, m);
                 on(b, m);
                 return m;
@@ -156,8 +241,7 @@ export function locusRequest(curve: algebraic_object): string | null {
                 const m = fresh();
                 const { d } = line(a);
                 on(a, half(m, point(b)));
-                const [x, y] = minus(m, point(b));
-                equations.push(`(${x})*(${d[0]})+(${y})*(${d[1]})`);
+                equations.push(dot(minus(m, point(b)), d));
                 return m;
             }
             case "TC": {
@@ -196,7 +280,7 @@ export function locusRequest(curve: algebraic_object): string | null {
                 fixed(object, a);
                 return {
                     c: point(a),
-                    r: `${number((object as unknown as { R: number }).R)}^2`,
+                    r: `${scalar((object as unknown as { R: number }).R)}^2`,
                 };
             case "C3":
                 return { c: point(c), r: square(minus(point(a), point(b))) };
@@ -208,9 +292,41 @@ export function locusRequest(curve: algebraic_object): string | null {
         }
         throw UNREAD;
     };
+    return {
+        shapes,
+        equations,
+        variables,
+        kept,
+        // Without fixed points, the first free one, which may be anywhere.
+        origin: () => (absolute ? undefined : origin),
+        build,
+        tag: (object: construction_object) => parts(object)[0],
+        shape,
+        point,
+        line,
+        circle,
+        variable,
+    };
+}
 
+const attempt = (request: () => string): string | null => {
     try {
+        return request();
+    } catch (error) {
+        if (error !== UNREAD) throw error;
+        return null;
+    }
+};
+
+// The request, null for a construction this translation doesn't know.
+export function locusRequest(curve: algebraic_object): string | null {
+    const { target, driver } = curve;
+    return attempt(() => {
         if (curve.C.space) throw UNREAD;
+        const { shapes, equations, variables, build, shape, line } = system(
+            false,
+            driver,
+        );
         for (const object of [driver, ...curve.dependencyChain])
             shapes.set(object, build(object));
         const s = shape(target);
@@ -226,8 +342,87 @@ export function locusRequest(curve: algebraic_object): string | null {
         }
         // Each factor once, so that its sign changes across the curve.
         return `map(eliminate([${equations.join(",")}],[${variables.join(",")}]),p->normal(p/gcd(gcd(p,diff(p,x)),diff(p,y))))`;
-    } catch (error) {
-        if (error !== UNREAD) throw error;
-        return null;
-    }
+    });
+}
+
+// Prove(predicate): for each of its polynomials T, the construction's H and
+// 1 - t T (Rabinowitsch), of which Giac eliminates all but the free
+// variables: [1] or polynomials of them (degenerate cases) when T vanishes
+// wherever H does, in general, [] when not.
+export function proveRequest(
+    fn: string,
+    objects: construction_object[],
+): string | null {
+    return attempt(() => {
+        if (objects[0].C.space) throw UNREAD;
+        const s = system(true);
+        const { point, line, circle } = s;
+        const points = () => objects.map(point);
+        const lines = () => objects.map(line);
+        let theses: string[];
+        switch (fn) {
+            case "AreCollinear": {
+                const [a, b, c] = points();
+                theses = [cross(minus(b, a), minus(c, a))];
+                break;
+            }
+            case "AreParallel":
+            case "ArePerpendicular": {
+                const [d, e] = lines().map((l) => l.d);
+                theses = [fn === "AreParallel" ? cross(d, e) : dot(d, e)];
+                break;
+            }
+            case "AreConcyclic": {
+                const [a, ...rest] = points();
+                const rows = rest.map((p) => {
+                    const u = minus(p, a);
+                    return `[${square(u)},${u[0]},${u[1]}]`;
+                });
+                theses = [`det([${rows.join(",")}])`];
+                break;
+            }
+            case "AreConcurrent": {
+                const rows = lines().map(
+                    ({ p, d }) => `[${d[1]},-(${d[0]}),-(${cross(p, d)})]`,
+                );
+                theses = [`det([${rows.join(",")}])`];
+                break;
+            }
+            default: {
+                // AreEqual: points, circles, lengths of segments, lines.
+                const [a] = objects.map(s.shape);
+                if (Array.isArray(a)) {
+                    const [p, q] = points();
+                    theses = [0, 1].map((i) => `${p[i]}-(${q[i]})`);
+                } else if ("r" in a) {
+                    const [o, q] = objects.map(circle);
+                    theses = [0, 1]
+                        .map((i) => `${o.c[i]}-(${q.c[i]})`)
+                        .concat(`${o.r}-(${q.r})`);
+                } else {
+                    const [l, m] = lines();
+                    theses = objects.every((o) => s.tag(o) === "Seg")
+                        ? [`${square(l.d)}-(${square(m.d)})`]
+                        : [cross(l.d, m.d), cross(minus(m.p, l.p), l.d)];
+                }
+            }
+        }
+        // The first free point at the origin, which the statement doesn't
+        // change, as GeoGebra does.
+        const { equations, variables, kept } = s;
+        const origin = s.origin();
+        if (origin) {
+            kept.splice(kept.indexOf(origin[0]), 2);
+            variables.push(...origin);
+            equations.push(...origin);
+        }
+        const t = s.variable();
+        const all = variables.join(",");
+        return `[${theses
+            .map(
+                (thesis) =>
+                    `eliminate([${[...equations, `1-${t}*(${thesis})`].join(",")}],[${all}])`,
+            )
+            .join(",")}]`;
+    });
 }

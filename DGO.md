@@ -544,6 +544,21 @@ d'un polynôme de Taylor est envoyé par sa valeur, un entier positif ou nul
 (sinon indéfini) : un curseur change la requête. Une ligne entière
 `Integral(f, a, b)`, f nommée, reste l'objet `Itg` (aire tracée) de
 l'éditeur.
+Depuis le 2026-11-22 (étape 11), les prédicats de GeoGebra, dont chaque
+argument est le nom d'un objet : `AreCollinear(A, B, C)`,
+`AreParallel(d, e)`, `ArePerpendicular(d, e)` (droites, segments,
+demi-droites), `AreConcyclic(A, B, C, D)` (sur un cercle ou une droite),
+`AreConcurrent(d, e, f)` (ou parallèles), `AreEqual(a, b)` (deux points,
+deux cercles, deux droites, sinon les longueurs de deux segments ou les
+valeurs de deux nombres). Calculés par DocGeo, à 10⁻⁹ près relativement,
+sans Giac : 1 ou 0, indéfinis pour d'autres objets. `Prove(p)`, p l'un de
+ces prédicats, vaut 1 s'il est vrai en général (pour toute position des
+points libres et des points sur objet, sauf cas dégénérés), 0 sinon, et
+indéfini tant que la réponse de Giac n'est pas arrivée, sans Giac, ou pour
+une construction que la traduction ne connaît pas (celle des lieux de la
+note 39, plus les points libres et fixes, voir `CAS.md`, étape 11) ; sa
+réponse est gardée dans `cas`. Une expression dont la formule est l'un ou
+l'autre montre `true` ou `false`.
 `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont la
 moyenne, la médiane, les quartiles et les écarts types (de la population,
 d'un échantillon) d'une liste de nombres, comme `Mean`, `Median`, `Q1`,

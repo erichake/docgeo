@@ -94,8 +94,7 @@ describe("Algebraic curves", () => {
         // Where it was, the view moved.
         const point = c.getObj("P") as point_on_object;
         const [x, y] = point.coords;
-        c.GRID.ORG[0] += 37;
-        c.GRID.ORG[1] -= 11;
+        c.GRID.ORG = [c.GRID.ORG[0] + 37, c.GRID.ORG[1] - 11];
         c.invalidateProjection();
         c.flush();
         expect(point.coords[0]).toBeCloseTo(x, 2);

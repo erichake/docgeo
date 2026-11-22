@@ -269,6 +269,7 @@ export function evaluateFunction(
         callFunction: (name, callArgs, derivatives) =>
             callFunction(formula.refs, name, callArgs, view, derivatives),
         functionOf: functionOf(formula.refs, view),
+        objectOf: (name) => formula.refs.get(name),
     });
 }
 
@@ -884,6 +885,7 @@ export class expression_object extends construction_object {
             callFunction: (name, args, derivatives) =>
                 callFunction(refs, name, args, view, derivatives),
             functionOf: functionOf(refs, view),
+            objectOf: (name) => refs.get(name),
             center: (name) => scriptCenter(refs.get(name)!, vec3),
             // An expression_list_object's, which this file can't import.
             turtlePoints: (name) =>

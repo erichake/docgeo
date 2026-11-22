@@ -4,8 +4,8 @@ Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
 Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules), 4 (import
 GeoGebra), 5 (vue CAS dans le lecteur), 6 (vue CAS dans l'éditeur), 7
 (cellules CAS de GeoGebra), 8 (étude du raisonnement automatique), 9
-(commandes des cellules réelles) et 10 (courbe algébrique,
-`LocusEquation`, `Envelope`) faites ; décisions de l'auteur prises le même jour (« Décisions de
+(commandes des cellules réelles), 10 (courbe algébrique,
+`LocusEquation`, `Envelope`) et 11 (`Prove` et ses prédicats) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -471,6 +471,13 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 38. **Hors chantier** : la traduction des macros, des bissectrices et du
     centre du cercle inscrit, un curseur pour pilote, et les courbes de
     l'espace (section plane d'un cône) ; ces cas gardent le lieu balayé.
+39. **Hors chantier** : les commandes imbriquées dans un prédicat
+    (`Prouver(SontParallèles(Droite(A, B), …))`, objets à nommer), `Prove`
+    dans la vue CAS (`?`), et les nombres non rationnels simples
+    (rotation de 60°) dans `Prove` (indéfini).
+40. **`true` / `false`** montrés, la valeur restant 1 ou 0 dans les
+    formules.
+41. **Noms** de `Prove` et des prédicats acceptés (étape 11).
 
 ## Étapes
 
@@ -541,9 +548,9 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   les lignes `symbolic` de la Suite dans la vue CAS (décision 26).
 - [x] **Étape 10 (CAS) — courbe algébrique, `LocusEquation` et
   `Envelope`** (décisions 28 à 31).
-- [ ] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
+- [x] **Étape 11 (CAS) — `Prove`**, et les prédicats qu'il demande
   (`AreCollinear`…, décision 32).
-- [ ] **Manuel** dans les 12 langues, quand l'auteur le demandera.
+- [x] **Manuel** dans les 12 langues, quand l'auteur le demandera.
 - [ ] **Fin du chantier** (sur demande de l'auteur) : commit de
   `giac_MAIN`, fusion de `cas` dans `docgeo_MAIN`, installation de Giac
   dans DocTools, build, tests ; déploiement par l'auteur.
@@ -552,13 +559,13 @@ Liste figée (décision 34) : aucune étape ne s'y ajoute.
 
 ## Point de reprise
 
-Étapes 0, M, 1 à 10 faites le 2026-11-22 (comptes rendus ci-dessous), 2
-à 10 committées sur la branche `cas` ; questions des étapes 7 à 10 tranchées (décisions 24 à 38) ; `giac_MAIN` n'a encore aucun commit (à
+Étapes 0, M, 1 à 11 et le manuel faits le 2026-11-22 (comptes rendus
+ci-dessous), committés sur la branche `cas` ; toutes les questions
+tranchées (décisions 1 à 41) ; `giac_MAIN` n'a encore aucun commit (à
 demander par l'auteur dans une session de `giac_MAIN`). Le chantier
-compte +14,5 Ko au moteur sur 20. Liste des étapes figée (décision
-34) : restent 11, le manuel et la fin du chantier. Prochaine action :
-étape 11 (`Prove` et ses prédicats), dans une session VS Code ouverte
-sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
+compte +16,8 Ko au moteur sur 20. Reste la fin du chantier, seulement
+sur demande de l'auteur, dans une session VS Code ouverte sur
+`docgeo_CAS`.
 
 ## Comptes rendus des étapes
 
@@ -1844,3 +1851,161 @@ une construction qu'il ne traduit pas ; la somme sans forme close.
 4. **Hors chantier** (décision 34) : la traduction des macros, des
    bissectrices, du centre du cercle inscrit et d'un curseur pour pilote ;
    la section plane d'un cône en 3D (les 7 `implicitpoly` du corpus).
+
+### Étape 11 : ce qui est fait
+
+Faite le 2026-11-22 dans `docgeo_CAS`.
+
+**Prédicats** (décision 32), dans les formules, chaque argument étant le
+nom d'un objet : `AreCollinear(A, B, C)`, `AreParallel(d, e)`,
+`ArePerpendicular(d, e)`, `AreConcyclic(A, B, C, D)` (cercle ou droite,
+comme GeoGebra), `AreConcurrent(d, e, f)` (ou parallèles),
+`AreEqual(a, b)` (points, cercles, droites, sinon longueurs de segments
+ou valeurs de nombres, comme `==` de GeoGebra). Calculés par DocGeo
+(`src/predicates.ts`, moteur), à 10⁻⁹ près relativement : 1 ou 0,
+indéfinis pour d'autres objets. Ce sont des commandes de la grammaire
+(`CAS_ARITY`, sans requête Giac : une ligne de la vue CAS qui les emploie
+reste `?`), qui lisent leurs objets par un nouveau `objectOf` de
+l'environnement des formules (`expression_object.ts`).
+
+**`Prove(p)`** : 1 si le prédicat est vrai en général, 0 sinon, indéfini
+en attendant la réponse, sans Giac ou pour une construction non
+traduite. Une expression dont la formule est un prédicat ou `Prove` montre
+`true` ou `false` (dans le lecteur comme sous la ligne de l'éditeur).
+- **Traducteur** : `locus_equation.ts` de l'étape 10, devenu commun aux
+  lieux et à `Prove` (`system(prove)`, chargé à la demande par `cas.ts`
+  comme par la courbe algébrique). Pour `Prove`, toute la construction des
+  objets du prédicat est traduite depuis leurs balises `.dgo` : points
+  libres `Pt` symboliques (le premier en (0, 0) quand la figure ne lit
+  aucun point fixe, comme GeoGebra), points fixes `Fix` par leurs
+  coordonnées, et rien n'est lu par sa valeur du moment ; un rayon, un
+  angle ou un rapport doit être une fraction de dénominateur au plus 64
+  (`exact`) et ne lire aucun objet, sinon indéfini (rotation de 60°
+  comprise).
+- **Point sur objet** (`On`), pour les lieux aussi : un paramètre, M = P +
+  u d sur une droite, M = O + (u, v) avec u² + v² = r² sur un cercle. Pour
+  `Prove`, u n'est pas éliminé : l'énoncé est décidé pour une position
+  quelconque du point (sinon un énoncé faux en quelques positions seulement
+  serait dit faux, et garder les deux coordonnées ferait tout dire vrai).
+- **Seconde intersection** (`OtherIntersection`, `Int` à point P connu,
+  pour les lieux aussi) : quand P est sur les deux objets, seule l'autre
+  intersection, par une équation linéaire (droite et cercle : (M − P)·d +
+  2 (P − O)·d = 0 ; deux cercles : symétrique de P par la droite des
+  centres). Sans cela, l'énoncé devrait valoir aussi pour P lui-même
+  (la perpendiculaire en K, milieu de [AQ], à la corde [AQ] : K = A).
+- **Requête** : pour chaque polynôme T de la thèse (deux pour l'égalité de
+  deux points ou droites, trois pour deux cercles),
+  `eliminate([H…, 1 − t T], [variables sauf paramètres libres])` (méthode
+  de Rabinowitsch, étape 8) ; vrai si aucune élimination n'est vide
+  (`[1]` ou des conditions de non-dégénérescence), faux sinon. Seuls des
+  noms générés, des fractions et `eliminate`, `det` : aucun texte de la
+  figure. Réponse gardée dans `cas` du `.dgo`.
+- **Sur les complexes**, comme GeoGebra : une intersection de deux
+  cercles a ses deux points, un énoncé vrai pour l'un seulement est faux.
+
+**Éditeur** : noms de GeoGebra (`properties_keys_*`) dans les 12 langues
+(`cas_names.ts`), sauf nl `ZijnConcyclisch` (GeoGebra : `Zijnconcyclisch`)
+et zh-TW (non traduit chez GeoGebra) :
+
+| Commande | fr | de | es | it | pt | nl |
+| -------- | -- | -- | -- | -- | -- | -- |
+| Prove | Prouver | Prüfe | Demuestra | Verifica | Provar | Bewijs |
+| AreCollinear | SontAlignés | LiegenAufGerade | EstánAlineados | TestAllineamento | SãoColineares | ZijnCollineair |
+| AreParallel | SontParallèles | SindParallel | SonParalelas | TestParallelismo | SãoParalelas | ZijnEvenwijdig |
+| ArePerpendicular | SontPerpendiculaires | SindNormal | SonPerpendiculares | TestPerpendicolarità | SãoPerpendiculares | ZijnOrthogonaal |
+| AreConcyclic | SontCocycliques | LiegenAufKreis | SonCocíclicos | TestConciclici | SãoConcíclicos | ZijnConcyclisch |
+| AreConcurrent | SontConcourantes | SindKopunktal | SonConcurrentes | TestIncidenza | SãoConcorrentes | ZijnConcurrent |
+| AreEqual | SontÉgaux | SindGleich | SonIguales | TestUguaglianza | SãoIguais | ZijnGelijk |
+
+el : ΑποδεικνύεταιΓενικάΟτι, ΕίναιΣυνευθειακά, ΕίναιΠαράλληλες,
+ΕίναιΚάθετες, ΕίναιΟμοκυκλικά, ΕίναιΣυντρέχουσες, ΕίναιΙσα ; ar : برهن،
+متسامتة، متوازية، عمودية، مشتركةعلىالدائرة، متزامنة، متساوية ; hi : प्रूव,
+क्यासमरेखीयहै, समानान्तरहै, क्यालम्बवतहै, संव्रत्तियहै, संगामीहै, क्याबराबरहै ;
+zh : 证明、是否共线、是否平行、是否垂直、是否共圆、是否共点、是否相等 ;
+zh-TW : 證明、是否共線、是否平行、是否垂直、是否共圓、是否共點、是否相等.
+
+**Import GeoGebra** (`GGB_IMPORT.md`, item 97) : un booléen défini par un
+prédicat ou par `Prove` d'un prédicat devient une case à cocher de cette
+formule, comme les autres booléens dépendants. Corpus inchangé (aucune
+figure, étape 8).
+
+**Essais** :
+- `tests/browser/cas_prove.test.ts` (vrai Giac, lignes tapées et relues) :
+  médianes concourantes (vrai), centre de gravité sur (AB) (faux), droite
+  d'Euler (vrai), droite des milieux de même longueur que la moitié d'un
+  côté (vrai), ABC alignés (faux, et toujours faux quand C est posé sur
+  (AB), où le prédicat numérique dit vrai) ; angle inscrit dans un
+  demi-cercle (M sur le cercle), seconde intersection (vrai), cocyclicité (vraie de quatre points du cercle, fausse
+  avec un point libre) ; droite de Simson (vrai) et cercle d'Euler (pied
+  d'une hauteur : vrai ; pied d'une perpendiculaire quelconque : faux) ;
+  `true` montré, réponses dans le `.dgo` ; import GeoGebra.
+- `tests/unit/predicates.test.ts` : les six prédicats numériquement,
+  objets d'autres sortes ou indéfinis.
+- `tests/browser/cas_locus.test.ts` inchangé et passant (points sur objet
+  paramétrés) ; son erreur de type (`GRID.ORG` en lecture seule, étape 10)
+  corrigée.
+- Figure `tests/dgo/preuves.dgo` (Simson vrai, A, P, G alignés faux) ouverte
+  dans le **lecteur construit** sans `giac/` : `s = true`, `r = false`,
+  seul le traducteur chargé, aucune requête vers Giac, aucune erreur.
+- Suite complète : unitaires 308/308 ; navigateur 1 609/1 610, l'échec
+  (`editor_properties`, instable sous charge, connu) passant seul (20/20).
+
+**Poids** (`npx vite build --outDir ../docgeo_CAS_build`) : moteur
+`engine-*` 390 697 → 393 037 octets (**+2,3 Ko**, gzip 129 609 → 130 817),
+dont `predicates.ts` et la grammaire ; lecteur `main` 16 368 inchangé ;
+éditeur `main-*` 335 906 inchangé ; traducteur `locus_equation-*` 2 961 →
+5 273 (à la demande) ; noms (`import-*`) 3 496 → 5 894 (à la demande) ;
+importeur GeoGebra 106 294 → 106 891. Chantier : +16,8 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : `Prouver` et les six prédicats et leurs
+noms, `true` / `false` ; la différence entre un prédicat (vrai sur la
+figure telle qu'elle est) et `Prouver` (vrai en général, quelle que soit
+la position des points libres) ; l'autre intersection (`AutreIntersection`)
+pour énoncer sur la seconde intersection seulement ; les constructions
+traduites et ce qui rend `Prouver` indéfini.
+
+**Questions pour l'auteur** (tranchées : décisions 39 à 41).
+1. **Commandes imbriquées** : `Prouver(SontParallèles(Droite(A, B),
+   Droite(C, D)))` est refusé par l'éditeur (commande inconnue dans une
+   formule) ; il faut nommer les droites. GeoGebra l'accepte.
+   Recommandation : hors chantier (décision 34).
+2. **`Prove` dans la vue CAS** (GeoGebra l'accepte) : la ligne reste `?`.
+   Recommandation : hors chantier.
+3. **`true` / `false`** montrés, la valeur restant 1 ou 0 dans les
+   formules (comme les comparaisons de DocGeo) : d'accord ?
+4. **Nombres exacts** : rotation, homothétie ou cercle de rayon donné
+   seulement pour des fractions simples ; une rotation de 60° (√3) rend
+   `Prove` indéfini. Recommandation : hors chantier.
+5. **Noms** à relire : hi `प्रूव` (celui de GeoGebra, translittéré), nl
+   `ZijnConcyclisch` (majuscule ajoutée), zh-TW repris du chinois
+   traditionnel.
+
+### Manuel : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`, à la demande de l'auteur, avec
+les notes « Manuel, à couvrir plus tard » des étapes 3 à 11.
+
+- **Nouvelle page** `calcul-formel.html` (« Le calcul formel »), après
+  le tableur dans le groupe « Construire », dans les 12 langues (titres
+  dans `manual.js`) : chargement de Giac et « ⚠ Giac » ; les commandes
+  de calcul formel (tableau, curseurs symboliques, ordre de Taylor et
+  somme sans forme close par valeur, `Intégrale(f, a, b)` qui trace
+  l'aire, dernière valeur en attendant) ; la vue calcul formel (menus,
+  saisie, `$n`, `:=`, objets par valeur, variables libres, radians,
+  `Numérique`, `ConserverSaisie`, lignes de texte, `?`, désignation à la
+  souris, définition qui crée un objet, langue du lecteur) ; courbes
+  algébriques, `EquationLieu`, `Enveloppe` et leur repli ; prédicats et
+  `Prouver` (vrai en général, `AutreIntersection`, limites des
+  décisions 39 et 40) ; import GeoGebra.
+- **Pages retouchées**, dans les 12 langues : `saisie.html` (équation
+  de degré quelconque : courbe algébrique, plus refusée),
+  `commandes.html` (`EquationLieu`, `Enveloppe`, que le contrôle disait
+  absentes ; équation d'un autre degré), `formules.html` (commandes de
+  calcul formel et prédicats), `formats.html` (calcul formel désormais
+  repris de GeoGebra).
+- **Capture** `calcul-formel.webp` (`tools/manual/shots.mjs`, fonction
+  `algebra`) : une fonction, sa dérivée et une vue calcul formel de sept
+  lignes tapées, réponses de Giac attendues ; générée dans les 12
+  langues.
+- `npm run manual -- check` : aucun manque dans les 12 langues.
+

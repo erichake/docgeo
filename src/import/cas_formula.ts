@@ -25,6 +25,15 @@ export const CAS_ARITY = {
     Sum: 4,
     Limit: 3,
     TaylorPolynomial: 4,
+    // Computed by DocGeo: GeoGebra's predicates, numerically, and Prove, of
+    // a predicate, by Giac from the construction (see locus_equation.ts).
+    Prove: 1,
+    AreCollinear: 3,
+    AreParallel: 2,
+    ArePerpendicular: 2,
+    AreConcyclic: 4,
+    AreConcurrent: 3,
+    AreEqual: 2,
 };
 export type CasFn = keyof typeof CAS_ARITY;
 // Of a command's name, undefined for another name.
@@ -37,7 +46,7 @@ export type CasNode = { kind: "cas"; fn: CasFn; args: FormulaNode[] };
 // As GeoGebra's (Ggb2giac): `%` stands for the arguments. Factor doesn't
 // write square roots, IFactor does (Giac's default, restored), Derivative
 // and Integral gather their terms, solutions are sorted.
-const GIAC: Record<CasFn, string> = {
+const GIAC: Partial<Record<CasFn, string>> = {
     Derivative: "regroup(diff(%))",
     Integral: "regroup(integrate(%))",
     Factor: "[with_sqrt(0),factor(%),with_sqrt(1)][1]",
@@ -314,12 +323,13 @@ export function casRequest(
                 throw UNREAD;
             return String(value);
         });
-        return GIAC[fn].replace("%", () =>
+        return GIAC[fn]!.replace("%", () =>
             [body, variable ?? implicit(), ...rest].join(","),
         );
     };
 
     const command = (part: CasNode, context: Context): string => {
+        if (!GIAC[part.fn]) throw UNREAD;
         if (
             BETWEEN.has(part.fn) ||
             (part.fn === "Integral" && part.args.length > 2)
@@ -342,7 +352,7 @@ export function casRequest(
             else throw UNREAD;
         }
         variable ??= implicit();
-        return GIAC[part.fn].replace("%", () =>
+        return GIAC[part.fn]!.replace("%", () =>
             part.fn === "Expand" || part.fn === "Simplify"
                 ? text
                 : `${text},${variable}${order}`,

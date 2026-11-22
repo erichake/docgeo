@@ -1908,3 +1908,11 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       cône) restent hors de portée : courbes de l'espace. **+0 figure**
       (aucune n'emploie ces commandes, étude de l'étape 8). Importeur
       GeoGebra 106,2 → 106,3 Ko.
+- [x] **97. `Prove` et les prédicats (étape 11 de `CAS.md`, branche
+      `cas`)** : un booléen `AreCollinear`, `AreParallel`,
+      `ArePerpendicular`, `AreConcyclic`, `AreConcurrent`, `AreEqual` (des
+      objets nommés), ou `Prove` de l'un d'eux, devient une case à cocher
+      de cette formule, comme les autres booléens dépendants ; `Prove` est
+      décidé par Giac. **+0 figure** (aucune n'emploie ces commandes,
+      étude de l'étape 8 ; corpus non remesuré). Importeur GeoGebra
+      106,3 → 106,9 Ko.

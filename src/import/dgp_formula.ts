@@ -22,6 +22,8 @@ import {
     type CasParameter,
 } from "./cas_formula";
 import { derivative } from "./dgp_derivative";
+import { predicate } from "../predicates";
+import type { construction_object } from "../objects/construction_object";
 
 export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
 export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
@@ -1872,6 +1874,8 @@ export interface FormulaEnv {
     // A function-valued object, which a computer algebra command writes in
     // its request (see cas_formula.ts).
     functionOf?(name: string): CasFunction | null;
+    // The object a predicate reads (see predicates.ts).
+    objectOf?(name: string): construction_object | undefined;
     // The points another turtle drew (see turtleList).
     turtlePoints?(list: string): readonly ScriptValue[] | null;
     // DGPad's restrictTheta and restrictPhi, which also turn the view as
@@ -2886,13 +2890,27 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
     }
 }
 
+// GeoGebra's predicates, computed by DocGeo.
+const PREDICATE = /^Are/;
+
 // Giac's answer to a request (see cas.ts): undefined until it comes, null
 // when it has none.
 let casAnswer = (_site: object, _request: string): string | null | undefined =>
     undefined;
 
-export function answerCas(read: typeof casAnswer): void {
+// Prove's answer, 1 or 0, null until it is known (see cas.ts).
+let casProve = (
+    _site: object,
+    _fn: string,
+    _objects: construction_object[],
+): number | null => null;
+
+export function answerCas(
+    read: typeof casAnswer,
+    prove: typeof casProve,
+): void {
     casAnswer = read;
+    casProve = prove;
 }
 
 // Of each command, what it last computed, which casShown writes.
@@ -2941,6 +2959,32 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
             )
             .get(part)!;
     let derived: Code | null | undefined;
+    const proved = node.fn === "Prove";
+    const inner = proved ? node.args[0] : node;
+    if (proved || PREDICATE.test(node.fn))
+        return (frame) => {
+            if (inner?.kind !== "cas" || !PREDICATE.test(inner.fn)) return null;
+            const objects = inner.args.map(
+                (arg) =>
+                    arg.kind === "identifier" && frame.env.objectOf?.(arg.name),
+            );
+            if (
+                objects.length !== CAS_ARITY[inner.fn] ||
+                !objects.every(Boolean)
+            )
+                return null;
+            const read = objects as construction_object[];
+            const value = proved
+                ? casProve(node, inner.fn, read)
+                : predicate(inner.fn, read);
+            if (value !== null)
+                LAST.set(node, {
+                    answer: value ? "true" : "false",
+                    parameters: [],
+                    values: [],
+                });
+            return value;
+        };
     return (frame) => {
         const { degrees } = frame.env.view();
         const ask = (bounds?: boolean) => {
