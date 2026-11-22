@@ -1752,7 +1752,7 @@ export const findCommand = (name: string): Command | undefined =>
 export const isCommand = (name: string): boolean => BY_NAME.has(fold(name));
 
 // Also those of a computer algebra view's lines only, not the formulas'.
-const CAS_LINE = [
+export const CAS_LINE = [
     ...CAS,
     ...LINE_COMMANDS.map((name) => formulaFunction(name, ["real"], true)),
 ];

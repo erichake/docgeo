@@ -165,6 +165,37 @@ describe("Computer algebra view in the editor", () => {
         expect(values(page)[0]).toBe("Factoriser(x^2 - a^2)");
     }, 40000);
 
+    it("recalls the lines typed and completes the word", async () => {
+        const page = await editor();
+        const last = () => fields(page)[11];
+        last().focus();
+        await commands.keyboard("type", "2+");
+        await commands.keyboard("press", "ArrowUp");
+        expect(last().value).toBe(values(page)[10]);
+        await commands.keyboard("press", "ArrowUp");
+        expect(last().value).toBe(values(page)[9]);
+        await commands.keyboard("press", "ArrowDown");
+        await commands.keyboard("press", "ArrowDown");
+        expect(last().value).toBe("2+");
+        // Elsewhere, ↑ goes to the line above.
+        fields(page)[3].focus();
+        await commands.keyboard("press", "ArrowUp");
+        expect(page.activeElement).toBe(fields(page)[2]);
+
+        last().focus();
+        await commands.keyboard("type", "Fac");
+        const items = () =>
+            [...page.querySelectorAll(".dge-complete div")].map(
+                ({ textContent }) => textContent,
+            );
+        expect(items()).toContain("Factoriser( )");
+        await commands.keyboard("press", "Tab");
+        expect(last().value).toBe("2+Factoriser(");
+        expect(items()).toEqual([]);
+        await commands.keyboard("type", "x^2 - 1) + ");
+        expect(items()).toEqual([]);
+    });
+
     it("renames an object in the lines that read it", () => {
         const renamed = (line: string) =>
             renameFormula(line, (name) => (name === "A" ? "P" : undefined));

@@ -2054,3 +2054,28 @@ Faite le 2026-11-22, à la demande de l'auteur.
   donnant l'adresse des sources et le commit. Les 18 tests navigateur du
   calcul formel passent avec le module installé.
 
+
+### Hors chantier : confort de la vue CAS (2026-11-22)
+
+À la demande de l'auteur, après la fin du chantier.
+- **Apparence** (`cas_view.ts`, lecteur et éditeur) : gouttière grise des
+  numéros sur toute la hauteur, saisies en police à chasse fixe, réponses
+  KaTeX dessous, lignes de texte en italique gris ; dans l'éditeur, la
+  ligne en cours de saisie surlignée (fond bleuté, filet et numéro bleus),
+  « Saisie… » dans la ligne à ajouter.
+- **Historique** : dans la ligne à ajouter, ↑ et ↓ rappellent les lignes
+  de la vue (la dernière d'abord, chacune une fois, sans les textes), ↓
+  au bout rendant le texte en cours, comme dans un terminal ; ailleurs,
+  ↑ et ↓ passent toujours d'une ligne à l'autre.
+- **Complétion** dès la deuxième lettre d'un mot, hors des textes : les
+  commandes de calcul formel et des lignes dans la langue, les fonctions
+  des formules, les objets de la figure et les noms définis dans la vue ;
+  ↑ ↓ pour choisir, Tab ou Entrée pour insérer, Échap pour fermer (liste
+  de l'éditeur, placée au-dessus du champ faute de place dessous ; un clic
+  dans la liste garde le focus dans le champ, aussi pour la Construction).
+- **Poids** : moteur et lecteur inchangés ; `cas_view` 6 721 → 7 329
+  octets (à la demande) ; éditeur `main-*` 335 906 → 336 904.
+- **Tests** : `cas_editor.test.ts`, historique et complétion.
+- **Manuel** (`calcul-formel.html`, 12 langues) : lignes « Reprendre une
+  ligne » et « Compléter un nom » du tableau de la vue, capture
+  régénérée ; Giac présenté comme le moteur de Xcas seulement.

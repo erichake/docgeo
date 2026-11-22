@@ -72,6 +72,7 @@ import {
 } from "../vec";
 import {
     accepts,
+    CAS_LINE,
     casName,
     commandName,
     commandsStarting,
@@ -436,7 +437,9 @@ $("head").append(`<style>
     .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
     .dge-value:empty { display: none; }
     .dge-cas-line { width: 100%; box-sizing: border-box; padding: 0; border: 0; background: none; font: inherit; color: inherit; outline: none; }
-    .dge-cas-line:focus { box-shadow: 0 1px #2563eb; }
+    .dge-cas-line::placeholder { color: #b6bcc6; }
+    .docgeo-cas > div:focus-within { background: #f5f8ff; }
+    .docgeo-cas > div:focus-within > span { color: #2563eb; font-weight: 600; box-shadow: inset 3px 0 #2563eb; }
     .dge-cas-line.dge-error { color: #dc2626; }
     .dge-later > .dge-dot, .dge-later > .dge-text { opacity: 0.3; }
     .dge-properties-open .dge-text, .dge-properties-open .dge-row { cursor: pointer; }
@@ -2789,15 +2792,23 @@ function showCompletion(field: LineField): void {
         const item = $.create("div")
             .text(label)
             .toggleClass("dge-selected", index === selected);
-        // Before the field loses the focus.
-        item.on("mousedown", () => insertCompletion(field, index));
+        // The field keeping the focus.
+        item.on("mousedown", (event: MouseEvent) => {
+            event.preventDefault();
+            insertCompletion(field, index);
+        });
         complete.add(item);
     });
     const box = field.getBoundingClientRect();
+    // Above the line when there's no room below.
+    const height = (complete.dom() as HTMLElement).offsetHeight;
     if (field instanceof HTMLInputElement)
         return void complete
             .stl("left", `${box.left + 14}px`)
-            .stl("top", `${box.bottom}px`);
+            .stl(
+                "top",
+                `${box.bottom + height > window.innerHeight ? box.top - height : box.bottom}px`,
+            );
     // Below the caret, found in a copy of the area's text up to it, laid
     // out as the area lays it.
     const style = getComputedStyle(field);
@@ -2856,7 +2867,8 @@ function insertCompletion(field: LineField, index: number): void {
     const { insert, object } = completions[index];
     if (object) return designateTyped(field, object, true);
     insertWord(field, insert);
-    updateCompletion(field);
+    if (field.classList.contains("dge-cas-line")) closeCompletion();
+    else updateCompletion(field);
 }
 
 function completedArgument(arg: ArgText | undefined): Arg | undefined {
@@ -7972,7 +7984,9 @@ function pickCells(cells: DocCells): void {
 
 // A computer algebra view's lines typed in, as in GeoGebra's CAS view (see
 // CAS.md): Enter computes the line and goes to the next one, Escape gives
-// it back, a line emptied is deleted; the last field adds a line. Its
+// it back, a line emptied is deleted; the last field adds a line, where ↑
+// and ↓ recall the lines typed before, as a terminal's history, while they
+// go from line to line elsewhere. The word typed is completed. Its
 // commands are named in the language, written in English. While a line is
 // typed, another line pressed gives `$n` at the caret, and an object
 // pressed in the figure its name (see the pointerdown listener).
@@ -7985,38 +7999,61 @@ function editCas(box: HTMLElement, view: FigureView): void {
         $.create("span").text(String(lines.length + 1)),
     );
     box.append(added.dom());
+    const history = [
+        ...new Set(lines.filter((line) => !line.startsWith('"')).reverse()),
+    ].map(casShown);
+    // The line recalled, -1 for the one being typed, kept meanwhile.
+    let recalled = -1;
+    let draft = "";
     const fields: HTMLInputElement[] = [...lines, ""].map((text, k) => {
         const field = $.create("input").cls("dge-cas-line");
         const input = field.dom() as HTMLInputElement;
         input.value = casShown(text);
         if (k < lines.length) rows[k].children[1].replaceWith(input);
-        else added.add(field);
+        else added.add(field.att("placeholder", message("input")));
         field.on(
             "keydown",
             (event: KeyboardEvent) => {
-                const next = fields[k + (event.key === "ArrowUp" ? -1 : 1)];
+                // Not the figure's own keys (3D view, floor).
+                if (!event.metaKey && !event.ctrlKey) event.stopPropagation();
+                if (completions.length && navigate(event, input)) return;
+                const up = event.key === "ArrowUp";
+                const next = fields[k + (up ? -1 : 1)];
                 if (event.key === "Enter") {
                     event.preventDefault();
+                    closeCompletion();
                     if (casText(input.value) === (lines[k] ?? ""))
                         next?.focus();
                     else void enterCas(view, k, input);
                 } else if (event.key === "Escape") {
                     input.value = casShown(lines[k] ?? "");
+                    recalled = -1;
                     field.removeClass("dge-error");
                     input.blur();
-                } else if (
-                    (event.key === "ArrowUp" || event.key === "ArrowDown") &&
-                    next
-                ) {
+                } else if (up || event.key === "ArrowDown") {
                     event.preventDefault();
-                    next.focus();
+                    if (k < lines.length) return next?.focus();
+                    if (recalled < 0) draft = input.value;
+                    recalled = Math.max(
+                        Math.min(recalled + (up ? 1 : -1), history.length - 1),
+                        -1,
+                    );
+                    input.value = recalled < 0 ? draft : history[recalled];
+                    field.removeClass("dge-error");
                 }
-                // Not the figure's own keys (3D view, floor).
-                if (!event.metaKey && !event.ctrlKey) event.stopPropagation();
             },
             false,
         );
-        field.on("input", () => field.removeClass("dge-error"), false);
+        field.on(
+            "input",
+            () => {
+                field.removeClass("dge-error");
+                recalled = -1;
+                completeCas(input, lines);
+            },
+            false,
+        );
+        field.on("blur", closeCompletion, false);
         return input;
     });
     rows.forEach((row, k) =>
@@ -8038,6 +8075,42 @@ function editCas(box: HTMLElement, view: FigureView): void {
         ),
     );
     if (casFocus !== null) fields[Math.min(casFocus, lines.length)].focus();
+}
+
+// The commands, the functions and the names a line reads that start with
+// the word typed, from its second letter, out of a text.
+function completeCas(field: HTMLInputElement, lines: string[]): void {
+    const before = field.value.slice(0, field.selectionStart!);
+    const prefix =
+        before.split('"').length % 2
+            ? (/(?<![\p{L}\p{N}_$.])[\p{L}_][\p{L}\p{M}\p{N}_']+$/u.exec(
+                  before,
+              )?.[0] ?? "")
+            : "";
+    const start = prefix.toLowerCase();
+    completions = prefix
+        ? [
+              ...calls(commandsStarting(prefix, [...CAS_LINE, ...FUNCTIONS])),
+              ...[
+                  ...new Set([
+                      ...figureObjects(scene())
+                          .filter(readable)
+                          .map(({ name }) => formatName(name)),
+                      ...lines.flatMap(
+                          (line) => CAS_DEFINITION.exec(line)?.[1] ?? [],
+                      ),
+                  ]),
+              ]
+                  .filter(
+                      (name) =>
+                          name !== prefix &&
+                          name.toLowerCase().startsWith(start),
+                  )
+                  .map((name) => ({ label: name, insert: name })),
+          ]
+        : [];
+    selected = -1;
+    showCompletion(field);
 }
 
 const casShown = (text: string): string =>
