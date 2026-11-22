@@ -602,6 +602,8 @@ const hi: Texts = {
         Expand: "प्रसार",
         Simplify: "सरलीकरण",
         Solve: "हल",
+        IFactor: "अपरिमेयगुणनखंड",
+        CSolve: "सम्मिश्रहल",
         LowerSum: "निम्नयोग",
         UpperSum: "उच्चयोग",
         BoxPlot: "बाक्सप्लाट",

@@ -491,11 +491,13 @@ Commandes de calcul formel (depuis le 2026-11-22, `CAS.md`), calculées
 par Giac, avec les noms anglais de GeoGebra (traduits dans l'éditeur),
 sauf si un objet porte ce nom : `Derivative(e)`, `Derivative(e, v)`,
 `Derivative(e, n)`, `Derivative(e, v, n)` (dérivée n-ième, n entier écrit),
-`Integral(e)`, `Integral(e, v)` (primitive), `Factor(e)`, `Expand(e)`,
-`Simplify(e)`, `Solve(e)`, `Solve(e, v)` (e une équation `g = d` ou une
-expression nulle ; la liste des solutions réelles). v est l'une des
-variables x, y, z, t, par défaut la première que lit e (x sinon) ; elle
-est liée dans `Solve`. Dans e, un objet est un symbole pour Giac (un
+`Integral(e)`, `Integral(e, v)` (primitive), `Factor(e)` (sur les
+rationnels), `IFactor(e)` (sur les radicaux, depuis le 2026-11-22, étape
+4), `Expand(e)`, `Simplify(e)`, `Solve(e)`, `Solve(e, v)` (e une équation
+`g = d` ou une expression nulle ; la liste triée des solutions réelles),
+`CSolve(e)`, `CSolve(e, v)` (des solutions complexes, étape 4). v est
+l'une des variables x, y, z, t, par défaut la première que lit e (x
+sinon) ; elle est liée dans `Solve` et `CSolve`. Dans e, un objet est un symbole pour Giac (un
 curseur déplacé ne change pas la requête), une expression de fonction ou
 une courbe appelée est remplacée par sa formule, et une partie sans
 variable que Giac ne lit pas (`d(A, B)`) est un symbole aussi ; une partie
@@ -503,8 +505,11 @@ qui lit une variable et que Giac ne lit pas rend la commande indéfinie.
 Les nombres sont envoyés exacts (0,1 est 1/10). La valeur est la réponse
 de Giac, relue comme une formule et évaluée avec les valeurs du moment ;
 indéfinie tant qu'elle n'est pas arrivée, ou si la grammaire des formules
-ne la lit pas (`erf`). Une expression dont la formule est une seule
-commande montre la réponse de Giac plutôt que sa formule.
+ne la lit pas (`erf`). Sans réponse de Giac (absent, pas encore arrivée,
+ou partie que Giac ne lit pas), `Derivative` est la dérivée symbolique de
+DocGeo (`dgp_derivative.ts`), de même valeur. Une expression dont la
+formule est une seule commande montre la réponse de Giac plutôt que sa
+formule.
 `mean(l)`, `median(l)`, `q1(l)`, `q3(l)`, `sd(l)` et `sampleSD(l)` sont la
 moyenne, la médiane, les quartiles et les écarts types (de la population,
 d'un échantillon) d'une liste de nombres, comme `Mean`, `Median`, `Q1`,

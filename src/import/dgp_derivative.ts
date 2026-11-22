@@ -190,8 +190,10 @@ export function derivative(
                     du(),
                     binary("*", number(2), call("sqrt", u)),
                 );
+            // Of a number: its absolute value.
             case "abs":
-                return binary("*", binary("/", u, call("abs", u)), du());
+            case "mod":
+                return binary("*", binary("/", u, call(fn, u)), du());
             case "exp":
                 return binary("*", call("exp", u), du());
             case "log":

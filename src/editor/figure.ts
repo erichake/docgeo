@@ -482,9 +482,12 @@ export function valueText(
     vec3: boolean,
 ): string {
     // Giac's answer to the computer algebra command it is.
-    const { formula } = object as { formula?: { node: FormulaNode } };
-    const answer =
-        formula && casShown(formula.node, (value) => formatValue(value ?? NaN));
+    // A formula point's formula is a program.
+    const node =
+        object instanceof expression_object
+            ? object.casNode
+            : (object as { formula?: { node?: FormulaNode } }).formula?.node;
+    const answer = node && casShown(node, (value) => formatValue(value ?? NaN));
     if (answer) return `= ${answer}`;
     // A list's values are what it draws.
     const value =

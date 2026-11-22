@@ -585,6 +585,8 @@ const ar: Texts = {
         Expand: "نشر",
         Simplify: "تبسيط",
         Solve: "حل",
+        IFactor: "تحليلغيرنسبي",
+        CSolve: "حلمركب",
         LowerSum: "مجموعسفلي",
         UpperSum: "مجموععلوي",
         BoxPlot: "مخططالصندوق",

@@ -609,6 +609,8 @@ const nl: Texts = {
         Expand: "Uitwerken",
         Simplify: "Vereenvoudig",
         Solve: "Los",
+        IFactor: "OntbindIrrationaal",
+        CSolve: "CLos",
         LowerSum: "Ondersom",
         UpperSum: "Bovensom",
         BoxPlot: "Boxplot",

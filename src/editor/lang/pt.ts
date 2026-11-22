@@ -602,6 +602,8 @@ const pt: Texts = {
         Expand: "Expandir",
         Simplify: "Simplificar",
         Solve: "Resolver",
+        IFactor: "FatorarComCoeficientesIrracionais",
+        CSolve: "ResolverNosComplexos",
         LowerSum: "SomaInferior",
         UpperSum: "SomaSuperior",
         BoxPlot: "BoxPlot",

@@ -603,6 +603,8 @@ const it: Texts = {
         Expand: "Sviluppa",
         Simplify: "Semplifica",
         Solve: "Risolvi",
+        IFactor: "FattorizzaI",
+        CSolve: "RisolviC",
         LowerSum: "SommaInferiore",
         UpperSum: "SommaSuperiore",
         BoxPlot: "BoxPlot",

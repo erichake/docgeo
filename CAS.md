@@ -1,7 +1,8 @@
 # Calcul formel (Giac) dans DocGeo — mémo de chantier
 
 Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
-Giac), 2 (Giac dans DocGeo) et 3 (commandes dans les formules) faites ; décisions de l'auteur prises le même jour (« Décisions de
+Giac), 2 (Giac dans DocGeo), 3 (commandes dans les formules) et 4 (import
+GeoGebra) faites ; décisions de l'auteur prises le même jour (« Décisions de
 l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
@@ -169,10 +170,13 @@ compatibles. GeoGebra a obtenu de l'Institut Fourier une licence
 particulière pour ses applications non libres. Elle ne nous concerne pas,
 puisque nous restons sous GPL.
 
-La table `Ggb2giac` est du code source de GeoGebra. Ce code est publié sous
-GPL v3, mais certaines parties du dépôt (traductions, ressources) sont sous
-d'autres licences, non commerciales : vérifier le `LICENSE` du dépôt avant
-d'en reprendre quoi que ce soit, et ne reprendre que du code.
+La table `Ggb2giac` est du code source de GeoGebra. Son en-tête la dit
+désormais sous **EUPL 1.2** (vérifié à l'étape 4 ; dépôt
+`source/shared/common/…/cas/giac/Ggb2giac.java`), licence compatible avec
+la GPL v3 par son annexe ; certaines parties du dépôt (traductions,
+ressources) sont sous d'autres licences, non commerciales. DocGeo n'en
+reprend que la sémantique (quelle commande de Giac donne la réponse de
+GeoGebra), dans ses propres requêtes, jamais le code.
 
 ### Intervenir sur Giac
 
@@ -405,6 +409,12 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 11. **Curseurs symboliques**, comme dans GeoGebra : `Factor(x^2 - a)`
     montre `x^2-a`.
 12. **Noms des commandes** de l'étape 3 acceptés dans les 12 langues.
+13. **Variables libres** (`IFactor(a^2 - 5)`, `a` n'étant pas un objet) :
+    attendre la vue CAS ; zxmurptj reste un échec jusque-là.
+14. **Noms** de `IFactor` et `CSolve` acceptés dans les 12 langues.
+15. **Requêtes autonomes**, sans le mode GeoGebra de Giac (`init
+    geogebra`) : DocGeo reste indépendant de GeoGebra, dont il ne reprend
+    jamais le code, seulement le sens des commandes.
 
 ## Étapes
 
@@ -455,7 +465,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   (`Derivative`, `Integral`, `Factor`, `Expand`, `Simplify`, `Solve`), relue
   dans le moteur, résultat enregistré dans le `.dgo`, recalcul pendant un
   glissement. Éditeur : commandes dans les 12 langues.
-- [ ] **Étape 4 (CAS) — import GeoGebra** : ces commandes passent par Giac quand
+- [x] **Étape 4 (CAS) — import GeoGebra** : ces commandes passent par Giac quand
   il est présent (repli actuel sinon), plus `IFactor`, `CSolve`, mode
   symbolique des suites. Mise à jour de `GGB_IMPORT.md` (exclusion
   levée, mesure du corpus).
@@ -473,13 +483,13 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 
 ## Point de reprise
 
-Étapes 0, M, 1, 2 et 3 faites le 2026-11-22 (comptes rendus ci-dessous).
-Étapes 2 et 3 committées sur la branche `cas` ;
+Étapes 0, M, 1, 2, 3 et 4 faites le 2026-11-22 (comptes rendus
+ci-dessous), 2 à 4 committées sur la branche `cas` ; questions de l'étape 4
+tranchées (décisions 13 à 15) ;
 `giac_MAIN` n'a encore aucun commit (à demander par l'auteur dans une
-session de `giac_MAIN`). Questions de l'étape 3 tranchées (décisions 9
-à 12). Le chantier compte +8,1 Ko au moteur sur 20. Prochaine action : étape 4, dans une
-session VS Code ouverte sur `docgeo_CAS` (« lis CAS.md et fais ce qu'il
-dit »).
+session de `giac_MAIN`). Le chantier compte +8,8 Ko au moteur sur 20.
+Prochaine action : étape 5, dans une session VS Code ouverte sur
+`docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -900,4 +910,110 @@ de `Intégrale(f, a, b)`, le message « ⚠ Giac ».
    `x^2-a`, pas `(x-2)*(x+2)`. D'accord ?
 4. **Noms** en néerlandais, hindi et arabe choisis sans référence de
    GeoGebra sous la main : à relire.
+
+### Étape 4 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`. Le corpus est relié par un lien
+symbolique (`tools/ggb_corpus/corpus` → celui de `docgeo_MAIN`, ignoré par
+git).
+
+**Interprétation** : « mode symbolique des suites » est lu comme le mode
+symbolique de la **Suite** GeoGebra (Calculatrice, `<symbolic val="true"/>`
+du noyau), dont les lignes sont des éléments `type="symbolic"` calculés
+par Giac. Le `<symbolic val="true"/>` d'un nombre (fraction montrée,
+63 figures) n'est qu'une façon de l'écrire : rien à faire.
+
+**Commandes alignées sur GeoGebra** (`Ggb2giac`, lu à l'étape) :
+- trouvé en mesurant : notre Giac factorise sur les radicaux par défaut
+  (`factor(x^2-2)` → `(x-√2)*(x+√2)`), alors que `Factor(x^2-2)` de
+  GeoGebra donne `x^2-2` : GeoGebra lance `init geogebra`, qui change aussi
+  la forme des réponses (`{x=…}`, `ί`, `+c_1` des primitives). DocGeo ne
+  le lance pas : ses requêtes restent autonomes (un Worker relancé perd
+  ses réglages) et règlent ce qu'il faut. `Factor` est
+  `[with_sqrt(0),factor(e,x),with_sqrt(1)][1]`, `IFactor` `factor(e,x)`,
+  `Solve` et `CSolve` triés (`ggbsort`), comme GeoGebra (`{-√a, √a}`) ;
+- nouvelles commandes `IFactor(e)` et `CSolve(e[, v])` (moteur, catalogue,
+  noms dans les 12 langues ; `CSolve` lie son inconnue comme `Solve`).
+
+| Commande | fr | de | es | it | pt | nl |
+| -------- | -- | -- | -- | -- | -- | -- |
+| IFactor | FactoriseIrr | IFaktorisiere | FactorizaI | FattorizzaI | FatorarComCoeficientesIrracionais | OntbindIrrationaal |
+| CSolve | CRésoudre | KLöse | ResoluciónC | RisolviC | ResolverNosComplexos | CLos |
+
+el : ΑρρητηΠαραγοντοποίηση, ΛύσηΜιγαδική ; ar : تحليلغيرنسبي، حلمركب ;
+hi : अपरिमेयगुणनखंड, सम्मिश्रहल ; zh : 实数域因式分解、复数求解 ; zh-TW :
+實數域因式分解、複數求解. Ceux de GeoGebra (`web3d/js/properties_keys_*`)
+quand ils existent, sauf nl, ar, hi, zh (accordés aux noms de l'étape 3).
+
+**Repli de `Derivative`** (`derivedCode` dans `dgp_formula.ts`) : sans
+réponse de Giac (absent, réponse pas encore arrivée, erreur, ou formule
+qu'il ne lit pas, comme un `If`), la dérivée est celle de
+`dgp_derivative.ts`, de même valeur exacte : une courbe dérivée s'affiche
+dès l'ouverture, avant le chargement de Giac. `dgp_derivative.ts` dérive
+aussi `mod` (l'`abs` de DGPad, sous lequel l'import écrit `abs`), que
+Giac lit maintenant comme `abs`.
+
+**Import GeoGebra** (`ggb_translate.ts`, détail dans `GGB_IMPORT.md`, item
+93) : `Derivative(f[, x][, n])` → `f'(x) = Derivative(f)` (au lieu de la
+différence centrée, fausse au bord du domaine) ; `Integral(f[, x])` →
+primitive `Integral(h)`, en commande et dans une formule ; les six
+commandes et `IFactor`, `CSolve` d'une formule passent telles quelles ;
+une ligne `symbolic` → expression cachée, simplifiée si elle n'est pas
+déjà une commande.
+
+**Corrigés au passage (défauts de l'étape 3)** :
+- `valueText` (valeurs sous les lignes de l'éditeur) lisait
+  `formula.node` de tout objet : un point calculé (`Fp`, dont la formule
+  est un programme) le faisait échouer, donc la liste des valeurs de
+  l'éditeur. Trouvé sur hx9namvf.
+- Une commande sans variable libre (`Simplify(sqrt(12) - sqrt(3))`,
+  `s = Solve(x^2 = 2)`, dont x est lié) est un programme, pas une formule
+  de fonction : sa réponse n'était pas montrée (`= 1.7321`). Les deux
+  affichages passent par `casNode` (`expression_object.ts`) : `= √3`.
+
+**Corpus** : 332 / 460 avant et après. hx9namvf : l'écart `a = f'(0)`
+(indéfini, −1 dans GeoGebra) est corrigé, la figure attend encore
+`Polynomial`. zxmurptj : 3 → 1 élément non importé (`IFactor(a^2 - 5)`,
+voir question 1). Les autres figures à `Derivative` ou `Integral` attendent
+autre chose (`FitPoly`, fonction écrite dans un texte, fonctions de trois
+variables).
+
+**Tests** :
+- `tests/unit/cas_formula.test.ts` : requêtes de `Factor`, `IFactor`,
+  `Solve`, `CSolve`, inconnue de `CSolve` liée, repli de la dérivée
+  (ordre 2, fonction nommée seule), primitive sans réponse indéfinie ;
+- `tests/browser/cas_commands.test.ts` (vrai Giac) : figure GeoGebra
+  importée (dérivée seconde, primitive en commande et dans une formule,
+  quatre lignes `symbolic`), lignes de l'éditeur, valeur de la dérivée
+  avant la réponse, valeurs et réponses montrées après ;
+- suite complète : unitaires 303/303 ; navigateur 1 595/1 596, l'échec
+  étant le pointage instable de `sheet.test.ts` (connu), qui passe seul
+  (17/17).
+
+**Poids** (`npx vite build` dans un dossier jetable, HEAD construit à
+part pour la comparaison) : moteur `engine-*` 384 301 → 384 976 octets
+(**+0,7 Ko**, gzip identique à 15 octets près) ; éditeur `main-*` +25
+octets ; importeur GeoGebra (à la demande) 103 044 → 103 555. Chantier :
++8,8 Ko sur 20.
+
+**Manuel, à couvrir plus tard** : `IFactor` et `CSolve` et leurs noms ;
+`Factor` sur les rationnels, `IFactor` sur les radicaux ; la réponse
+montrée aussi pour une commande sans x (`Résoudre`, `Simplifier(√12 −
+√3)`).
+
+**Questions pour l'auteur** (tranchées : décisions 13 à 15).
+1. **Variables libres** : une ligne de la Suite comme `IFactor(a^2 - 5)`,
+   où `a` n'est pas un objet, n'a pas d'équivalent dans une formule de
+   DocGeo (seules x, y, z, t sont libres). Recommandation : laisser cela à
+   la vue CAS (étapes 5 à 7), où les variables libres sont naturelles, et
+   compter zxmurptj comme un échec jusque-là. Autre voie : accepter dans
+   une commande de calcul formel une lettre qui n'est pas un objet, comme
+   symbole libre (valeur indéfinie, réponse montrée), environ 0,2 Ko.
+2. **Noms** de `IFactor` et `CSolve` en néerlandais, arabe, hindi et
+   chinois (pas ceux de GeoGebra, pour rester accordés à ceux de l'étape
+   3) : à relire.
+3. **`init geogebra`** : d'accord pour des requêtes autonomes (réglages
+   dans chaque requête) plutôt que le mode GeoGebra de Giac, qui
+   demanderait une option d'initialisation au module générique
+   (`giac_MAIN`) et une relecture de nouvelles formes de réponses ?
 

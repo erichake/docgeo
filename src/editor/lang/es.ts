@@ -606,6 +606,8 @@ const es: Texts = {
         Expand: "Desarrolla",
         Simplify: "Simplifica",
         Solve: "Resuelve",
+        IFactor: "FactorizaI",
+        CSolve: "ResoluciónC",
         LowerSum: "SumaInferior",
         UpperSum: "SumaSuperior",
         BoxPlot: "DiagramaCaja",

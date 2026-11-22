@@ -16,6 +16,7 @@ import { add } from "../../src/editor/figure";
 import type { curve_object } from "../../src/objects/curve_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import { evaluateFunction } from "../../src/objects/expression_object";
+import { importGgb } from "../../src/ggb_importer";
 
 disposeFigures();
 
@@ -132,5 +133,78 @@ describe("Computer algebra commands", () => {
                 () => c.formulaView(),
             ),
         ).toBeNull();
+    });
+
+    it("compute GeoGebra's commands and symbolic rows, a derivative being DocGeo's until Giac answers", async () => {
+        const c = figure();
+        const command = (name: string, inputs: string[], output: string) =>
+            `<command name="${name}"><input ${inputs.map((input, index) => `a${index}="${input}"`).join(" ")}/><output a0="${output}"/></command><element type="function" label="${output}"/>`;
+        const symbolic = (label: string, exp: string) =>
+            `<expression label="${label}" exp="${exp}"/><element type="symbolic" label="${label}"/>`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<expression label="f" exp="f(x) = a * x^(3) + abs(x - 2)"/>
+<element type="function" label="f"/>
+${command("Derivative", ["f", "2"], "g")}
+<expression label="h" exp="h(x) = 3x^(2)"/>
+<element type="function" label="h"/>
+${command("Integral", ["h"], "H")}
+<expression label="p" exp="p(x) = Integral[h(x)] + f(0)"/>
+<element type="function" label="p"/>
+${symbolic("r", "sqrt(12) - sqrt(3)")}
+${symbolic("s", "CSolve(x^(2) + 5)")}
+${symbolic("q", "IFactor(x^(2) - 5)")}
+${symbolic("k", "Factor(x^(2) - 5)")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        c.flush();
+        expect(lines(c)).toEqual([
+            "a = 2",
+            "f(x) = a * x^(3) + mod(x - 2)",
+            "g(x) = Derivative(f, 2)",
+            "h(x) = 3x^(2)",
+            "H(x) = Integral(h)",
+            "p(x) = Integral(h(x)) + f(0)",
+            "r = Simplify(sqrt(12) - sqrt(3))",
+            "s = CSolve(x^(2) + 5)",
+            "q = IFactor(x^(2) - 5)",
+            "k = Factor(x^(2) - 5)",
+        ]);
+        // Before Giac's answer.
+        expect(at(c, "g", 1)).toBe(12);
+        await vi.waitFor(
+            () => {
+                c.flush();
+                expect(at(c, "H", 2)).toBe(8);
+                expect(at(c, "p", 1)).toBe(3);
+                expect(c.getObj("r")!.scriptValue(false)).toBeCloseTo(
+                    Math.sqrt(3),
+                    12,
+                );
+                expect(c.getObj("s")!.scriptValue(false)).toEqual([
+                    [0, Math.sqrt(5)],
+                    [0, -Math.sqrt(5)],
+                ]);
+            },
+            { timeout: 20000, interval: 50 },
+        );
+        expect(at(c, "g", 1)).toBe(12);
+        const index = figureIndex(c);
+        const objects = figureObjects(c);
+        const shown = (name: string) => {
+            const object = c.getObj(name)!;
+            return valueText(object, lineOf(object, index, objects), false);
+        };
+        expect(["g", "r", "s", "q", "k"].map((name) => shown(name))).toEqual([
+            "= 6*a*x",
+            "= √3",
+            "= [i*√5,(-i)*√5]",
+            "= (x-√5)*(x+√5)",
+            "= x^2-5",
+        ]);
     });
 });

@@ -906,6 +906,18 @@ export class expression_object extends construction_object {
         this.defined = this.value !== null;
     }
 
+    // The computer algebra command it is, of x or not, whose answer it
+    // shows (see casShown).
+    get casNode(): FormulaNode | null {
+        const body = this.program?.program.body ?? [];
+        const node =
+            this.formula?.node ??
+            (body.length === 1 &&
+                body[0].kind === "expression" &&
+                body[0].node);
+        return node && node.kind === "cas" ? node : null;
+    }
+
     get isCursor(): boolean {
         return (
             typeof this.value === "number" &&
@@ -1078,15 +1090,17 @@ export class expression_object extends construction_object {
             const shown =
                 this.precision < 0
                     ? ""
-                    : this.formula
-                      ? (casShown(this.formula.node, (value) =>
-                            value === null
-                                ? "?"
-                                : formatShown(value, this.precision),
-                        ) ?? this.formula.source)
-                      : this.degrees && typeof this.value === "number"
-                        ? `${formatNumber((this.value * 180) / Math.PI, this.precision)}°`
-                        : formatShown(this.value!, this.precision);
+                    : (this.casNode &&
+                          casShown(this.casNode, (value) =>
+                              value === null
+                                  ? "?"
+                                  : formatShown(value, this.precision),
+                          )) ||
+                      (this.formula
+                          ? this.formula.source
+                          : this.degrees && typeof this.value === "number"
+                            ? `${formatNumber((this.value * 180) / Math.PI, this.precision)}°`
+                            : formatShown(this.value!, this.precision));
             // GeoGebra's caption, "%v" standing for its value.
             if (this.caption !== null)
                 this.valueText.text(this.caption.replace(/%v/g, shown));

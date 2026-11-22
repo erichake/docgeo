@@ -614,6 +614,8 @@ const el: Texts = {
         Expand: "Ανάπτυξη",
         Simplify: "Απλοποίηση",
         Solve: "Λύση",
+        IFactor: "ΑρρητηΠαραγοντοποίηση",
+        CSolve: "ΛύσηΜιγαδική",
         LowerSum: "ΚάτωΆθροισμα",
         UpperSum: "ΆνωΆθροισμα",
         BoxPlot: "Θηκόγραμμα",

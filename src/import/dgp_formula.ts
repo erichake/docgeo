@@ -20,6 +20,7 @@ import {
     type CasNode,
     type CasParameter,
 } from "./cas_formula";
+import { derivative } from "./dgp_derivative";
 
 export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
 export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
@@ -1734,12 +1735,12 @@ function ownTurtles(program: Program): string[] {
     );
 }
 
-// But the unknown of a Solve, which it binds.
+// But the unknown of a Solve or CSolve, which it binds.
 export function formulaIdentifiers(node: FormulaNode): Set<string> {
     const names = new Set<string>();
     const walk = (node: FormulaNode, bound: ReadonlySet<string>): void => {
         nodeNames(node).forEach((name) => bound.has(name) || names.add(name));
-        const unknown = node.kind === "cas" && node.fn === "Solve";
+        const unknown = node.kind === "cas" && node.fn.endsWith("Solve");
         const inner = unknown
             ? new Set([...bound, ...solveUnknown(node)])
             : bound;
@@ -2939,6 +2940,7 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
                 ),
             )
             .get(part)!;
+    let derived: Code | null | undefined;
     return (frame) => {
         const { degrees } = frame.env.view();
         const built = casRequest(
@@ -2947,7 +2949,11 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
             (name) => frame.env.functionOf?.(name) ?? null,
         );
         const answer = built && casAnswer(node, built.request);
-        if (typeof answer !== "string") return null;
+        if (typeof answer !== "string") {
+            if (node.fn !== "Derivative") return null;
+            derived ??= derivedCode(node, frame, compile);
+            return derived && derived(frame);
+        }
         const tree = casTree(answer, built!.read, degrees);
         const values = built!.parameters.map(({ node: part, owner }) =>
             owner ? owner.value(part) : code(part)(frame),
@@ -2964,6 +2970,36 @@ function compileCas(node: CasNode, compile: (node: FormulaNode) => Code): Code {
             })
         );
     };
+}
+
+// Without Giac's answer (Giac missing or still computing, a formula it
+// can't read), a derivative is DocGeo's own (see dgp_derivative.ts), a
+// function named alone being called with its variables.
+function derivedCode(
+    node: CasNode,
+    frame: Frame,
+    compile: (node: FormulaNode) => Code,
+): Code | null {
+    const [body, ...rest] = node.args;
+    let variable = "x";
+    let order = 1;
+    for (const arg of rest)
+        if (arg.kind === "identifier") variable = arg.name;
+        else if (arg.kind === "number") order = arg.value;
+    const variablesOf = (name: string) =>
+        frame.env.functionOf?.(name)?.variables ?? null;
+    const name = body.kind === "identifier" ? body.name : "";
+    const variables = name && variablesOf(name);
+    let derived: FormulaNode | null = variables
+        ? {
+              kind: "userCall",
+              name,
+              args: variables.map((name) => ({ kind: "identifier", name })),
+          }
+        : body;
+    for (let n = 0; n < order && derived; n++)
+        derived = derivative(derived, variable, variablesOf);
+    return derived && compile(derived);
 }
 
 // A list reversed in place if the script owns it, as JavaScript's.

@@ -618,6 +618,8 @@ const de: Texts = {
         Expand: "Multipliziere",
         Simplify: "Vereinfache",
         Solve: "Löse",
+        IFactor: "IFaktorisiere",
+        CSolve: "KLöse",
         LowerSum: "Untersumme",
         UpperSum: "Obersumme",
         BoxPlot: "Boxplot",

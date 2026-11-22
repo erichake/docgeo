@@ -37,8 +37,13 @@ const f: CasFunction = {
 
 describe("computer algebra requests", () => {
     it("writes the objects as symbols, numbers exact", () => {
-        expect(request("Derivative(x^3+a*x)")).toBe("regroup(diff((x^3)+(dg0*x),x))");
-        expect(request("Factor(x^2-0.25)")).toBe("factor((x^2)-25/100)");
+        expect(request("Derivative(x^3+a*x)")).toBe(
+            "regroup(diff((x^3)+(dg0*x),x))",
+        );
+        expect(request("Factor(x^2-0.25)")).toBe(
+            "[with_sqrt(0),factor((x^2)-25/100,x),with_sqrt(1)][1]",
+        );
+        expect(request("IFactor(a^2-5)")).toBe("factor((dg0^2)-5,x)");
         expect(request("Expand((x+a)*(x-a))")).toBe("expand((x+dg0)*(x-dg0))");
         expect(request("Integral(1.5e-7*t)")).toBe(
             "regroup(integrate(15/100000000*t,t))",
@@ -48,12 +53,13 @@ describe("computer algebra requests", () => {
     it("takes a variable, an order, Solve's equation", () => {
         expect(request("Derivative(x*y, y)")).toBe("regroup(diff(x*y,y))");
         expect(request("Derivative(x^3, 2)")).toBe("regroup(diff(x^3,x,2))");
-        expect(request("Solve(x^2 = a)")).toBe("solve(x^2=dg0,x)");
-        expect(request("Solve(x^2 - 2)")).toBe("solve((x^2)-2,x)");
+        expect(request("Solve(x^2 = a)")).toBe("ggbsort(solve(x^2=dg0,x))");
+        expect(request("Solve(x^2 - 2)")).toBe("ggbsort(solve((x^2)-2,x))");
+        expect(request("CSolve(x^2 + 5)")).toBe("ggbsort(csolve((x^2)+5,x))");
     });
 
     it("keeps a part that reads no variable as a symbol, refuses one that does", () => {
-        expect(request("Factor(x^2-d(A,B))")).toBe("factor((x^2)-dg0)");
+        expect(request("Expand(x^2-d(A,B))")).toBe("expand((x^2)-dg0)");
         expect(request("Factor(floor(x))")).toBeNull();
     });
 
@@ -76,6 +82,9 @@ describe("computer algebra requests", () => {
         expect([...formulaIdentifiers(parseFormula("Solve(x^2 = a)"))]).toEqual(
             ["a"],
         );
+        expect([
+            ...formulaIdentifiers(parseFormula("CSolve(x^2 + a)")),
+        ]).toEqual(["a"]);
     });
 });
 
@@ -108,7 +117,8 @@ describe("computer algebra formulas", () => {
         const requests: string[] = [];
         answerCas((_site, request) => {
             requests.push(request);
-            return request === "factor((x^2)-(dg0^2))"
+            return request ===
+                "[with_sqrt(0),factor((x^2)-(dg0^2),x),with_sqrt(1)][1]"
                 ? "(x-dg0)*(x+dg0)"
                 : undefined;
         });
@@ -124,5 +134,23 @@ describe("computer algebra formulas", () => {
         expect(new Set(requests).size).toBe(1);
         expect(casShown(node, String)).toBe("(x-a)*(x+a)");
         expect(evaluateValue(parseFormula("Expand(x)"), env)).toBeNull();
+    });
+
+    it("derive without Giac's answer, a function named alone too", () => {
+        answerCas(() => undefined);
+        const values: Record<string, ScriptValue> = { x: 2, a: 3 };
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => values[name],
+            view: () => NO_VIEW,
+            functionOf: (name) => (name === "f" ? f : null),
+            // f(x) = a x^2: f'(x) = 2 a x.
+            callFunction: (_name, [x], derivatives) =>
+                derivatives.join() === "x" ? 6 * (x as number) : null,
+        };
+        expect(evaluateValue(parseFormula("Derivative(a*x^3, 2)"), env)).toBe(
+            36,
+        );
+        expect(evaluateValue(parseFormula("Derivative(f)"), env)).toBe(12);
+        expect(evaluateValue(parseFormula("Integral(x)"), env)).toBeNull();
     });
 });

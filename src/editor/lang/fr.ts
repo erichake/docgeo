@@ -605,6 +605,8 @@ const fr: Texts = {
         Expand: "Développer",
         Simplify: "Simplifier",
         Solve: "Résoudre",
+        IFactor: "FactoriseIrr",
+        CSolve: "CRésoudre",
         LowerSum: "SommeInférieure",
         UpperSum: "SommeSupérieure",
         BoxPlot: "BoîteMoustaches",

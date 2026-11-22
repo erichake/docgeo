@@ -16,9 +16,11 @@ export const CAS_ARITY = {
     Derivative: 3,
     Integral: 2,
     Factor: 1,
+    IFactor: 1,
     Expand: 1,
     Simplify: 1,
     Solve: 2,
+    CSolve: 2,
 };
 export type CasFn = keyof typeof CAS_ARITY;
 // Of a command's name, undefined for another name.
@@ -28,13 +30,18 @@ export const casArity = (name: string): number | undefined =>
         : undefined;
 export type CasNode = { kind: "cas"; fn: CasFn; args: FormulaNode[] };
 
+// As GeoGebra's (Ggb2giac): `%` stands for the arguments. Factor doesn't
+// write square roots, IFactor does (Giac's default, restored), Derivative
+// and Integral gather their terms, solutions are sorted.
 const GIAC: Record<CasFn, string> = {
-    Derivative: "diff",
-    Integral: "integrate",
-    Factor: "factor",
-    Expand: "expand",
-    Simplify: "simplify",
-    Solve: "solve",
+    Derivative: "regroup(diff(%))",
+    Integral: "regroup(integrate(%))",
+    Factor: "[with_sqrt(0),factor(%),with_sqrt(1)][1]",
+    IFactor: "factor(%)",
+    Expand: "expand(%)",
+    Simplify: "simplify(%)",
+    Solve: "ggbsort(solve(%))",
+    CSolve: "ggbsort(csolve(%))",
 };
 
 // The functions' variables (see FUNCTION_VARIABLES), symbols for Giac.
@@ -43,6 +50,8 @@ const VARIABLES = ["x", "y", "z", "t"];
 const CALLS: Record<string, string> = {
     sqrt: "sqrt",
     abs: "abs",
+    // GeoGebra's abs, imported (see ggb_translate.ts).
+    mod: "abs",
     exp: "exp",
     log: "ln",
     sin: "sin",
@@ -214,10 +223,11 @@ export function casRequest(
                 order = `,${arg.value}`;
             else throw UNREAD;
         variable ??= VARIABLES.find((name) => read.has(name)) ?? "x";
-        if (CAS_ARITY[part.fn] === 1) return `${GIAC[part.fn]}(${text})`;
-        const call = `${GIAC[part.fn]}(${text},${variable}${order})`;
-        // As GeoGebra, whose diff doesn't gather its terms.
-        return part.fn === "Solve" ? call : `regroup(${call})`;
+        return GIAC[part.fn].replace("%", () =>
+            part.fn === "Expand" || part.fn === "Simplify"
+                ? text
+                : `${text},${variable}${order}`,
+        );
     };
 
     try {

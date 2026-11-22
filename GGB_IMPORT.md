@@ -16,8 +16,8 @@ débloque :
 - réutiliser le moteur existant (`dgp_formula.ts`, objets DGP) plutôt que
   d'ajouter du code parallèle ;
 - calcul formel : seulement par le module Giac chargé à la demande
-  (chantier `CAS.md`), jamais dans le moteur ; sans lui, dériver ou
-  intégrer numériquement comme aujourd'hui ;
+  (chantier `CAS.md`), jamais dans le moteur ; sans lui, la dérivée
+  symbolique de DocGeo et l'intégrale numérique ;
 - renoncer à une fonctionnalité rare dont le coût en taille est élevé.
 
 ## Périmètre
@@ -33,8 +33,9 @@ Hors périmètre, définitivement :
 
 Le calcul formel (CAS), longtemps exclu, est rentré dans le périmètre le
 2026-11-22 par décision de l'auteur : il passe par Giac, module séparé
-chargé à la demande (`CAS.md`), et ses commandes (`IFactor`, `CSolve`…)
-sont traduites à l'étape 4 de ce chantier, la mesure du corpus mise à jour.
+chargé à la demande (`CAS.md`), et ses commandes (`Derivative`, primitive
+`Integral`, `IFactor`, `CSolve`…) sont traduites depuis l'étape 4 de ce
+chantier (item 93).
 
 Tout le reste est dans le périmètre, y compris les scripts GeoGebra
 (GgbScript), traduits en programmes qui s'ouvrent en blocs, les statistiques
@@ -272,6 +273,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-17 | 328 / 459 (71 %)   | 362,8 Ko | item 90 : lignes `= …` (points de direction et de conique, intégrales, patrons, listes) (+53) |
 | 2026-11-17 | 331 / 459 (72 %)   | 363,6 Ko | item 91 : `IterationList` natif, section par des arêtes, homothétie sans centre ; plus de ligne `= …` (+3) |
 | 2026-11-18 | 332 / 460 (72 %)   | 364,0 Ko | item 92 : foyers et sommets d'une section de cône ou de cylindre, `abs` d'un vecteur de l'espace (+1) |
+| 2026-11-22 | 332 / 460 (72 %)   | moteur +0,7 Ko | item 93 (branche `cas`) : `Derivative`, primitive `Integral`, `IFactor`, `CSolve`, lignes `symbolic` par Giac (+0, un écart corrigé) |
 
 ## À faire, par rapport gain / coût
 
@@ -562,8 +564,8 @@ cause.
       éléments non importés 2889 → 2844 ; build +1,3 Ko. Les 3 figures à
       `Mode` s'ouvrent dans l'état enregistré : leurs listes déroulantes ne
       sont pas dessinées et `SelectedIndex` garde sa valeur enregistrée.
-      `CSolve` et `IFactor` relèvent du calcul formel (repris par
-      l'étape 4 de `CAS.md`).
+      `CSolve` et `IFactor` relèvent du calcul formel (traduits à l'item
+      93).
 - [x] **21. Calques** : le `layer` d'un élément (0 à 9, dans 79 figures
       du corpus sur 470) était ignoré. Fait : il devient le style `l`, le
       calque de DGPad (`construction_object.level`) : un objet est peint
@@ -1832,3 +1834,26 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       d'une section reste non traduite (une formule ne lit pas une
       section). **+1 figure** (dandelin01), **332 / 460**, aucune perdue,
       aucun écart. Moteur +0,4 Ko, importeur GeoGebra 102,8 → 103,0 Ko.
+- [x] **93. Calcul formel par Giac (étape 4 de `CAS.md`, branche
+      `cas`)** : `Derivative(f)`, `Derivative(f, n)`, `Derivative(f, x)`
+      deviennent `f'(x) = Derivative(f)`, calculée par Giac, et la dérivée
+      symbolique de DocGeo (`dgp_derivative.ts`) en attendant sa réponse ou
+      sans lui, au lieu de la différence centrée de l'item 11 (fausse au
+      bord du domaine : `a = f'(0)` d'hx9namvf, f définie pour x ≥ 0,
+      valait `?` ; elle vaut −1 comme dans GeoGebra). `Integral(f)` et
+      `Integral(f, x)` (primitive), en commande ou dans une formule
+      (`p(x) = Integral[h(x)] + f(0)`), deviennent la commande `Integral`
+      de DocGeo ; `Integral(f, a, b)` reste l'intégrale numérique. Les
+      commandes `Factor`, `IFactor`, `Expand`, `Simplify`, `Solve`,
+      `CSolve` d'une formule passent telles quelles. Les lignes du mode
+      symbolique de la Suite GeoGebra (`element type="symbolic"`) sont des
+      expressions cachées (son graphique ne les dessine pas), une formule
+      qui n'est pas déjà une commande étant simplifiée
+      (`Simplify(sqrt(12) - sqrt(3))`, réponse `√3`). Au passage, Giac lit
+      `abs`, que l'import écrit `mod`. **+0 figure** (332 / 460) : hx9namvf
+      attend aussi `Polynomial({B, C, D})` ; zxmurptj (3 → 1 élément non
+      importé) attend une variable libre (`IFactor(a^2 - 5)`, `a` n'étant
+      pas un objet : question de `CAS.md`) ; eMeHGDxk attend `FitPoly`,
+      yy9v3pxp l'écriture d'une fonction dans un texte (`"f'(x) = " + f'`,
+      item 1 des leviers), aruq33yh les fonctions de trois variables.
+      Moteur +0,7 Ko, importeur GeoGebra 103,0 → 103,6 Ko.

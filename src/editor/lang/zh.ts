@@ -570,6 +570,8 @@ const zh: Texts = {
         Expand: "展开",
         Simplify: "化简",
         Solve: "求解",
+        IFactor: "实数域因式分解",
+        CSolve: "复数求解",
         LowerSum: "下和",
         UpperSum: "上和",
         BoxPlot: "箱线图",

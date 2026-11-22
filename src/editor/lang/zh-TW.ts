@@ -571,6 +571,8 @@ const zh_TW: Texts = {
         Expand: "展開",
         Simplify: "化簡",
         Solve: "求解",
+        IFactor: "實數域因式分解",
+        CSolve: "複數求解",
         LowerSum: "下和",
         UpperSum: "上和",
         BoxPlot: "箱線圖",

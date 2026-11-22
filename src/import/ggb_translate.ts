@@ -14,6 +14,7 @@ import {
     realPart,
     usesView,
 } from "./dgp_formula";
+import { casArity } from "./cas_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 // A GeoGebra figure is translated into the same command list a .dgp file
@@ -262,6 +263,15 @@ const evaluateConstant = (source: string): number | null =>
         }),
     );
 const FUNCTIONS: Record<string, string | Expansion> = {
+    // Computed by Giac (see CAS.md); Integral between bounds is a command.
+    Derivative: "Derivative",
+    Integral: (args) => (args.length > 2 ? "?" : `Integral(${args})`),
+    Factor: "Factor",
+    IFactor: "IFactor",
+    Expand: "Expand",
+    Simplify: "Simplify",
+    Solve: "Solve",
+    CSolve: "CSolve",
     Distance: "d",
     Dot: "dot",
     Midpoint: ([p, q]) => (q ? `((${p})+(${q}))/2` : "?"),
@@ -403,8 +413,6 @@ const COLOR_NAMES = new Map(
         .split(" ")
         .map((entry) => [entry.slice(0, -6), entry.slice(-6)]),
 );
-// Numerical analysis: a derivative's step.
-const DERIVATIVE_STEP = 1e-4;
 // The samples among which a function's roots are sought.
 const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
@@ -3140,9 +3148,6 @@ export function translateGgb(
         return failed ? null : text.trim();
     };
 
-    const derivative = (f: string, x: string): string =>
-        `((${f}((${x})+${DERIVATIVE_STEP})-${f}((${x})-${DERIVATIVE_STEP}))/${2 * DERIVATIVE_STEP})`;
-
     const shapeStyle = (
         element: Element,
         kind: Kind = "polygon",
@@ -3213,6 +3218,27 @@ export function translateGgb(
                 shapeStyle(element),
             );
         };
+
+    // Of a function, computed by Giac (see CAS.md), with respect to x, a
+    // derivative also of an order.
+    const casFunction = (
+        command: string,
+        [f, ...rest]: string[],
+        label: string,
+    ): boolean => {
+        const body = functions.has(f)
+            ? objects.get(f)!.variable
+            : functionBody(f);
+        return (
+            body !== null &&
+            rest.every(
+                (arg) =>
+                    arg === "x" ||
+                    (command === "Derivative" && /^[1-9]\d*$/.test(arg)),
+            ) &&
+            defineFunction(label, `${command}(${[body, ...rest].join(", ")})`)
+        );
+    };
 
     // A list as a whole: a formula that reads it, its items written out.
     const arrayFormula = (
@@ -5533,11 +5559,13 @@ export function translateGgb(
                       `(x>=(${min})&&x<=(${max}))?(${body}):(0/0)`,
                   );
         },
-        Derivative: ([f, extra], [label]) => {
-            const fn = extra === undefined && functionOf(f);
-            return !!fn && defineFunction(label, derivative(fn, "x"));
-        },
-        Integral: integral("Integral", 2),
+        Derivative: (inputs, [label]) =>
+            inputs.length <= 3 && casFunction("Derivative", inputs, label),
+        // Between bounds, a number; else a function's antiderivative.
+        Integral: (inputs, outputs) =>
+            inputs.length > 2
+                ? integral("Integral", 2)(inputs, outputs)
+                : casFunction("Integral", inputs, outputs[0]),
         LowerSum: integral("LowerSum", 3),
         UpperSum: integral("UpperSum", 3),
         Random: savedValue((inputs) => `Random(${inputs})`),
@@ -6649,6 +6677,29 @@ export function translateGgb(
                       ? "EquationCircle"
                       : "EquationConic",
                 (sides as string[]).map(literal),
+            );
+        }
+        // A row of GeoGebra's symbolic mode (its Suite), computed by Giac,
+        // which its graphics don't draw: a hidden number of the figure.
+        if (type === "symbolic" && source !== undefined) {
+            const content = formula(source, VALUE_KINDS, new Map([["x", "x"]]));
+            if (content === null) return false;
+            const call = commandCall(content);
+            return define(
+                label,
+                "expression",
+                "Expression",
+                [
+                    "",
+                    "",
+                    "",
+                    call && casArity(call[0])
+                        ? content
+                        : `Simplify(${content})`,
+                    "0",
+                    "0",
+                ].map(literal),
+                expressionStyle(element, false),
             );
         }
         if (type === "numeric" || type === "angle")
