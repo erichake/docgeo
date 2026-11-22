@@ -2460,7 +2460,12 @@ ${point("R", 0.5, 0)}${point("S", -3, 0)}
         const image = c.getObj("MBImage") as image_object;
         const checkbox = c.getObj("b") as expression_object;
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        expect([checkbox.checkbox, checkbox.value]).toEqual([true, 0]);
+        expect([checkbox.checkbox, checkbox.value]).toEqual([true, 1]);
+        expect(image.isVisible).toBe(true);
+
+        checkbox.value = 0;
+        c.invalidateGeometry(checkbox);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         expect(image.isVisible).toBe(false);
 
         checkbox.value = 1;

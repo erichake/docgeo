@@ -118,6 +118,14 @@ const mouse: BrowserCommand<
         : mouse[action]());
 };
 
+// Text typed, or a key pressed ("Enter"), in the last window the tests
+// opened.
+const keyboard: BrowserCommand<[action: "type" | "press", text: string]> = (
+    { page },
+    action,
+    text,
+) => page.context().pages().at(-1)!.keyboard[action](text);
+
 export default defineConfig({
     plugins: [
         serveDocCells(),
@@ -142,7 +150,7 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: "chromium" }],
-            commands: { drag, hover, mouse, pinch, throttle },
+            commands: { drag, hover, keyboard, mouse, pinch, throttle },
         },
     },
 });

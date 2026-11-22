@@ -572,6 +572,82 @@ describe("cells picked while a line is typed", () => {
     });
 });
 
+describe("objects picked while a cell's formula is typed", () => {
+    it("give GEO of their names at the caret, the sheet view kept", async () => {
+        const popup = window.open(
+            `/editor.html?lang=fr&url=${location.origin}/tests/dgo/tableur_geo.dgo`,
+            "_blank",
+            "width=1200,height=700",
+        ) as typeof window;
+        cleanup.push(() => popup.close());
+        const page = await until(
+            () =>
+                popup.document?.querySelector(".docgeo-sheet.on") &&
+                popup.document,
+        );
+        const docCells = await cell(page, "Feuille1!A1", 3);
+        const palette = page.querySelector("#dge-palette")!;
+        if (palette.getClientRects().length)
+            page.querySelector<HTMLElement>(
+                ".dge-bar .dge-palette-button",
+            )!.click();
+        const iframe = page.querySelector(".docgeo-sheet > iframe")!;
+        const frame = (iframe as HTMLIFrameElement)
+            .contentWindow! as typeof window;
+        const area = frame.document
+            .querySelector(".fortune-cell-area")!
+            .getBoundingClientRect();
+        const { left, top } = iframe.getBoundingClientRect();
+        const svg = page
+            .querySelector("body > svg:has([data-layer])")!
+            .getBoundingClientRect();
+        // The view's origin at (200, 300), 40 px a unit.
+        const point = (x: number, y: number) =>
+            [svg.left + 200 + 40 * x, svg.top + 300 - 40 * y] as const;
+        // Columns of 100 px, rows of 20 px.
+        const at = (r: number, c: number) =>
+            [
+                left + area.left + c * 100 + 50,
+                top + area.top + r * 20 + 10,
+            ] as const;
+        const click = async (x: number, y: number) => {
+            await commands.mouse("move", x, y);
+            await commands.mouse("down");
+            await commands.mouse("up");
+        };
+        const on = () => page.body.classList.contains("dge-sheet-on");
+        const input = () =>
+            frame.document.querySelector("#luckysheet-rich-text-editor")!
+                .textContent;
+        const value = (ref: string) =>
+            JSON.stringify(docCells.getValues(ref)[0][0]);
+        await until(() => value("Feuille1!C1") === "[4,3]");
+        const rows = page.querySelectorAll(".dge-row").length;
+        await click(...at(1, 1));
+        await until(on);
+        await commands.keyboard("type", "=2*");
+        await until(() => input() === "=2*");
+        await click(...point(1, 2));
+        await until(() => input() === '=2*GEO("A")');
+        // A second object replaces the first.
+        await click(...point(3, 1));
+        await until(() => input() === '=2*GEO("B")');
+        expect(on()).toBe(true);
+        expect(page.querySelector(".dge-picked")).toBe(null);
+        await commands.keyboard("type", "+1");
+        await commands.keyboard("press", "Enter");
+        await until(() => value("Feuille1!B2") === "[7,2]");
+        // Neither moved, nor a point made.
+        expect(value("Feuille1!C1")).toBe("[4,3]");
+        expect(page.querySelectorAll(".dge-row").length).toBe(rows);
+        expect(on()).toBe(true);
+        // Out of a formula, the figure takes the press as before.
+        await click(...point(1, 2));
+        await until(() => !on());
+        expect(value("Feuille1!B2")).toBe("[7,2]");
+    });
+});
+
 describe("cells read by the shown figure", () => {
     it("follows the cells typed in DocCells, a range as a list", async () => {
         const { page, request, typed } = await editor("/index.html?embed");
@@ -609,6 +685,7 @@ declare module "vitest/browser" {
             x?: number,
             y?: number,
         ) => Promise<void>;
+        keyboard: (action: "type" | "press", text: string) => Promise<void>;
     }
 }
 

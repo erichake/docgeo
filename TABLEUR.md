@@ -133,6 +133,16 @@ Décisions du 2026-11-21 (11 faite, étape 14) :
     cliquer ou sélectionner dans la vue tableur insère la référence
     (`!A1:A200`).
 
+Décision du 2026-11-22 (étape 16) :
+
+13. **Objet de la figure inséré dans une formule de cellule** : l'inverse
+    de la décision 12. Pendant la saisie d'une formule dans DocCells
+    (éditeur de la cellule ou barre de formule, vide ou commençant par
+    `=`), cliquer un objet de la figure écrit `GEO("A")` au curseur. Une
+    cellule seulement sélectionnée, même vide, n'est jamais modifiée.
+    Éditeur seul, comme l'étape 15 : dans le lecteur, un clic sur un objet
+    reste une manipulation.
+
 ## Modèle
 
 - **Un classeur DocCells par page au plus**, montré par **une vue tableur au
@@ -617,6 +627,82 @@ qui est dit plus haut.
   - `GEO` renvoie les points et les listes ; la figure lit une liste dans
     une cellule.
 
+- [x] **Étape 16 (DocCells et DocGeo) — un objet de la figure inséré dans
+  une formule de cellule** (décision 13). Comme l'étape 15, dans l'autre
+  sens : pendant la saisie d'une formule dans la vue tableur, cliquer le
+  point `A` de la figure écrit `GEO("A")` dans la formule.
+  - **DocCells : fait le 2026-11-22** (dans `doccells_MAIN`, commit
+    `a096a9e` ;
+    `npm run build:doctools` fait, donc déjà servi à DocGeo). Décrit dans
+    son `EMBED.md`, section 16 (et tableaux des sections 2, 5 et 6) ; code
+    dans `src/features/embed/hostNameInsertion.js`. Générique : rien de
+    propre à DocGeo.
+    - Événement `formulaEditing` `{ on }` : `true` tant qu'un éditeur de
+      DocCells est ouvert (cellule ou barre de formule) et qu'il est vide
+      ou commence par `=` ; `false` sinon. Émis à chaque changement
+      seulement, `false` au départ.
+    - `insertHostName(name)` (accès synchrone, renvoie `true` / `false`) :
+      éditeur vide → `=GEO("name")` ; formule → `GEO("name")` au curseur
+      (ou à la place du texte sélectionné, jamais avant le `=`) ; deux
+      insertions de suite sans frappe entre elles se remplacent (cliquer
+      `A` puis `B` donne `GEO("B")`, comme deux clics sur des cellules) ;
+      pas d'éditeur ou un texte qui n'est pas une formule → rien, `false`.
+      Nom vide ou avec un guillemet : `Error("Invalid request")`.
+    - Rien n'est validé : l'utilisateur continue d'écrire puis valide par
+      Entrée ou annule par Échap. DocCells rend lui-même le focus à son
+      éditeur, curseur après l'insertion, même si le clic dans la figure
+      l'avait pris à l'iframe : DocGeo n'a rien à faire pour le focus.
+    - Particularité de FortuneSheet : après Entrée **dans la barre de
+      formule**, l'éditeur reste ouvert sur la cellule suivante
+      (`formulaEditing` reste `true`).
+    - Tests DocCells : `tests/embed.test.mjs` 18/18,
+      `tests/browser/embedMode.browser.mjs` 59/59 (les deux contrôles
+      « désignation » de l'étape 15 y échouent par intermittence, déjà
+      avant cette étape : focus parti dans l'iframe, problème de rythme du
+      test, à noter dans « Remarques pour la suite »).
+  - **DocGeo : fait le 2026-11-22**, éditeur seul (`src/editor/main.ts`), lecteur et
+    moteur inchangés :
+    - `src/sheet.ts` : ajouter `insertHostName(name: string): boolean` à
+      l'interface `DocCells` (type seul).
+    - Dans `pickCells(cells)` (appelé par `sheetReady`, code de l'étape
+      15) : suivre `cells.on("formulaEditing", ({ on }) => …)` dans une
+      variable.
+    - Dans le gestionnaire d'appui sur la figure, à côté de la branche
+      `const field = editing(); if (field) { … }` qui désigne un objet
+      pendant une saisie dans la Construction : quand `formulaEditing` est
+      vrai, une branche semblable (mêmes `pick`, `propertyObject` pour les
+      curseurs, textes…, et `chooseHit` quand plusieurs objets sont sous le
+      pointeur) qui appelle `cells.insertHostName(object.name)` au lieu de
+      `designateTyped`. Aucun point créé au clic dans le vide, aucun objet
+      déplacé, aucune étape d'annulation, aucune sélection.
+    - Le nom inséré est celui que `GEO` relit (section « `GEO` : une
+      cellule lit la figure ») : la vue tableur et la figure cliquée sont
+      sur la même page, donc le nom simple. Un nom avec un guillemet n'est
+      pas lisible par `GEO` : ne rien insérer (ou attraper l'erreur).
+    - La vue tableur reste active pendant ce clic (pas de bascule des
+      barres vers celles de DocGeo) : l'utilisateur est toujours en train
+      d'écrire dans la cellule. À vérifier, comme l'étape 15 l'a fait dans
+      l'autre sens.
+    - Survol : le même retour visuel que pendant une saisie dans la
+      Construction, s'il en existe un ; rien de plus.
+    - Hors saisie d'une formule dans DocCells, un clic sur la figure se
+      comporte comme aujourd'hui.
+  - Tests DocGeo (`tests/browser/sheet.test.ts`, à la vraie souris, comme
+    « cells picked while a line is typed ») : dans une page mixte, taper
+    `=2*` dans une cellule, cliquer le point `A` → l'éditeur de la cellule
+    contient `=2*GEO("A")` ; cliquer `B` → `=2*GEO("B")` ; taper `+1`,
+    Entrée → la cellule vaut la valeur attendue d'après la figure ; `A` et
+    `B` n'ont pas bougé, aucun point créé, barres de DocCells gardées. Hors
+    saisie, un clic sur un point le sélectionne comme avant. Poids du
+    lecteur et du moteur inchangés.
+  - Manuel (ne pas le modifier, noter seulement) : page tableur, section
+    « Les cellules lisent la figure : GEO » (`#geo`), sur le modèle de
+    « Désigner les cellules à la souris » (`#souris`).
+  - Le compte rendu « Étape 16 : ce qui est fait » reprend la partie
+    DocCells ci-dessus. Si DocCells doit changer, la session DocGeo le
+    modifie, refait ses tests et `npm run build:doctools` (comme aux
+    étapes 3, 6, 7, 9, 11, 13 et 15).
+
 ## Limites de la v1
 
 - Saisies de l'élève dans les cellules absentes de l'état élève.
@@ -634,6 +720,11 @@ l'étape 14, capture `tableur.webp` refaite). Étape 15 (insertion à la
 souris) faite et commitée, dans DocCells et DocGeo, manuel compris (page
 tableur, « Désigner les cellules à la souris »). Restent les décisions de
 l'auteur sur les limites de la v1.
+
+2026-11-22 : étape 16 (décision 13) faite et commitée, dans DocCells
+(`a096a9e`) et DocGeo, manuel compris (page tableur, « Désigner les objets
+à la souris », `#objets-souris`). Restent les décisions de l'auteur sur
+les limites de la v1.
 
 ## Comptes rendus des étapes
 
@@ -1517,6 +1608,63 @@ DocGeo).
   plage. Hors saisie, un clic dans les cellules les sélectionne comme
   avant.
 
+### Étape 16 : ce qui est fait
+
+- **DocCells** (commit `a096a9e`, `src/features/embed/hostNameInsertion.js`,
+  décrit dans son `EMBED.md`, section 16, et dans les tableaux des
+  sections 2, 5 et 6) : événement `formulaEditing` `{ on }`, vrai tant
+  qu'un éditeur (cellule ou barre de formule) est ouvert, vide ou
+  commençant par `=` ; `insertHostName(name)` écrit `=GEO("name")` dans un
+  éditeur vide, `GEO("name")` au curseur d'une formule, deux insertions de
+  suite se remplaçant, et rend le focus à l'éditeur. Tests DocCells :
+  Node 18/18, navigateur 59/59. `npm run build:doctools` fait.
+- **DocGeo** (`src/editor/main.ts`, éditeur seul ; `src/sheet.ts` :
+  `insertHostName` ajouté au type `DocCells`, sans code) :
+  - `pickCells` suit `formulaEditing` : la variable `formula` garde le
+    DocCells dont une formule est en cours de saisie.
+  - Écouteur `pointerdown` de la figure : tant que `formula` est posé, un
+    appui (bouton principal) sur un objet, ou sur un curseur, texte…
+    (`propertyObject`), si la page montrée a une vue tableur, insère son
+    nom par `insertHostName`, `chooseHit` proposant le menu quand
+    plusieurs objets sont sous le pointeur. Un nom
+    vide ou contenant un guillemet n'est pas inséré. Rien d'autre : ni
+    point créé dans le vide, ni déplacement, ni sélection, ni étape
+    d'annulation. Le bouton droit garde son rôle.
+  - La vue tableur reste active : l'appui remet `c.active` sur la vue
+    tableur avant que l'écouteur des vues active (`showActiveView`) ne
+    bascule les barres.
+  - L'appui est annulé (`preventDefault`) : sinon le `mousedown` qui suit
+    l'insertion rend le focus à la page de DocGeo et la frappe suivante
+    est perdue. DocCells rend le focus à son éditeur lui-même.
+  - Survol : rien de propre, l'objet sous le pointeur est mis en évidence
+    comme d'habitude.
+  - Test (`tests/browser/sheet.test.ts`, « objects picked while a cell's
+    formula is typed », figure `tests/dgo/tableur_geo.dgo`, nouvelle
+    commande `keyboard` de `vitest.browser.config.ts`) à la vraie souris et
+    au vrai clavier : `=2*` tapé en B2, clic sur `A` → `=2*GEO("A")`,
+    clic sur `B` → `=2*GEO("B")`, vue tableur restée active, aucune
+    sélection ; `+1`, Entrée → `[7, 2]` ; `C1` (`=GEO("A")+GEO("B")`)
+    toujours `[4, 3]`, autant de lignes dans la Construction ; hors
+    saisie, un clic sur `A` rend la vue graphique active. Stable sur trois
+    passes du fichier.
+  - Corrigé au passage : « draws the image between its corners while its
+    checkbox is checked » (`ggb_importer.test.ts`) échouait depuis que
+    `mandel.ggb` a été réenregistrée case `b` cochée (commit `c342599b`) ;
+    le test part maintenant de la case cochée, la décoche puis la recoche.
+  - Suite complète : 286 unitaires, 1 592 navigateur.
+- **Poids** (HEAD → étape 16) : moteur 376 181 octets et lecteur `main`
+  16 265 inchangés ; éditeur 331 215 → 331 585 (+370).
+- **Manuel** (page tableur, « Désigner les objets à la souris »,
+  `#objets-souris`, après `#geo`, 12 langues ; `npm run manual -- check`
+  propre) : pendant la saisie
+  d'une formule dans une cellule (ou dans la barre de formule), cliquer un
+  objet de la figure écrit `GEO("A")` au curseur (`=GEO("A")` dans une
+  cellule vide) ; cliquer un autre objet aussitôt remplace le premier ; la
+  formule reste en cours de saisie (Entrée pour valider, Échap pour
+  annuler) ; la vue tableur reste active, l'objet n'est ni sélectionné ni
+  déplacé. Hors saisie d'une formule, un clic dans la figure s'y comporte
+  comme avant. Éditeur seulement.
+
 ## Remarques pour la suite
 
 - `?lang=` transmis à DocCells (étape 5).
@@ -1534,6 +1682,9 @@ DocGeo).
   malveillante. Hors du périmètre « archive chargée » de l'étape 3, non
   corrigé : à voir avec l'auteur.
 - Mode page web (`?fit`) : vue tableur placée (étape 5).
+- DocCells : les deux contrôles « désignation » de l'étape 15 de
+  `tests/browser/embedMode.browser.mjs` échouent par intermittence
+  (focus parti dans l'iframe, rythme du test), déjà avant l'étape 16.
 - `fit.test.ts` (« pinches a figure scaled to half size… ») a échoué une
   fois dans la suite complète, sous charge, et passe seul et à la
   relance : instable, sans lien avec ce chantier.

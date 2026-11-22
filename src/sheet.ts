@@ -31,6 +31,7 @@ export interface DocCells {
     };
     mountChrome(bars: { menus: Element; toolbar: Element }): boolean;
     setPicking(on: boolean): unknown;
+    insertHostName(name: string): boolean;
 }
 
 // Its message where DocCells can't be shown, in no language: it is a name.

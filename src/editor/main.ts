@@ -6408,6 +6408,28 @@ $("body").on(
             relaying = false;
             return;
         }
+        // While a formula is typed in a cell, an object pressed gives it
+        // its name, the sheet view staying active (see TABLEUR.md).
+        const sheetView = scene().views.findIndex(({ sheet }) => sheet);
+        if (formula && sheetView >= 0) {
+            const c = scene();
+            c.active = sheetView;
+            const cells = formula;
+            const give = ({ name }: { name: string }) =>
+                name && !name.includes('"') && cells.insertHostName(name);
+            const hits = pick(c, c.pointerPosition(event));
+            const widget = !hits[0] && propertyObject(event);
+            if (widget) give(widget);
+            else if (hits[0])
+                chooseHit(hits, [event.clientX, event.clientY], ({ object }) =>
+                    give(object),
+                );
+            down = null;
+            // The focus stays in the cell typed.
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
         // Only a line already begun takes what the figure designates.
         const blank = editing();
         if (blank && !blank.value.trim()) blank.blur();
@@ -7840,9 +7862,16 @@ function showSheetBars(): void {
 // While a line of the Construction panel is typed, cells pressed or dragged
 // over in the sheet view give their reference at the caret, the field
 // keeping the focus, the sheet view staying inactive (see TABLEUR.md): the
-// one a drag inserted is replaced as it goes.
+// one a drag inserted is replaced as it goes. The other way round, while a
+// formula is typed in a cell, objects pressed in the figure give it their
+// names (see the pointerdown listener).
+let formula: DocCells | null = null;
 function pickCells(cells: DocCells): void {
     let picked: { start: number; end: number } | null = null;
+    cells.on("formulaEditing", (event) => {
+        if ((event as unknown as { on: boolean }).on) formula = cells;
+        else if (formula === cells) formula = null;
+    });
     const follow = () => cells.setPicking(!!editing());
     for (const type of ["focusin", "focusout"] as const)
         $("body").on(type, follow, false);
