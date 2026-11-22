@@ -1,5 +1,11 @@
 import { construction, type DgpadLike } from "./construction";
-import { describeDgo, readDgo, type Region } from "./dgo";
+import {
+    type DgoFigure,
+    describeDgo,
+    importDgo,
+    readDgo,
+    type Region,
+} from "./dgo";
 import { $ } from "./dom";
 import { DIR, t } from "./i18n";
 import { showSheet } from "./sheet";
@@ -30,10 +36,17 @@ const ICONS = {
 
 // `value`, as the editor writes it: the region's size and place w,h,x,y,
 // then the view framed: origin ox,oy, unit u and, in 3D, the camera's
-// angles θ,φ. Otherwise, or with several views, the window the figure was
+// angles θ,φ; in a workbook, followed by those of its other pages, each
+// after a ";". Otherwise, or with several views, the window the page was
 // saved with.
-function framing(c: construction, value: string): Region {
-    const numbers = value.split(",").map(Number);
+function framing(c: construction, value: string, page: number): Region {
+    const [first, ...others] = value
+        .split(";")
+        .map((numbers) => numbers.split(",").map(Number));
+    const numbers = [
+        ...first.slice(0, 4),
+        ...(page ? (others[page - 1] ?? []) : first.slice(4)),
+    ];
     const grid = c.GRID;
     if (
         c.views.length === 1 &&
@@ -67,42 +80,80 @@ function framing(c: construction, value: string): Region {
           };
 }
 
-// The figure opened in `app` becomes the one the page shows, its region
-// as large as the window allows, centered.
-export async function fitFigure(app: Fitted, value: string): Promise<void> {
-    const region = framing(app.scene, value);
-    const { w, h } = region;
-    const figure = await describeDgo(app.scene, region);
+// Each page's region, and figure as it first showed it, which "reset"
+// gives back: a page shown again is already fitted.
+const pages = new Map<number, { w: number; h: number; figure: DgoFigure }>();
+let shown = 0;
+let app: Fitted;
+
+// Each view in its part of the region.
+function place(): void {
+    const { w, h } = pages.get(shown)!;
     const body = $("body");
-    // Each view in its part of the region.
-    const place = (): void => {
-        const [width, height] = [body.width(), body.height()];
-        const scale = Math.min(width / w, height / h);
-        const [left, top] = [(width - w * scale) / 2, (height - h * scale) / 2];
-        app.scene.views.forEach(({ svg, rect: [x, y, rw, rh] }) =>
-            svg
-                .stl("left", `${left + x * w * scale}px`)
-                .stl("top", `${top + y * h * scale}px`)
-                .stl("width", `${rw * w * scale}px`)
-                .stl("height", `${rh * h * scale}px`),
-        );
-        showSheet(app.scene);
-    };
-    const build = (): void => {
-        app.scene.dispose();
-        app.scene = construction.create(app);
-        app.scene.fixedSize = [w, h];
-        readDgo(app.scene, figure, true);
-        app.scene.views.forEach(({ svg, rect: [, , rw, rh] }) =>
-            svg.att("viewBox", `0 0 ${w * rw} ${h * rh}`),
-        );
-        app.scene.flush();
-        place();
-        body.stl("background", app.prefs.background.color);
-        app.scene.reveal();
-    };
+    const [width, height] = [body.width(), body.height()];
+    const scale = Math.min(width / w, height / h);
+    const [left, top] = [(width - w * scale) / 2, (height - h * scale) / 2];
+    app.scene.views.forEach(({ svg, rect: [x, y, rw, rh] }) =>
+        svg
+            .stl("left", `${left + x * w * scale}px`)
+            .stl("top", `${top + y * h * scale}px`)
+            .stl("width", `${rw * w * scale}px`)
+            .stl("height", `${rh * h * scale}px`),
+    );
+    showSheet(app.scene);
+}
+
+function build(figure = pages.get(shown)!.figure): void {
+    const { w, h } = pages.get(shown)!;
+    app.scene.dispose();
+    app.scene = construction.create(app);
+    app.scene.fixedSize = [w, h];
+    readDgo(app.scene, figure, true);
+    app.scene.views.forEach(({ svg, rect: [, , rw, rh] }) =>
+        svg.att("viewBox", `0 0 ${w * rw} ${h * rh}`),
+    );
+    app.scene.flush();
+    place();
+    $("body").stl("background", app.prefs.background.color);
+    app.scene.reveal();
+}
+
+// The workbook's page `page`, from its figure as it was left.
+export async function fitPage(
+    value: string,
+    page: number,
+    figure: DgoFigure,
+): Promise<void> {
+    if (pages.has(page)) {
+        shown = page;
+        return build(figure);
+    }
+    importDgo(app.scene, figure);
+    await fitPageShown(value, page);
+}
+
+async function fitPageShown(value: string, page: number): Promise<void> {
+    const region = framing(app.scene, value, page);
+    pages.set(page, {
+        w: region.w,
+        h: region.h,
+        figure: await describeDgo(app.scene, region),
+    });
+    shown = page;
     build();
-    body.observeResize(place);
+}
+
+// The figure opened in `fitted`, the page `page` of a workbook, becomes
+// the one the page shows, its region as large as the window allows,
+// centered.
+export async function fitFigure(
+    fitted: Fitted,
+    value: string,
+    page: number,
+): Promise<void> {
+    app = fitted;
+    await fitPageShown(value, page);
+    $("body").observeResize(place);
 
     const search = new URLSearchParams(location.search);
     if (search.has("nobar")) return;
@@ -116,7 +167,7 @@ export async function fitFigure(app: Fitted, value: string): Promise<void> {
         button.on("click", run, false);
         bar.add(button);
     };
-    action("reset", build);
+    action("reset", () => build());
     // Only where the page's iframe allows it (allow="fullscreen").
     if (document.fullscreenEnabled)
         action(
@@ -131,5 +182,5 @@ export async function fitFigure(app: Fitted, value: string): Promise<void> {
         action("edit_figure", () =>
             window.open(`editor.html${location.search}`, "_blank", "noopener"),
         );
-    body.add(bar);
+    $("body").add(bar);
 }

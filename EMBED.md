@@ -298,6 +298,13 @@ dans une page web… » de l'éditeur (`EDITOR.md`) :
   exactement ce que contenait le cadre de l'éditeur, objets placés en pixels
   compris. Le fichier publié n'a donc jamais à être réenregistré pour un
   cadrage, et une même figure s'intègre avec des cadrages différents.
+- Dans un classeur, la vue de chaque page, dans l'ordre des pages, la
+  première après la région, les suivantes chacune après un `;` :
+  `fit=w,h,x,y,ox,oy,u;ox,oy,u,θ,φ;…`. Chaque page est cadrée sur la même
+  région la première fois qu'on l'affiche, puis retrouvée telle qu'on
+  l'a laissée ; « réinitialiser » rend la page affichée telle qu'elle
+  s'est ouverte. Une page sans vue valide prend la fenêtre où elle a été
+  enregistrée.
 - `fit` sans valeur (ou invalide) : la fenêtre enregistrée avec la figure
   (`v.w` × `v.h` d'un `.dgo`, les deux derniers nombres de `SetCoords` d'un
   `.dgp`), ce qui reproduit `responsive.php`.

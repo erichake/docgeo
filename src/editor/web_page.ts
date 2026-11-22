@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import type { Region } from "../dgo";
+import type { DgoFigure, Region, Workbook } from "../dgo";
 import { $, type DOMElement } from "../dom";
 import { frameRegion, hideFrame, showFrame } from "../frame";
 import { message, type MessageKey } from "./messages";
@@ -98,25 +98,57 @@ export function confirmed(
     });
 }
 
+const fixed = (value: number, digits: number) => Number(value.toFixed(digits));
+
+// A view as the editor shows it: origin, unit and, in 3D, camera's angles.
+const view = (
+    [ox, oy]: readonly number[],
+    unit: number,
+    angles: number[] | null,
+): number[] => [
+    fixed(ox, 2),
+    fixed(oy, 2),
+    Number(unit.toPrecision(8)),
+    ...(angles ? angles.map((angle) => fixed(angle, 5)) : []),
+];
+
+// That of a page of the workbook, as readDgo shows it in the window.
+function pageView(c: construction, { v }: DgoFigure): number[] {
+    const [x, y] = v.o as number[];
+    const space = v["3d"] === 1;
+    const [width, height] = c.windowSize;
+    const [w, h] = [v.w as number, v.h as number];
+    return view(
+        space && !v.f2 ? [x + (width - w) / 2, y + (height - h) / 2] : [x, y],
+        v.u as number,
+        space && v.th !== undefined ? [v.th as number, v.ph as number] : null,
+    );
+}
+
 // The iframe showing the region of the figure as its window shows it, with
-// the view it's framed in (see fit.ts).
-function embedCode(c: construction, region: Region, url: string): string {
+// the view it's framed in, then that of each other page of its workbook
+// (see fit.ts).
+function embedCode(
+    c: construction,
+    book: Workbook | null,
+    region: Region,
+    url: string,
+): string {
     const { x, y, w, h } = region;
     const grid = c.GRID;
-    const fixed = (value: number, digits: number) =>
-        Number(value.toFixed(digits));
-    const fit = [
-        w,
-        h,
-        x,
-        y,
-        fixed(grid.ORG[0], 2),
-        fixed(grid.ORG[1], 2),
-        Number(grid.UNIT[0].toPrecision(8)),
-        ...(grid.is2D ? [] : [fixed(grid.THETA, 5), fixed(grid.PHI, 5)]),
-    ];
+    const shown = view(
+        grid.ORG,
+        grid.UNIT[0],
+        grid.is2D ? null : [grid.THETA, grid.PHI],
+    );
+    const views = book
+        ? book.pages.map(({ figure }, index) =>
+              index === book.current ? shown : pageView(c, figure),
+          )
+        : [shown];
+    const fit = [w, h, x, y, ...views[0]].join(",");
     const reader = new URL("index.html", location.href).href;
-    const src = `${reader}?fit=${fit.join(",")}${options.bar ? "" : "&nobar"}${options.edit ? "" : "&noedit"}&url=${url}`;
+    const src = `${reader}?fit=${[fit, ...views.slice(1)].join(";")}${options.bar ? "" : "&nobar"}${options.edit ? "" : "&noedit"}&url=${url}`;
     // Its width first, the only number to change for another size: the
     // height follows, in the frame's proportions.
     const style = `width:${w}px;max-width:100%;aspect-ratio:${w}/${h};border:${options.border ? "1px solid #ccc" : "0"}`;
@@ -127,6 +159,7 @@ function embedCode(c: construction, region: Region, url: string): string {
 // The bar's banner while the figure is framed, `url` that of its file.
 export function framingBar(
     scene: () => construction,
+    book: () => Workbook | null,
     url: () => string,
     hint: (text: string, error?: boolean) => void,
     done: () => void,
@@ -188,7 +221,7 @@ export function framingBar(
         "click",
         () =>
             void navigator.clipboard
-                .writeText(embedCode(scene(), frameRegion()!, url()))
+                .writeText(embedCode(scene(), book(), frameRegion()!, url()))
                 .then(
                     () => hint(message("code_copied")),
                     (error: Error) => hint(error.message, true),

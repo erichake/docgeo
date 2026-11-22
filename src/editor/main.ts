@@ -840,6 +840,7 @@ doneButton.on("click", () =>
 // The figure framed for a web page, from its published file.
 const framing = framingBar(
     scene,
+    () => book,
     () => new URL(published!.url, location.href).href,
     showHint,
     () => framing.stop(),
@@ -4020,8 +4021,7 @@ const pointList = (object: construction_object) =>
     object instanceof expression_object &&
     Array.isArray(object.value) &&
     object.value.some(
-        (item) =>
-            Array.isArray(item) && item.length >= 2 && item.length <= 3,
+        (item) => Array.isArray(item) && item.length >= 2 && item.length <= 3,
     );
 
 const pointValue = (object: construction_object) =>
@@ -7243,7 +7243,8 @@ async function open(
     stopMacro();
     stopApply();
     cancel();
-    framing.stop();
+    // Kept from a page of the workbook to another.
+    if (name !== null) framing.stop();
     properties.select(null);
     studio.scene.dispose();
     studio.scene = construction.create(studio);

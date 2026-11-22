@@ -2127,6 +2127,11 @@ iframe qui montre la figure dans le lecteur (`index.html?fit=…&url=…`, voir
   figure, centré. La figure reste manipulable, la vue se zoome et se déplace :
   le **cadrage est porté par le code**, pas par le fichier (région, origine,
   unité, angles 3D), qui n'a jamais à être republié pour un cadrage.
+- Dans un classeur, le cadre reste en place d'un onglet à l'autre (demandé
+  par l'auteur le 2026-11-22) : une même région se règle pour toutes les
+  pages, chacune dans sa vue. Le code porte la vue de chaque page, celle
+  de la page affichée lue sur la figure, celle des autres dans leur
+  description (`readDgo` la placerait dans la fenêtre de l'éditeur).
 - La zone contextuelle de la barre devient un bandeau, seul au milieu de la
   barre : icône et nom de la commande, Options (centrage, bordure, boutons sur la
   figure, bouton « Modifier la figure », gardés pour la session), **Copier

@@ -4,7 +4,7 @@ import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
 import { FIGURE_URL, fetchFigure } from "./figure_url";
-import { fitFigure } from "./fit";
+import { fitFigure, fitPage } from "./fit";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
 import { leavePage, openFigureFile, showTabs, writeWorkbook } from "./workbook";
@@ -91,7 +91,8 @@ export const DOCGEO_READY = search.has("embed")
       ? fetchFigure(FIGURE_URL).then(
             (file) =>
                 openFile(file).then(() => {
-                    if (fit !== null) return fitFigure(DOCGEO, fit);
+                    if (fit !== null)
+                        return fitFigure(DOCGEO, fit, book?.current ?? 0);
                 }),
             (error) => pickFigure(failure(FIGURE_URL!, error)),
         )
@@ -172,7 +173,9 @@ async function showPage(index: number): Promise<void> {
     book!.current = index;
     renew();
     await openFigure(figureName!, async () => {
-        importDgo(DOCGEO.scene, book!.pages[index].figure);
+        const { figure } = book!.pages[index];
+        if (fit === null) importDgo(DOCGEO.scene, figure);
+        else await fitPage(fit, index, figure);
         return [];
     });
 }
