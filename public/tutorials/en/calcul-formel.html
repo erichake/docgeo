@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Computer algebra — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Computer algebra</h1>
+            <p class="lead">
+                DocGeo computes exact values with Giac, the computer algebra
+                engine of Xcas and GeoGebra: derivatives, antiderivatives,
+                factorizations, equations, limits, sums, in the figure’s
+                formulas as in a computer algebra view. It also finds the
+                equation of a locus and proves geometric properties.
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="A function f depending on a slider a and its derivative g, drawn; on the right, a CAS view of seven lines: factorization, derivative, solution, integral, sum and limit, with their exact answers"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac is loaded the first time a computation needs it, never for
+                a figure that doesn’t. The last answers are saved in the figure:
+                it opens and is displayed without waiting for Giac, even
+                offline. If Giac can’t be loaded, “⚠ Giac” appears at the bottom
+                left: the answers already known stay displayed, the others are
+                undefined.
+            </p>
+
+            <h2 id="commandes">Computer algebra commands</h2>
+            <p>
+                They can be used in any formula, like a function. An expression
+                whose formula is only one of these commands shows Giac’s answer
+                rather than its formula.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>Derivative(f)</code>,
+                                <code>Derivative(e, v)</code>,
+                                <code>Derivative(e, v, n)</code>
+                            </td>
+                            <td>
+                                derivative, n-th derivative with respect to v
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(e)</code>,
+                                <code>Integral(e, v)</code>
+                            </td>
+                            <td>antiderivative</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(x^2, 0, a)</code>,
+                                <code>Integral(e, v, a, b)</code>
+                            </td>
+                            <td>integral from a to b, exact value</td>
+                        </tr>
+                        <tr>
+                            <td><code>Factor(e)</code></td>
+                            <td>
+                                factorization over the rationals:
+                                <code>x^2 - 2</code> stays as it is
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>IFactor(e)</code></td>
+                            <td>
+                                factorization over the radicals: (x − √2)(x +
+                                √2)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Expand(e)</code>, <code>Simplify(e)</code>
+                            </td>
+                            <td>expanded form, simplified form</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Solve(x^2 = 2)</code>,
+                                <code>Solve(e, v)</code>
+                            </td>
+                            <td>
+                                sorted list of the real solutions of an
+                                equation, or of an expression equal to zero
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>CSolve(e)</code></td>
+                            <td>complex solutions</td>
+                        </tr>
+                        <tr>
+                            <td><code>Sum(e, k, a, b)</code></td>
+                            <td>sum of the e for k integer from a to b</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Limit(e, a)</code>,
+                                <code>Limit(e, v, a)</code>
+                            </td>
+                            <td>limit at a, which may be <code>∞</code></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>TaylorPolynomial(e, a, n)</code>,
+                                <code>TaylorPolynomial(e, v, a, n)</code>
+                            </td>
+                            <td>Taylor polynomial of order n at a</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                The variable v is x, y, z or t, by default the first one the
+                expression reads. A function of the figure is written by its
+                name: <code>g(x) = Derivative(f)</code>.
+            </p>
+            <ul>
+                <li>
+                    A slider stays a symbol for Giac:
+                    <code>Factor(x^2 - a)</code> shows x² − a even when a is 4.
+                    Moving the slider therefore asks nothing of Giac: the answer
+                    is only evaluated again, during the motion.
+                </li>
+                <li>
+                    Exceptions: the order n of a Taylor polynomial, and the
+                    bounds of a sum with no simple form (<code
+                        >Sum(1/k, k, 1, n)</code
+                    >), are read by their value: a slider gives one answer per
+                    integer value.
+                </li>
+                <li>
+                    <code>Integral(f, a, b)</code>, f being the name of a
+                    function, remains the command that
+                    <a href="commandes.html">draws the area</a>;
+                    <code>Integral(x^2, 0, 1)</code> or
+                    <code>Integral(e, v, a, b)</code> computes the exact value.
+                </li>
+                <li>
+                    Until the answer arrives, the object keeps its last value.
+                    An answer DocGeo can’t read makes the object undefined. A
+                    derivative is computed by DocGeo while waiting for Giac.
+                </li>
+            </ul>
+
+            <h2 id="vue">The CAS view</h2>
+            <p>
+                As in GeoGebra: numbered computation lines, beside the figure or
+                in their own tab.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>How</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Add the view</td>
+                            <td>
+                                <strong>File › View › New CAS view</strong> (one
+                                per figure), or
+                                <strong>File › New CAS tab</strong> (“CAS1”,
+                                “CAS2”…)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Compute a line</td>
+                            <td>
+                                type in the last, empty line, then
+                                <kbd>Enter</kbd>: the answer is shown and a new
+                                line waits
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Edit a line</td>
+                            <td>
+                                click it, then <kbd>Enter</kbd>;
+                                <kbd>Esc</kbd> gives back the previous text,
+                                <kbd>↑</kbd> and <kbd>↓</kbd> go from one line
+                                to another
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Delete a line</td>
+                            <td>
+                                empty it, then <kbd>Enter</kbd>: the following
+                                numbers are shifted
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Delete the view</td>
+                            <td>
+                                <strong
+                                    >File › View › Delete the CAS view</strong
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Each change is undone with <strong>Undo</strong>. A line that
+                isn’t understood is refused, in red.
+            </p>
+
+            <h3 id="lignes">Writing a line</h3>
+            <ul>
+                <li>
+                    A line is a formula, with or without a command:
+                    <code>sqrt(12) - sqrt(3)</code> gives √3,
+                    <code>Factor(x^4 - 1)</code> its factorization.
+                </li>
+                <li>
+                    <code>$2</code> is the answer of line 2. When a line is
+                    deleted, the <code>$n</code> are renumbered, and a reference
+                    to the deleted line is replaced by its formula.
+                </li>
+                <li>
+                    <code>b := 3</code> and <code>h(x) := x^2 + 1</code> define
+                    a number or a function for the following lines.
+                </li>
+                <li>
+                    The figure’s objects are read by their current value: with a
+                    = 2, <code>a^2</code> gives 4. When they are moved, the
+                    lines that read them are computed again. A letter that is
+                    not an object is a free variable: <code>b^2</code> stays b².
+                </li>
+                <li>
+                    <code>pi</code> and <code>ln</code> are written as in
+                    GeoGebra, <code>∞</code> also <code>inf</code>. Angles are
+                    always in radians, even in a figure in degrees.
+                </li>
+                <li>
+                    <code>Numeric(e)</code>, <code>Numeric(e, n)</code> give an
+                    approximate value (to n digits);
+                    <code>KeepInput(e)</code> shows e as it is, without
+                    computing. A line in quotes,
+                    <code>"Exact computation"</code>, is a plain text.
+                </li>
+                <li>
+                    <code>?</code> replaces an answer that Giac doesn’t give or
+                    that DocGeo can’t read.
+                </li>
+            </ul>
+
+            <h3 id="souris">Pointing with the mouse</h3>
+            <p>
+                While typing a line already begun, clicking an object of the
+                figure writes its name; clicking another line writes its
+                <code>$n</code>. On an empty line, the figure responds as usual.
+            </p>
+
+            <h3 id="definir">Defining an object of the figure</h3>
+            <p>
+                A definition that reads only objects of the figure also creates
+                the object, with its line in the Construction:
+                <code>m(x) := x^2 + a</code> draws the function m. A definition
+                that reads a free variable, a <code>$n</code> or a name defined
+                only in the view (<code>n := b^2</code>) stays specific to the
+                view.
+            </p>
+            <p>In the player, the lines are shown in the browser’s language.</p>
+
+            <h2 id="courbes">Algebraic curves</h2>
+            <p>
+                An equation of any degree, or not polynomial, typed in the
+                Construction is a curve: <code>f = x^3 + y^3 = 3x y</code> (the
+                folium of Descartes), <code>c = sin(x) = y</code>. It is drawn
+                where it crosses the window and follows the window when it is
+                moved; points can be placed on it and it can be intersected with
+                other objects.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>LocusEquation(M, P)</code></td>
+                            <td>
+                                the whole curve described by the point M when
+                                the point on object P runs along its object
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Envelope(d, P)</code></td>
+                            <td>
+                                the whole curve tangent to the positions of the
+                                line d when P runs along its object
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                As in GeoGebra, it is the whole equation, all its branches, not
+                only the part run through: <code>LocusEquation</code> of a point
+                moving along a segment gives the line. While waiting for Giac,
+                or for a construction it doesn’t translate (macros, angle
+                bisectors, incircle, slider as driver, space), it is the locus
+                run through of <a href="commandes.html">Locus</a>.
+            </p>
+
+            <h2 id="prouver">Proving</h2>
+            <p>
+                Six predicates, each argument being the name of an object, tell
+                whether a property holds on the figure as it is:
+                <code>true</code> or <code>false</code>.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Predicate</th>
+                            <th>True if</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>AreCollinear(A, B, C)</code></td>
+                            <td>the three points are collinear</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>AreParallel(d, e)</code>,
+                                <code>ArePerpendicular(d, e)</code>
+                            </td>
+                            <td>
+                                the lines, segments or rays are parallel,
+                                perpendicular
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>AreConcyclic(A, B, C, D)</code></td>
+                            <td>
+                                the four points are on one circle (or one line)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>AreConcurrent(d, e, f)</code></td>
+                            <td>
+                                the three lines pass through one point (or are
+                                parallel)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>AreEqual(a, b)</code></td>
+                            <td>
+                                two points, lines or circles coincide; two
+                                segments have the same length; two numbers are
+                                equal
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>Prove(p)</code>, p being one of these predicates, tells
+                whether it is true <em>in general</em>: for all positions of the
+                free points and of the points on objects, except degenerate
+                cases. With G = <code>Centroid(A, B, C)</code>,
+                <code>AreCollinear(A, B, G)</code> becomes true when C is put on
+                (AB), but <code>Prove(AreCollinear(A, B, G))</code> stays false.
+                Giac translates the construction into equations, as GeoGebra
+                does: the answer arrives within a few seconds at most, and it is
+                saved in the figure.
+            </p>
+            <ul>
+                <li>
+                    The computation covers all intersections at once: to speak
+                    of the second intersection of a line and a circle through a
+                    point A, construct it with
+                    <code>OtherIntersection(c, d, A)</code>.
+                </li>
+                <li>
+                    <code>Prove</code> stays undefined for a construction it
+                    doesn’t translate (those of
+                    <a href="#courbes">LocusEquation</a>, or an angle, a ratio
+                    or a radius that is not a simple fraction, such as a 60°
+                    rotation), and in the CAS view.
+                </li>
+                <li>
+                    The arguments are names: construct and name the lines first,
+                    <code>Prove(AreParallel(d, e))</code>.
+                </li>
+            </ul>
+
+            <h2 id="geogebra">GeoGebra figures</h2>
+            <p>
+                On import, the computer algebra commands of the formulas, the
+                lines of GeoGebra’s CAS view, those of its Calculator Suite,
+                <code>LocusEquation</code>, <code>Envelope</code>,
+                <code>Prove</code> and the predicates are carried over. A cell
+                that uses a command DocGeo doesn’t have is reported.
+            </p>
+        </main>
+    </body>
+</html>

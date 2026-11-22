@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Computeralgebra — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Computeralgebra</h1>
+            <p class="lead">
+                DocGeo rechnet mit Giac, dem Computeralgebra-System von Xcas und
+                GeoGebra, mit exakten Werten: Ableitungen, Stammfunktionen,
+                Faktorisierungen, Gleichungen, Grenzwerte, Summen, in den
+                Formeln der Figur wie in einer CAS-Ansicht. Es findet auch die
+                Gleichung einer Ortslinie und beweist geometrische
+                Eigenschaften.
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="Eine von einem Schieberegler a abhängige Funktion f und ihre Ableitung g, gezeichnet; rechts eine CAS-Ansicht mit sieben Zeilen: Faktorisierung, Ableitung, Lösung, Integral, Summe und Grenzwert, mit ihren exakten Antworten"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac wird geladen, wenn eine Berechnung es zum ersten Mal
+                braucht, nie für eine Figur, die es nicht braucht. Die letzten
+                Antworten werden in der Figur gespeichert: Sie öffnet sich und
+                wird angezeigt, ohne auf Giac zu warten, auch offline. Kann Giac
+                nicht geladen werden, erscheint unten links „⚠ Giac“: Die
+                bereits bekannten Antworten bleiben angezeigt, die anderen sind
+                undefiniert.
+            </p>
+
+            <h2 id="commandes">Die Computeralgebra-Befehle</h2>
+            <p>
+                Sie lassen sich in jeder Formel wie eine Funktion verwenden. Ein
+                Ausdruck, dessen Formel nur aus einem dieser Befehle besteht,
+                zeigt die Antwort von Giac statt seiner Formel.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Befehl</th>
+                            <th>Ergebnis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>Ableitung(f)</code>,
+                                <code>Ableitung(e, v)</code>,
+                                <code>Ableitung(e, v, n)</code>
+                            </td>
+                            <td>Ableitung, n-te Ableitung nach v</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(e)</code>,
+                                <code>Integral(e, v)</code>
+                            </td>
+                            <td>Stammfunktion</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(x^2, 0, a)</code>,
+                                <code>Integral(e, v, a, b)</code>
+                            </td>
+                            <td>Integral von a bis b, exakter Wert</td>
+                        </tr>
+                        <tr>
+                            <td><code>Faktorisiere(e)</code></td>
+                            <td>
+                                Faktorisierung über den rationalen Zahlen:
+                                <code>x^2 - 2</code> bleibt unverändert
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>IFaktorisiere(e)</code></td>
+                            <td>
+                                Faktorisierung mit Wurzeln: (x − √2)(x + √2)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Multipliziere(e)</code>,
+                                <code>Vereinfache(e)</code>
+                            </td>
+                            <td>ausmultiplizierte Form, vereinfachte Form</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Löse(x^2 = 2)</code>,
+                                <code>Löse(e, v)</code>
+                            </td>
+                            <td>
+                                sortierte Liste der reellen Lösungen einer
+                                Gleichung oder eines Terms gleich null
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>KLöse(e)</code></td>
+                            <td>komplexe Lösungen</td>
+                        </tr>
+                        <tr>
+                            <td><code>Summe(e, k, a, b)</code></td>
+                            <td>Summe der e für ganze k von a bis b</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Grenzwert(e, a)</code>,
+                                <code>Grenzwert(e, v, a)</code>
+                            </td>
+                            <td>
+                                Grenzwert an der Stelle a, die auch
+                                <code>∞</code> sein kann
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>TaylorReihe(e, a, n)</code>,
+                                <code>TaylorReihe(e, v, a, n)</code>
+                            </td>
+                            <td>Taylorpolynom der Ordnung n an der Stelle a</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Die Variable v ist x, y, z oder t, standardmäßig die erste, die
+                der Ausdruck liest. Eine Funktion der Figur wird mit ihrem Namen
+                geschrieben: <code>g(x) = Ableitung(f)</code>.
+            </p>
+            <ul>
+                <li>
+                    Ein Schieberegler bleibt für Giac ein Symbol:
+                    <code>Faktorisiere(x^2 - a)</code> zeigt x² − a, auch wenn a
+                    gleich 4 ist. Den Schieberegler zu bewegen, fragt Giac also
+                    nichts: Die Antwort wird während der Bewegung nur neu
+                    ausgewertet.
+                </li>
+                <li>
+                    Ausnahmen: Die Ordnung n eines Taylorpolynoms und die
+                    Grenzen einer Summe ohne einfache Form (<code
+                        >Summe(1/k, k, 1, n)</code
+                    >) werden über ihren Wert gelesen: Ein Schieberegler ergibt
+                    eine Antwort je ganzzahligem Wert.
+                </li>
+                <li>
+                    <code>Integral(f, a, b)</code>, wobei f der Name einer
+                    Funktion ist, bleibt der Befehl, der
+                    <a href="commandes.html">die Fläche zeichnet</a>;
+                    <code>Integral(x^2, 0, 1)</code> oder
+                    <code>Integral(e, v, a, b)</code> berechnet den exakten
+                    Wert.
+                </li>
+                <li>
+                    Solange die Antwort nicht da ist, behält das Objekt seinen
+                    letzten Wert. Eine Antwort, die DocGeo nicht lesen kann,
+                    macht das Objekt undefiniert. Eine Ableitung berechnet
+                    DocGeo selbst, bis Giac antwortet.
+                </li>
+            </ul>
+
+            <h2 id="vue">Die CAS-Ansicht</h2>
+            <p>
+                Wie in GeoGebra: nummerierte Rechenzeilen, neben der Figur oder
+                in einem eigenen Tab.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aktion</th>
+                            <th>Wie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ansicht hinzufügen</td>
+                            <td>
+                                <strong
+                                    >Datei › Ansicht › Neue CAS-Ansicht</strong
+                                >
+                                (eine pro Figur), oder
+                                <strong>Datei › Neuer CAS-Tab</strong> („CAS1“,
+                                „CAS2“…)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eine Zeile berechnen</td>
+                            <td>
+                                in die letzte, leere Zeile tippen, dann
+                                <kbd>Eingabe</kbd>: Die Antwort erscheint und
+                                eine neue Zeile wartet
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eine Zeile ändern</td>
+                            <td>
+                                sie anklicken, dann <kbd>Eingabe</kbd>;
+                                <kbd>Esc</kbd> stellt den vorigen Text wieder
+                                her, <kbd>↑</kbd> und <kbd>↓</kbd> wechseln die
+                                Zeile
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eine Zeile löschen</td>
+                            <td>
+                                sie leeren, dann <kbd>Eingabe</kbd>: Die
+                                folgenden Nummern rücken nach
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ansicht löschen</td>
+                            <td>
+                                <strong
+                                    >Datei › Ansicht › CAS-Ansicht
+                                    löschen</strong
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Jede Änderung lässt sich mit
+                <strong>Rückgängig</strong> zurücknehmen. Eine unverständliche
+                Zeile wird abgelehnt, in Rot.
+            </p>
+
+            <h3 id="lignes">Eine Zeile schreiben</h3>
+            <ul>
+                <li>
+                    Eine Zeile ist eine Formel, mit oder ohne Befehl:
+                    <code>sqrt(12) - sqrt(3)</code> ergibt √3,
+                    <code>Faktorisiere(x^4 - 1)</code> die Faktorisierung.
+                </li>
+                <li>
+                    <code>$2</code> ist die Antwort der Zeile 2. Wird eine Zeile
+                    gelöscht, werden die <code>$n</code> neu nummeriert, und ein
+                    Verweis auf die gelöschte Zeile wird durch ihre Formel
+                    ersetzt.
+                </li>
+                <li>
+                    <code>b := 3</code> und
+                    <code>h(x) := x^2 + 1</code> definieren eine Zahl oder eine
+                    Funktion für die folgenden Zeilen.
+                </li>
+                <li>
+                    Die Objekte der Figur werden mit ihrem aktuellen Wert
+                    gelesen: Mit a = 2 ergibt <code>a^2</code> 4. Werden sie
+                    bewegt, werden die Zeilen, die sie lesen, neu berechnet. Ein
+                    Buchstabe, der kein Objekt ist, ist eine freie Variable:
+                    <code>b^2</code> bleibt b².
+                </li>
+                <li>
+                    <code>pi</code> und <code>ln</code> schreibt man wie in
+                    GeoGebra, <code>∞</code> auch <code>inf</code>. Winkel sind
+                    immer im Bogenmaß, auch in einer Figur in Grad.
+                </li>
+                <li>
+                    <code>Numerisch(e)</code>,
+                    <code>Numerisch(e, n)</code> ergeben einen Näherungswert
+                    (auf n Stellen); <code>BehalteEingabe(e)</code> zeigt e
+                    unverändert, ohne Rechnung. Eine Zeile in Anführungszeichen,
+                    <code>"Exakte Rechnung"</code>, ist ein einfacher Text.
+                </li>
+                <li>
+                    <code>?</code> ersetzt eine Antwort, die Giac nicht gibt
+                    oder die DocGeo nicht lesen kann.
+                </li>
+            </ul>
+
+            <h3 id="souris">Mit der Maus zeigen</h3>
+            <p>
+                Beim Tippen einer schon begonnenen Zeile schreibt ein Klick auf
+                ein Objekt der Figur seinen Namen, ein Klick auf eine andere
+                Zeile ihr <code>$n</code>. In einer leeren Zeile reagiert die
+                Figur wie gewohnt.
+            </p>
+
+            <h3 id="definir">Ein Objekt der Figur definieren</h3>
+            <p>
+                Eine Definition, die nur Objekte der Figur liest, erzeugt auch
+                das Objekt, mit seiner Zeile in der Konstruktion:
+                <code>m(x) := x^2 + a</code> zeichnet die Funktion m. Eine
+                Definition, die eine freie Variable, ein <code>$n</code> oder
+                einen nur in der Ansicht definierten Namen liest (<code
+                    >n := b^2</code
+                >), bleibt auf die Ansicht beschränkt.
+            </p>
+            <p>
+                Im Player werden die Zeilen in der Sprache des Browsers
+                angezeigt.
+            </p>
+
+            <h2 id="courbes">Algebraische Kurven</h2>
+            <p>
+                Eine Gleichung beliebigen Grades oder eine nicht polynomiale, in
+                der Konstruktion getippt, ist eine Kurve:
+                <code>f = x^3 + y^3 = 3x y</code> (das kartesische Blatt),
+                <code>c = sin(x) = y</code>. Sie wird dort gezeichnet, wo sie
+                das Fenster durchquert, und folgt dem Fenster, wenn man es
+                verschiebt; man kann Punkte auf sie setzen und sie mit anderen
+                Objekten schneiden.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Befehl</th>
+                            <th>Ergebnis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Ortsliniengleichung(M, P)</code></td>
+                            <td>
+                                die ganze Kurve, die der Punkt M beschreibt,
+                                wenn der Punkt auf Objekt P sein Objekt
+                                durchläuft
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Einhüllende(d, P)</code></td>
+                            <td>
+                                die ganze Kurve, die die Lagen der Geraden d
+                                berührt, wenn P sein Objekt durchläuft
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Wie in GeoGebra ist es die ganze Gleichung mit allen Zweigen,
+                nicht nur der durchlaufene Teil:
+                <code>Ortsliniengleichung</code> eines Punktes, der eine Strecke
+                durchläuft, ergibt die Gerade. Bis Giac antwortet, oder für eine
+                Konstruktion, die es nicht übersetzt (Makros, Winkelhalbierende,
+                Inkreis, Schieberegler als Antrieb, Raum), ist es die
+                durchlaufene Ortslinie von
+                <a href="commandes.html">Ortslinie</a>.
+            </p>
+
+            <h2 id="prouver">Beweisen</h2>
+            <p>
+                Sechs Prädikate, deren Argumente Namen von Objekten sind, sagen,
+                ob eine Eigenschaft in der Figur, so wie sie ist, gilt:
+                <code>true</code> oder <code>false</code>.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prädikat</th>
+                            <th>Wahr, wenn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>LiegenAufGerade(A, B, C)</code></td>
+                            <td>die drei Punkte auf einer Geraden liegen</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>SindParallel(d, e)</code>,
+                                <code>SindNormal(d, e)</code>
+                            </td>
+                            <td>
+                                die Geraden, Strecken oder Halbgeraden parallel,
+                                senkrecht sind
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>LiegenAufKreis(A, B, C, D)</code></td>
+                            <td>
+                                die vier Punkte auf einem Kreis (oder einer
+                                Geraden) liegen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SindKopunktal(d, e, f)</code></td>
+                            <td>
+                                die drei Geraden durch einen Punkt gehen (oder
+                                parallel sind)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SindGleich(a, b)</code></td>
+                            <td>
+                                zwei Punkte, Geraden oder Kreise zusammenfallen;
+                                zwei Strecken gleich lang sind; zwei Zahlen
+                                gleich sind
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>Prüfe(p)</code>, wobei p eines dieser Prädikate ist, sagt,
+                ob es <em>allgemein</em> gilt: für alle Lagen der freien Punkte
+                und der Punkte auf Objekten, ausgenommen Sonderfälle. Mit G =
+                <code>Schwerpunkt(A, B, C)</code> wird
+                <code>LiegenAufGerade(A, B, G)</code> wahr, wenn man C auf (AB)
+                setzt, aber <code>Prüfe(LiegenAufGerade(A, B, G))</code> bleibt
+                falsch. Giac übersetzt die Konstruktion in Gleichungen, wie
+                GeoGebra: Die Antwort kommt spätestens nach einigen Sekunden und
+                wird in der Figur gespeichert.
+            </p>
+            <ul>
+                <li>
+                    Die Rechnung erfasst alle Schnittpunkte zugleich: Um vom
+                    zweiten Schnittpunkt einer Geraden und eines Kreises durch
+                    einen Punkt A zu sprechen, konstruiert man ihn mit
+                    <code>AndererSchnittpunkt(c, d, A)</code>.
+                </li>
+                <li>
+                    <code>Prüfe</code> bleibt undefiniert für eine Konstruktion,
+                    die es nicht übersetzt (die von
+                    <a href="#courbes">Ortsliniengleichung</a>, oder ein Winkel,
+                    ein Verhältnis oder ein Radius, der kein einfacher Bruch
+                    ist, etwa eine Drehung um 60°), und in der CAS-Ansicht.
+                </li>
+                <li>
+                    Die Argumente sind Namen: zuerst die Geraden konstruieren
+                    und benennen, <code>Prüfe(SindParallel(d, e))</code>.
+                </li>
+            </ul>
+
+            <h2 id="geogebra">GeoGebra-Figuren</h2>
+            <p>
+                Beim Import werden die Computeralgebra-Befehle der Formeln, die
+                Zeilen der CAS-Ansicht von GeoGebra, die seines Rechners Suite,
+                <code>LocusEquation</code>, <code>Envelope</code>,
+                <code>Prove</code> und die Prädikate übernommen. Eine Zelle mit
+                einem Befehl, den DocGeo nicht hat, wird gemeldet.
+            </p>
+        </main>
+    </body>
+</html>

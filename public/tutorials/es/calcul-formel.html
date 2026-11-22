@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>El cálculo simbólico — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>El cálculo simbólico</h1>
+            <p class="lead">
+                DocGeo calcula con valores exactos mediante Giac, el motor de
+                cálculo simbólico de Xcas y de GeoGebra: derivadas, primitivas,
+                factorizaciones, ecuaciones, límites, sumas, en las fórmulas de
+                la figura como en una vista de cálculo simbólico. También
+                encuentra la ecuación de un lugar geométrico y demuestra
+                propiedades geométricas.
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="Una función f que depende de un deslizador a y su derivada g, dibujadas; a la derecha, una vista CAS de siete líneas: factorización, derivada, resolución, integral, suma y límite, con sus respuestas exactas"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac se carga la primera vez que un cálculo lo necesita, nunca
+                para una figura que no lo necesita. Las últimas respuestas se
+                guardan en la figura: se abre y se muestra sin esperar a Giac,
+                incluso sin conexión. Si Giac no puede cargarse, aparece «⚠
+                Giac» abajo a la izquierda: las respuestas ya conocidas siguen
+                mostrándose, las demás quedan indefinidas.
+            </p>
+
+            <h2 id="commandes">Los comandos de cálculo simbólico</h2>
+            <p>
+                Se usan en cualquier fórmula, como una función. Una expresión
+                cuya fórmula es solo uno de estos comandos muestra la respuesta
+                de Giac en lugar de su fórmula.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>Derivada(f)</code>,
+                                <code>Derivada(e, v)</code>,
+                                <code>Derivada(e, v, n)</code>
+                            </td>
+                            <td>derivada, derivada n-ésima respecto de v</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(e)</code>,
+                                <code>Integral(e, v)</code>
+                            </td>
+                            <td>primitiva</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integral(x^2, 0, a)</code>,
+                                <code>Integral(e, v, a, b)</code>
+                            </td>
+                            <td>integral de a a b, valor exacto</td>
+                        </tr>
+                        <tr>
+                            <td><code>Factoriza(e)</code></td>
+                            <td>
+                                factorización sobre los racionales:
+                                <code>x^2 - 2</code> queda igual
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>FactorizaI(e)</code></td>
+                            <td>
+                                factorización con radicales: (x − √2)(x + √2)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Desarrolla(e)</code>,
+                                <code>Simplifica(e)</code>
+                            </td>
+                            <td>forma desarrollada, forma simplificada</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Resuelve(x^2 = 2)</code>,
+                                <code>Resuelve(e, v)</code>
+                            </td>
+                            <td>
+                                lista ordenada de las soluciones reales de una
+                                ecuación, o de una expresión nula
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>ResoluciónC(e)</code></td>
+                            <td>soluciones complejas</td>
+                        </tr>
+                        <tr>
+                            <td><code>Suma(e, k, a, b)</code></td>
+                            <td>suma de los e para k entero de a a b</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Límite(e, a)</code>,
+                                <code>Límite(e, v, a)</code>
+                            </td>
+                            <td>límite en a, que puede ser <code>∞</code></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>PolinomioTaylor(e, a, n)</code>,
+                                <code>PolinomioTaylor(e, v, a, n)</code>
+                            </td>
+                            <td>polinomio de Taylor de orden n en a</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                La variable v es x, y, z o t, por defecto la primera que lee la
+                expresión. Una función de la figura se escribe por su nombre:
+                <code>g(x) = Derivada(f)</code>.
+            </p>
+            <ul>
+                <li>
+                    Un deslizador sigue siendo un símbolo para Giac:
+                    <code>Factoriza(x^2 - a)</code> muestra x² − a incluso
+                    cuando a vale 4. Mover el deslizador no pide nada a Giac: la
+                    respuesta solo se vuelve a evaluar, durante el movimiento.
+                </li>
+                <li>
+                    Excepciones: el orden n de un polinomio de Taylor y los
+                    límites de una suma sin forma simple (<code
+                        >Suma(1/k, k, 1, n)</code
+                    >) se leen por su valor: un deslizador da una respuesta por
+                    cada valor entero.
+                </li>
+                <li>
+                    <code>Integral(f, a, b)</code>, siendo f el nombre de una
+                    función, sigue siendo el comando que
+                    <a href="commandes.html">dibuja el área</a>;
+                    <code>Integral(x^2, 0, 1)</code> o
+                    <code>Integral(e, v, a, b)</code> calcula el valor exacto.
+                </li>
+                <li>
+                    Mientras no llega la respuesta, el objeto conserva su último
+                    valor. Una respuesta que DocGeo no sabe leer deja el objeto
+                    indefinido. Una derivada la calcula DocGeo mientras espera a
+                    Giac.
+                </li>
+            </ul>
+
+            <h2 id="vue">La vista CAS</h2>
+            <p>
+                Como la de GeoGebra: líneas de cálculo numeradas, junto a la
+                figura o en su propia pestaña.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Acción</th>
+                            <th>Cómo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Añadir la vista</td>
+                            <td>
+                                <strong
+                                    >Archivo › Vista › Nueva vista CAS</strong
+                                >
+                                (una por figura), o
+                                <strong>Archivo › Nueva pestaña CAS</strong>
+                                («CAS1», «CAS2»…)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Calcular una línea</td>
+                            <td>
+                                escribir en la última línea, vacía, y luego
+                                <kbd>Intro</kbd>: aparece la respuesta y espera
+                                una línea nueva
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Modificar una línea</td>
+                            <td>
+                                hacer clic en ella y luego <kbd>Intro</kbd>;
+                                <kbd>Esc</kbd> devuelve el texto anterior,
+                                <kbd>↑</kbd> y <kbd>↓</kbd> pasan de una línea a
+                                otra
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eliminar una línea</td>
+                            <td>
+                                vaciarla y luego <kbd>Intro</kbd>: los números
+                                siguientes se desplazan
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eliminar la vista</td>
+                            <td>
+                                <strong
+                                    >Archivo › Vista › Eliminar la vista
+                                    CAS</strong
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Cada cambio se anula con <strong>Deshacer</strong>. Una línea
+                incomprensible se rechaza, en rojo.
+            </p>
+
+            <h3 id="lignes">Escribir una línea</h3>
+            <ul>
+                <li>
+                    Una línea es una fórmula, con o sin comando:
+                    <code>sqrt(12) - sqrt(3)</code> da √3,
+                    <code>Factoriza(x^4 - 1)</code> su factorización.
+                </li>
+                <li>
+                    <code>$2</code> es la respuesta de la línea 2. Cuando se
+                    elimina una línea, los <code>$n</code> se renumeran, y una
+                    referencia a la línea eliminada se sustituye por su fórmula.
+                </li>
+                <li>
+                    <code>b := 3</code> y <code>h(x) := x^2 + 1</code> definen
+                    un número o una función para las líneas siguientes.
+                </li>
+                <li>
+                    Los objetos de la figura se leen por su valor actual: con a
+                    = 2, <code>a^2</code> da 4. Cuando se mueven, las líneas que
+                    los leen se vuelven a calcular. Una letra que no es un
+                    objeto es una variable libre: <code>b^2</code> queda b².
+                </li>
+                <li>
+                    <code>pi</code> y <code>ln</code> se escriben como en
+                    GeoGebra, <code>∞</code> también <code>inf</code>. Los
+                    ángulos están siempre en radianes, incluso en una figura en
+                    grados.
+                </li>
+                <li>
+                    <code>ValorNumérico(e)</code>,
+                    <code>ValorNumérico(e, n)</code> dan un valor aproximado
+                    (con n cifras); <code>ConservaEntrada(e)</code> muestra e
+                    tal cual, sin cálculo. Una línea entre comillas,
+                    <code>"Cálculo exacto"</code>, es un simple texto.
+                </li>
+                <li>
+                    <code>?</code> sustituye una respuesta que Giac no da o que
+                    DocGeo no sabe leer.
+                </li>
+            </ul>
+
+            <h3 id="souris">Señalar con el ratón</h3>
+            <p>
+                Mientras se escribe una línea ya empezada, hacer clic en un
+                objeto de la figura escribe su nombre; hacer clic en otra línea
+                escribe su <code>$n</code>. En una línea vacía, la figura
+                responde como siempre.
+            </p>
+
+            <h3 id="definir">Definir un objeto de la figura</h3>
+            <p>
+                Una definición que solo lee objetos de la figura crea también el
+                objeto, con su línea en la Construcción:
+                <code>m(x) := x^2 + a</code> dibuja la función m. Una definición
+                que lee una variable libre, un <code>$n</code> o un nombre
+                definido solo en la vista (<code>n := b^2</code>) queda propia
+                de la vista.
+            </p>
+            <p>
+                En el lector, las líneas se muestran en el idioma del navegador.
+            </p>
+
+            <h2 id="courbes">Curvas algebraicas</h2>
+            <p>
+                Una ecuación de cualquier grado, o no polinómica, escrita en la
+                Construcción es una curva: <code>f = x^3 + y^3 = 3x y</code> (el
+                folium de Descartes), <code>c = sin(x) = y</code>. Se dibuja
+                donde atraviesa la ventana y sigue a la ventana cuando se
+                desplaza; se pueden colocar puntos sobre ella y cortarla con
+                otros objetos.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>EcuaciónLugar(M, P)</code></td>
+                            <td>
+                                la curva entera que describe el punto M cuando
+                                el punto sobre objeto P recorre su objeto
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Envolvente(d, P)</code></td>
+                            <td>
+                                la curva entera tangente a las posiciones de la
+                                recta d cuando P recorre su objeto
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Como en GeoGebra, es la ecuación entera, con todas sus ramas, y
+                no solo la parte recorrida: <code>EcuaciónLugar</code> de un
+                punto que recorre un segmento da la recta. Mientras se espera a
+                Giac, o para una construcción que no traduce (macros,
+                bisectrices, circunferencia inscrita, deslizador como motor,
+                espacio), es el lugar recorrido de
+                <a href="commandes.html">LugarGeométrico</a>.
+            </p>
+
+            <h2 id="prouver">Demostrar</h2>
+            <p>
+                Seis predicados, cuyos argumentos son nombres de objetos, dicen
+                si una propiedad se cumple en la figura tal como está:
+                <code>true</code> o <code>false</code>.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Predicado</th>
+                            <th>Verdadero si</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>EstánAlineados(A, B, C)</code></td>
+                            <td>los tres puntos están alineados</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>SonParalelas(d, e)</code>,
+                                <code>SonPerpendiculares(d, e)</code>
+                            </td>
+                            <td>
+                                las rectas, segmentos o semirrectas son
+                                paralelos, perpendiculares
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SonCocíclicos(A, B, C, D)</code></td>
+                            <td>
+                                los cuatro puntos están en una misma
+                                circunferencia (o una misma recta)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SonConcurrentes(d, e, f)</code></td>
+                            <td>
+                                las tres rectas pasan por un mismo punto (o son
+                                paralelas)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SonIguales(a, b)</code></td>
+                            <td>
+                                dos puntos, rectas o circunferencias coinciden;
+                                dos segmentos tienen la misma longitud; dos
+                                números son iguales
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>Demuestra(p)</code>, siendo p uno de estos predicados,
+                dice si es verdadero <em>en general</em>: para todas las
+                posiciones de los puntos libres y de los puntos sobre objeto,
+                salvo casos degenerados. Con G =
+                <code>Baricentro(A, B, C)</code>,
+                <code>EstánAlineados(A, B, G)</code> pasa a ser verdadero cuando
+                se pone C sobre (AB), pero
+                <code>Demuestra(EstánAlineados(A, B, G))</code> sigue siendo
+                falso. Giac traduce la construcción en ecuaciones, como
+                GeoGebra: la respuesta llega en unos segundos como mucho y se
+                guarda en la figura.
+            </p>
+            <ul>
+                <li>
+                    El cálculo abarca todas las intersecciones a la vez: para
+                    hablar de la segunda intersección de una recta y una
+                    circunferencia que pasan por un punto A, hay que construirla
+                    con <code>OtraIntersección(c, d, A)</code>.
+                </li>
+                <li>
+                    <code>Demuestra</code> queda indefinido para una
+                    construcción que no traduce (las de
+                    <a href="#courbes">EcuaciónLugar</a>, o un ángulo, una razón
+                    o un radio que no es una fracción sencilla, como un giro de
+                    60°), y en la vista CAS.
+                </li>
+                <li>
+                    Los argumentos son nombres: construir y nombrar primero las
+                    rectas, <code>Demuestra(SonParalelas(d, e))</code>.
+                </li>
+            </ul>
+
+            <h2 id="geogebra">Figuras de GeoGebra</h2>
+            <p>
+                Al importar se recuperan los comandos de cálculo simbólico de
+                las fórmulas, las líneas de la vista CAS de GeoGebra, las de su
+                Calculadora Suite, <code>LocusEquation</code>,
+                <code>Envelope</code>, <code>Prove</code> y los predicados. Una
+                celda que usa un comando que DocGeo no tiene se señala.
+            </p>
+        </main>
+    </body>
+</html>

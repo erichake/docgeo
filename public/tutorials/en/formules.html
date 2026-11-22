@@ -124,9 +124,9 @@ area = Data!p * 2</code></pre>
             <h2 id="cellules">Reading a spreadsheet cell</h2>
             <p>
                 In a tab that has a <a href="tableur.html">spreadsheet view</a>,
-                a formula reads its cells by an exclamation mark followed by their
-                address: a cell, a range (a list), or a cell of a spreadsheet
-                tab.
+                a formula reads its cells by an exclamation mark followed by
+                their address: a cell, a range (a list), or a cell of a
+                spreadsheet tab.
             </p>
             <pre><code>r = !B3
 L = !B2:B21
@@ -333,6 +333,28 @@ k = Spreadsheet1!A1</code></pre>
                             <td>
                                 call of an expression that is a function of x,
                                 of its derivative, of its second derivative
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Derivative(f)</code>,
+                                <code>Factor(e)</code>, <code>Solve(e)</code>…
+                            </td>
+                            <td>
+                                <a href="calcul-formel.html#commandes"
+                                    >computer algebra commands</a
+                                >, exact values
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>AreCollinear(A, B, C)</code>…,
+                                <code>Prove(p)</code>
+                            </td>
+                            <td>
+                                <a href="calcul-formel.html#prouver"
+                                    >predicates</a
+                                >, true on the figure or in general
                             </td>
                         </tr>
                     </tbody>

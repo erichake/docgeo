@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Le calcul formel — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Le calcul formel</h1>
+            <p class="lead">
+                DocGeo calcule en valeurs exactes avec Giac, le moteur de calcul
+                formel de Xcas et de GeoGebra : dérivées, primitives,
+                factorisations, équations, limites, sommes, dans les formules de
+                la figure comme dans une vue de calcul formel. Il trouve aussi
+                l’équation d’un lieu et prouve des propriétés géométriques.
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="Une fonction f dépendant d’un curseur a et sa dérivée g, tracées ; à droite, une vue calcul formel de sept lignes : factorisation, dérivée, résolution, intégrale, somme et limite, avec leurs réponses exactes"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac est chargé la première fois qu’un calcul le demande, jamais
+                pour une figure qui n’en a pas besoin. Les dernières réponses
+                sont enregistrées dans la figure : elle s’ouvre et s’affiche
+                sans attendre Giac, même hors ligne. Si Giac ne peut pas être
+                chargé, « ⚠ Giac » apparaît en bas à gauche : les réponses déjà
+                connues restent affichées, les autres sont indéfinies.
+            </p>
+
+            <h2 id="commandes">Les commandes de calcul formel</h2>
+            <p>
+                Elles s’emploient dans toute formule, comme une fonction. Une
+                expression dont la formule n’est qu’une de ces commandes montre
+                la réponse de Giac plutôt que sa formule.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>Dérivée(f)</code>,
+                                <code>Dérivée(e, v)</code>,
+                                <code>Dérivée(e, v, n)</code>
+                            </td>
+                            <td>dérivée, dérivée n-ième par rapport à v</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Intégrale(e)</code>,
+                                <code>Intégrale(e, v)</code>
+                            </td>
+                            <td>primitive</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Intégrale(x^2, 0, a)</code>,
+                                <code>Intégrale(e, v, a, b)</code>
+                            </td>
+                            <td>intégrale de a à b, valeur exacte</td>
+                        </tr>
+                        <tr>
+                            <td><code>Factoriser(e)</code></td>
+                            <td>
+                                factorisation sur les rationnels :
+                                <code>x^2 - 2</code> reste tel quel
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>FactoriseIrr(e)</code></td>
+                            <td>
+                                factorisation sur les radicaux : (x − √2)(x +
+                                √2)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Développer(e)</code>,
+                                <code>Simplifier(e)</code>
+                            </td>
+                            <td>forme développée, forme simplifiée</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Résoudre(x^2 = 2)</code>,
+                                <code>Résoudre(e, v)</code>
+                            </td>
+                            <td>
+                                liste triée des solutions réelles d’une
+                                équation, ou d’une expression nulle
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>CRésoudre(e)</code></td>
+                            <td>solutions complexes</td>
+                        </tr>
+                        <tr>
+                            <td><code>Somme(e, k, a, b)</code></td>
+                            <td>somme des e pour k entier de a à b</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Limite(e, a)</code>,
+                                <code>Limite(e, v, a)</code>
+                            </td>
+                            <td>limite en a, qui peut être <code>∞</code></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>PolynômeTaylor(e, a, n)</code>,
+                                <code>PolynômeTaylor(e, v, a, n)</code>
+                            </td>
+                            <td>polynôme de Taylor d’ordre n en a</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                La variable v est x, y, z ou t, par défaut la première que lit
+                l’expression. Une fonction de la figure s’écrit par son nom :
+                <code>g(x) = Dérivée(f)</code>.
+            </p>
+            <ul>
+                <li>
+                    Un curseur reste un symbole pour Giac :
+                    <code>Factoriser(x^2 - a)</code> montre x² − a même quand a
+                    vaut 4. Déplacer le curseur ne demande donc rien à Giac : la
+                    réponse est seulement réévaluée, pendant le mouvement.
+                </li>
+                <li>
+                    Exceptions : l’ordre n d’un polynôme de Taylor, et les
+                    bornes d’une somme sans forme simple (<code
+                        >Somme(1/k, k, 1, n)</code
+                    >), sont lus par leur valeur : un curseur donne une réponse
+                    par valeur entière.
+                </li>
+                <li>
+                    <code>Intégrale(f, a, b)</code>, f étant le nom d’une
+                    fonction, reste la commande qui
+                    <a href="commandes.html">trace l’aire</a> ;
+                    <code>Intégrale(x^2, 0, 1)</code> ou
+                    <code>Intégrale(e, v, a, b)</code> calcule la valeur exacte.
+                </li>
+                <li>
+                    Tant que la réponse n’est pas arrivée, l’objet garde sa
+                    dernière valeur. Une réponse que DocGeo ne sait pas lire
+                    rend l’objet indéfini. Une dérivée est calculée par DocGeo
+                    en attendant Giac.
+                </li>
+            </ul>
+
+            <h2 id="vue">La vue calcul formel</h2>
+            <p>
+                Comme celle de GeoGebra : des lignes de calcul numérotées, à
+                côté de la figure ou dans leur propre onglet.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ajouter la vue</td>
+                            <td>
+                                <strong
+                                    >Fichier › Vue › Nouvelle vue calcul
+                                    formel</strong
+                                >
+                                (une par figure), ou
+                                <strong
+                                    >Fichier › Nouvel onglet calcul
+                                    formel</strong
+                                >
+                                (« CAS1 », « CAS2 »…)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Calculer une ligne</td>
+                            <td>
+                                taper dans la dernière ligne, vide, puis
+                                <kbd>Entrée</kbd> : la réponse s’affiche et une
+                                nouvelle ligne attend
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Modifier une ligne</td>
+                            <td>
+                                cliquer dessus, puis <kbd>Entrée</kbd> ;
+                                <kbd>Échap</kbd> rend le texte d’avant,
+                                <kbd>↑</kbd> et <kbd>↓</kbd> passent d’une ligne
+                                à l’autre
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer une ligne</td>
+                            <td>
+                                la vider puis <kbd>Entrée</kbd> : les numéros
+                                suivants sont décalés
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Supprimer la vue</td>
+                            <td>
+                                <strong
+                                    >Fichier › Vue › Supprimer la vue calcul
+                                    formel</strong
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Chaque changement s’annule par <strong>Annuler</strong>. Une
+                ligne incomprise est refusée, en rouge.
+            </p>
+
+            <h3 id="lignes">Écrire une ligne</h3>
+            <ul>
+                <li>
+                    Une ligne est une formule, avec ou sans commande :
+                    <code>sqrt(12) - sqrt(3)</code> donne √3,
+                    <code>Factoriser(x^4 - 1)</code> sa factorisation.
+                </li>
+                <li>
+                    <code>$2</code> est la réponse de la ligne 2. Quand une
+                    ligne est supprimée, les <code>$n</code> sont renumérotés,
+                    et une référence à la ligne supprimée est remplacée par sa
+                    formule.
+                </li>
+                <li>
+                    <code>b := 3</code> et <code>h(x) := x^2 + 1</code>
+                    définissent un nombre ou une fonction pour les lignes
+                    suivantes.
+                </li>
+                <li>
+                    Les objets de la figure sont lus par leur valeur du moment :
+                    avec a = 2, <code>a^2</code> donne 4. Quand on les déplace,
+                    les lignes qui les lisent sont recalculées. Une lettre qui
+                    n’est pas un objet est une variable libre :
+                    <code>b^2</code> reste b².
+                </li>
+                <li>
+                    <code>pi</code> et <code>ln</code> s’écrivent comme dans
+                    GeoGebra, <code>∞</code> aussi <code>inf</code>. Les angles
+                    sont toujours en radians, même dans une figure en degrés.
+                </li>
+                <li>
+                    <code>Numérique(e)</code>, <code>Numérique(e, n)</code>
+                    donnent une valeur approchée (à n chiffres) ;
+                    <code>ConserverSaisie(e)</code> montre e tel quel, sans
+                    calcul. Une ligne entre guillemets,
+                    <code>"Calcul exact"</code>, est un simple texte.
+                </li>
+                <li>
+                    <code>?</code> remplace une réponse que Giac ne donne pas ou
+                    que DocGeo ne sait pas lire.
+                </li>
+            </ul>
+
+            <h3 id="souris">Désigner à la souris</h3>
+            <p>
+                Pendant qu’on tape une ligne déjà commencée, cliquer un objet de
+                la figure écrit son nom ; cliquer une autre ligne écrit son
+                <code>$n</code>. Sur une ligne vide, la figure répond comme
+                d’habitude.
+            </p>
+
+            <h3 id="definir">Définir un objet de la figure</h3>
+            <p>
+                Une définition qui ne lit que des objets de la figure crée aussi
+                l’objet, avec sa ligne dans la Construction :
+                <code>m(x) := x^2 + a</code> trace la fonction m. Une définition
+                qui lit une variable libre, un <code>$n</code> ou un nom défini
+                seulement dans la vue (<code>n := b^2</code>) reste propre à la
+                vue.
+            </p>
+            <p>
+                Dans le lecteur, les lignes sont montrées dans la langue du
+                navigateur.
+            </p>
+
+            <h2 id="courbes">Courbes algébriques</h2>
+            <p>
+                Une équation de degré quelconque, ou non polynomiale, tapée dans
+                la Construction est une courbe :
+                <code>f = x^3 + y^3 = 3x y</code> (le folium de Descartes),
+                <code>c = sin(x) = y</code>. Elle est tracée là où elle traverse
+                la fenêtre et suit la fenêtre quand on la déplace ; on peut y
+                placer des points et la couper avec d’autres objets.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>EquationLieu(M, P)</code></td>
+                            <td>
+                                la courbe entière que décrit le point M quand le
+                                point sur objet P parcourt son objet
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Enveloppe(d, P)</code></td>
+                            <td>
+                                la courbe entière tangente aux positions de la
+                                droite d quand P parcourt son objet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Comme dans GeoGebra, c’est l’équation entière, toutes ses
+                branches, et pas seulement la partie parcourue :
+                <code>EquationLieu</code> d’un point qui décrit un segment donne
+                la droite. En attendant Giac, ou pour une construction qu’il ne
+                traduit pas (macros, bissectrices, cercle inscrit, curseur pour
+                pilote, espace), c’est le lieu parcouru de
+                <a href="commandes.html">Lieu</a>.
+            </p>
+
+            <h2 id="prouver">Prouver</h2>
+            <p>
+                Six prédicats, dont chaque argument est le nom d’un objet,
+                disent si une propriété est vraie sur la figure telle qu’elle
+                est : <code>true</code> ou <code>false</code>.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prédicat</th>
+                            <th>Vrai si</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>SontAlignés(A, B, C)</code></td>
+                            <td>les trois points sont alignés</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>SontParallèles(d, e)</code>,
+                                <code>SontPerpendiculaires(d, e)</code>
+                            </td>
+                            <td>
+                                les droites, segments ou demi-droites sont
+                                parallèles, perpendiculaires
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SontCocycliques(A, B, C, D)</code></td>
+                            <td>
+                                les quatre points sont sur un même cercle (ou
+                                une même droite)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SontConcourantes(d, e, f)</code></td>
+                            <td>
+                                les trois droites passent par un même point (ou
+                                sont parallèles)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>SontÉgaux(a, b)</code></td>
+                            <td>
+                                deux points, droites ou cercles confondus ; deux
+                                segments de même longueur ; deux nombres égaux
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>Prouver(p)</code>, p étant l’un de ces prédicats, dit s’il
+                est vrai <em>en général</em> : pour toutes les positions des
+                points libres et des points sur objet, sauf cas dégénérés. Avec
+                G = <code>CentreGravité(A, B, C)</code>,
+                <code>SontAlignés(A, B, G)</code> devient vrai quand on pose C
+                sur (AB), mais <code>Prouver(SontAlignés(A, B, G))</code> reste
+                faux. Giac traduit la construction en équations, comme GeoGebra
+                : la réponse arrive en quelques secondes au plus, et elle est
+                enregistrée dans la figure.
+            </p>
+            <ul>
+                <li>
+                    Le calcul porte sur toutes les intersections à la fois :
+                    pour parler de la seconde intersection d’une droite et d’un
+                    cercle passant par un point A, la construire avec
+                    <code>AutreIntersection(c, d, A)</code>.
+                </li>
+                <li>
+                    <code>Prouver</code> reste indéfini pour une construction
+                    qu’il ne traduit pas (celles de
+                    <a href="#courbes">EquationLieu</a>, ou un angle, un rapport
+                    ou un rayon qui n’est pas une fraction simple, comme une
+                    rotation de 60°), et dans la vue calcul formel.
+                </li>
+                <li>
+                    Les arguments sont des noms : construire et nommer d’abord
+                    les droites,
+                    <code>Prouver(SontParallèles(d, e))</code>.
+                </li>
+            </ul>
+
+            <h2 id="geogebra">Figures GeoGebra</h2>
+            <p>
+                À l’import, les commandes de calcul formel des formules, les
+                lignes de la vue Calcul formel de GeoGebra, celles de sa
+                Calculatrice (Suite), <code>LocusEquation</code>,
+                <code>Envelope</code>, <code>Prove</code> et les prédicats sont
+                repris. Une cellule qui emploie une commande que DocGeo n’a pas
+                est signalée.
+            </p>
+        </main>
+    </body>
+</html>

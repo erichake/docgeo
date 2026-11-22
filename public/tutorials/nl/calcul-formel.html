@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Computeralgebra — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Computeralgebra</h1>
+            <p class="lead">
+                DocGeo rekent met exacte waarden via Giac, de
+                computeralgebra-motor van Xcas en GeoGebra: afgeleiden,
+                primitieven, ontbindingen, vergelijkingen, limieten, sommen, in
+                de formules van de figuur en in een CAS-weergave. Het vindt ook
+                de vergelijking van een meetkundige plaats en bewijst
+                meetkundige eigenschappen.
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="Een functie f die afhangt van een schuifknop a en haar afgeleide g, getekend; rechts een CAS-weergave van zeven regels: ontbinding, afgeleide, oplossing, integraal, som en limiet, met hun exacte antwoorden"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac wordt geladen wanneer een berekening het voor het eerst
+                nodig heeft, nooit voor een figuur die het niet nodig heeft. De
+                laatste antwoorden worden in de figuur bewaard: ze opent en
+                wordt getoond zonder op Giac te wachten, ook offline. Kan Giac
+                niet worden geladen, dan verschijnt linksonder „⚠ Giac”: de al
+                bekende antwoorden blijven getoond, de andere zijn
+                ongedefinieerd.
+            </p>
+
+            <h2 id="commandes">De computeralgebra-opdrachten</h2>
+            <p>
+                Ze worden in elke formule gebruikt, als een functie. Een
+                uitdrukking waarvan de formule alleen een van deze opdrachten
+                is, toont het antwoord van Giac in plaats van haar formule.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>Afgeleide(f)</code>,
+                                <code>Afgeleide(e, v)</code>,
+                                <code>Afgeleide(e, v, n)</code>
+                            </td>
+                            <td>afgeleide, n-de afgeleide naar v</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integraal(e)</code>,
+                                <code>Integraal(e, v)</code>
+                            </td>
+                            <td>primitieve</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Integraal(x^2, 0, a)</code>,
+                                <code>Integraal(e, v, a, b)</code>
+                            </td>
+                            <td>integraal van a tot b, exacte waarde</td>
+                        </tr>
+                        <tr>
+                            <td><code>Ontbind(e)</code></td>
+                            <td>
+                                ontbinding over de rationale getallen:
+                                <code>x^2 - 2</code> blijft zoals het is
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>OntbindIrrationaal(e)</code></td>
+                            <td>ontbinding met wortels: (x − √2)(x + √2)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Uitwerken(e)</code>,
+                                <code>Vereenvoudig(e)</code>
+                            </td>
+                            <td>uitgewerkte vorm, vereenvoudigde vorm</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Los(x^2 = 2)</code>,
+                                <code>Los(e, v)</code>
+                            </td>
+                            <td>
+                                gesorteerde lijst van de reële oplossingen van
+                                een vergelijking, of van een uitdrukking gelijk
+                                aan nul
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>CLos(e)</code></td>
+                            <td>complexe oplossingen</td>
+                        </tr>
+                        <tr>
+                            <td><code>Som(e, k, a, b)</code></td>
+                            <td>som van de e voor gehele k van a tot b</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Limiet(e, a)</code>,
+                                <code>Limiet(e, v, a)</code>
+                            </td>
+                            <td>
+                                limiet in a, dat ook <code>∞</code> kan zijn
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Taylorveelterm(e, a, n)</code>,
+                                <code>Taylorveelterm(e, v, a, n)</code>
+                            </td>
+                            <td>taylorveelterm van orde n in a</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                De variabele v is x, y, z of t, standaard de eerste die de
+                uitdrukking leest. Een functie van de figuur schrijf je met haar
+                naam: <code>g(x) = Afgeleide(f)</code>.
+            </p>
+            <ul>
+                <li>
+                    Een schuifknop blijft voor Giac een symbool:
+                    <code>Ontbind(x^2 - a)</code> toont x² − a, ook als a gelijk
+                    is aan 4. De schuifknop verschuiven vraagt Giac dus niets:
+                    het antwoord wordt tijdens de beweging alleen opnieuw
+                    geëvalueerd.
+                </li>
+                <li>
+                    Uitzonderingen: de orde n van een taylorveelterm en de
+                    grenzen van een som zonder eenvoudige vorm (<code
+                        >Som(1/k, k, 1, n)</code
+                    >) worden via hun waarde gelezen: een schuifknop geeft één
+                    antwoord per gehele waarde.
+                </li>
+                <li>
+                    <code>Integraal(f, a, b)</code>, waarbij f de naam van een
+                    functie is, blijft de opdracht die
+                    <a href="commandes.html">de oppervlakte tekent</a>;
+                    <code>Integraal(x^2, 0, 1)</code> of
+                    <code>Integraal(e, v, a, b)</code> berekent de exacte
+                    waarde.
+                </li>
+                <li>
+                    Zolang het antwoord er niet is, behoudt het object zijn
+                    laatste waarde. Een antwoord dat DocGeo niet kan lezen,
+                    maakt het object ongedefinieerd. Een afgeleide berekent
+                    DocGeo zelf, in afwachting van Giac.
+                </li>
+            </ul>
+
+            <h2 id="vue">De CAS-weergave</h2>
+            <p>
+                Zoals in GeoGebra: genummerde rekenregels, naast de figuur of in
+                een eigen tabblad.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actie</th>
+                            <th>Hoe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>De weergave toevoegen</td>
+                            <td>
+                                <strong
+                                    >Bestand › Weergave › Nieuwe
+                                    CAS-weergave</strong
+                                >
+                                (één per figuur), of
+                                <strong>Bestand › Nieuw CAS-tabblad</strong>
+                                („CAS1”, „CAS2”…)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Een regel berekenen</td>
+                            <td>
+                                typ in de laatste, lege regel, dan
+                                <kbd>Enter</kbd>: het antwoord verschijnt en een
+                                nieuwe regel wacht
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Een regel wijzigen</td>
+                            <td>
+                                klik erop, dan <kbd>Enter</kbd>;
+                                <kbd>Esc</kbd> zet de vorige tekst terug,
+                                <kbd>↑</kbd> en <kbd>↓</kbd> gaan van regel naar
+                                regel
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Een regel verwijderen</td>
+                            <td>
+                                maak hem leeg, dan <kbd>Enter</kbd>: de volgende
+                                nummers schuiven op
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>De weergave verwijderen</td>
+                            <td>
+                                <strong
+                                    >Bestand › Weergave › CAS-weergave
+                                    verwijderen</strong
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Elke wijziging maak je ongedaan met
+                <strong>Ongedaan maken</strong>. Een onbegrepen regel wordt
+                geweigerd, in het rood.
+            </p>
+
+            <h3 id="lignes">Een regel schrijven</h3>
+            <ul>
+                <li>
+                    Een regel is een formule, met of zonder opdracht:
+                    <code>sqrt(12) - sqrt(3)</code> geeft √3,
+                    <code>Ontbind(x^4 - 1)</code> de ontbinding.
+                </li>
+                <li>
+                    <code>$2</code> is het antwoord van regel 2. Wordt een regel
+                    verwijderd, dan worden de <code>$n</code> hernummerd, en een
+                    verwijzing naar de verwijderde regel wordt vervangen door
+                    zijn formule.
+                </li>
+                <li>
+                    <code>b := 3</code> en
+                    <code>h(x) := x^2 + 1</code> definiëren een getal of een
+                    functie voor de volgende regels.
+                </li>
+                <li>
+                    De objecten van de figuur worden gelezen met hun huidige
+                    waarde: met a = 2 geeft <code>a^2</code> 4. Worden ze
+                    verplaatst, dan worden de regels die ze lezen opnieuw
+                    berekend. Een letter die geen object is, is een vrije
+                    variabele: <code>b^2</code> blijft b².
+                </li>
+                <li>
+                    <code>pi</code> en <code>ln</code> schrijf je zoals in
+                    GeoGebra, <code>∞</code> ook <code>inf</code>. Hoeken zijn
+                    altijd in radialen, ook in een figuur in graden.
+                </li>
+                <li>
+                    <code>Numeriek(e)</code>, <code>Numeriek(e, n)</code> geven
+                    een benaderde waarde (op n cijfers);
+                    <code>BewaarInvoer(e)</code> toont e zoals het is, zonder
+                    berekening. Een regel tussen aanhalingstekens,
+                    <code>"Exacte berekening"</code>, is gewone tekst.
+                </li>
+                <li>
+                    <code>?</code> vervangt een antwoord dat Giac niet geeft of
+                    dat DocGeo niet kan lezen.
+                </li>
+            </ul>
+
+            <h3 id="souris">Aanwijzen met de muis</h3>
+            <p>
+                Tijdens het typen van een al begonnen regel schrijft een klik op
+                een object van de figuur zijn naam; een klik op een andere regel
+                schrijft haar <code>$n</code>. Op een lege regel reageert de
+                figuur zoals gewoonlijk.
+            </p>
+
+            <h3 id="definir">Een object van de figuur definiëren</h3>
+            <p>
+                Een definitie die alleen objecten van de figuur leest, maakt ook
+                het object aan, met zijn regel in de Constructie:
+                <code>m(x) := x^2 + a</code> tekent de functie m. Een definitie
+                die een vrije variabele, een <code>$n</code> of een alleen in de
+                weergave gedefinieerde naam leest (<code>n := b^2</code>),
+                blijft eigen aan de weergave.
+            </p>
+            <p>
+                In de speler worden de regels getoond in de taal van de browser.
+            </p>
+
+            <h2 id="courbes">Algebraïsche krommen</h2>
+            <p>
+                Een vergelijking van willekeurige graad, of niet veeltermig,
+                getypt in de Constructie, is een kromme:
+                <code>f = x^3 + y^3 = 3x y</code> (het folium van Descartes),
+                <code>c = sin(x) = y</code>. Ze wordt getekend waar ze het
+                venster doorkruist en volgt het venster wanneer je het
+                verschuift; je kunt er punten op plaatsen en haar snijden met
+                andere objecten.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>VergelijkingMP(M, P)</code></td>
+                            <td>
+                                de hele kromme die het punt M beschrijft wanneer
+                                het punt op object P zijn object doorloopt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>OmhullendeVergelijking(d, P)</code></td>
+                            <td>
+                                de hele kromme die raakt aan de standen van de
+                                rechte d wanneer P zijn object doorloopt
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Zoals in GeoGebra is het de hele vergelijking, met al haar
+                takken, en niet alleen het doorlopen deel:
+                <code>VergelijkingMP</code> van een punt dat een lijnstuk
+                doorloopt, geeft de rechte. In afwachting van Giac, of voor een
+                constructie die het niet vertaalt (macro’s, bissectrices,
+                ingeschreven cirkel, schuifknop als aandrijving, ruimte), is het
+                de doorlopen meetkundige plaats van
+                <a href="commandes.html">MeetkundigePlaats</a>.
+            </p>
+
+            <h2 id="prouver">Bewijzen</h2>
+            <p>
+                Zes predicaten, waarvan elk argument de naam van een object is,
+                zeggen of een eigenschap geldt in de figuur zoals ze is:
+                <code>true</code> of <code>false</code>.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Predicaat</th>
+                            <th>Waar als</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>ZijnCollineair(A, B, C)</code></td>
+                            <td>de drie punten collineair zijn</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>ZijnEvenwijdig(d, e)</code>,
+                                <code>ZijnOrthogonaal(d, e)</code>
+                            </td>
+                            <td>
+                                de rechten, lijnstukken of halfrechten
+                                evenwijdig, loodrecht zijn
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>ZijnConcyclisch(A, B, C, D)</code></td>
+                            <td>
+                                de vier punten op één cirkel (of één rechte)
+                                liggen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>ZijnConcurrent(d, e, f)</code></td>
+                            <td>
+                                de drie rechten door één punt gaan (of
+                                evenwijdig zijn)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>ZijnGelijk(a, b)</code></td>
+                            <td>
+                                twee punten, rechten of cirkels samenvallen;
+                                twee lijnstukken even lang zijn; twee getallen
+                                gelijk zijn
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>Bewijs(p)</code>, met p een van deze predicaten, zegt of
+                het <em>in het algemeen</em> waar is: voor alle standen van de
+                vrije punten en de punten op objecten, behalve ontaarde
+                gevallen. Met G = <code>Zwaartepunt(A, B, C)</code> wordt
+                <code>ZijnCollineair(A, B, G)</code> waar wanneer je C op (AB)
+                zet, maar <code>Bewijs(ZijnCollineair(A, B, G))</code> blijft
+                onwaar. Giac vertaalt de constructie in vergelijkingen, zoals
+                GeoGebra: het antwoord komt hooguit na enkele seconden en wordt
+                in de figuur bewaard.
+            </p>
+            <ul>
+                <li>
+                    De berekening dekt alle snijpunten tegelijk: om over het
+                    tweede snijpunt van een rechte en een cirkel door een punt A
+                    te spreken, construeer je het met
+                    <code>AnderSnijpunt(c, d, A)</code>.
+                </li>
+                <li>
+                    <code>Bewijs</code> blijft ongedefinieerd voor een
+                    constructie die het niet vertaalt (die van
+                    <a href="#courbes">VergelijkingMP</a>, of een hoek, een
+                    verhouding of een straal die geen eenvoudige breuk is, zoals
+                    een rotatie over 60°), en in de CAS-weergave.
+                </li>
+                <li>
+                    De argumenten zijn namen: construeer en benoem eerst de
+                    rechten, <code>Bewijs(ZijnEvenwijdig(d, e))</code>.
+                </li>
+            </ul>
+
+            <h2 id="geogebra">GeoGebra-figuren</h2>
+            <p>
+                Bij het importeren worden de computeralgebra-opdrachten van de
+                formules, de regels van de CAS-weergave van GeoGebra, die van
+                zijn Rekenmachine Suite, <code>LocusEquation</code>,
+                <code>Envelope</code>, <code>Prove</code> en de predicaten
+                overgenomen. Een cel die een opdracht gebruikt die DocGeo niet
+                heeft, wordt gemeld.
+            </p>
+        </main>
+    </body>
+</html>

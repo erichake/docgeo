@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>符號運算 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>符號運算</h1>
+            <p class="lead">
+                DocGeo 藉助 Xcas 和 GeoGebra 的符號運算引擎 Giac
+                計算精確值：導數、原函數、因式分解、方程式、極限、求和，既可用於圖形的公式，也可用於
+                CAS 檢視。它還能求出軌跡的方程式，並證明幾何性質。
+            </p>
+
+            <figure>
+                <img
+                    src="img/calcul-formel.webp"
+                    alt="依賴滑桿 a 的函數 f 及其導數 g 的圖形；右側是有七列的 CAS 檢視：因式分解、導數、求解、積分、求和與極限，附有精確結果"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Giac
+                在計算第一次需要它時才載入，不需要它的圖形永遠不會載入。最近的結果儲存在圖形中：圖形開啟和顯示時無需等待
+                Giac，離線也可以。如果無法載入 Giac，左下角會顯示「⚠
+                Giac」：已知的結果繼續顯示，其餘的結果未定義。
+            </p>
+
+            <h2 id="commandes">符號運算指令</h2>
+            <p>
+                它們可以像函數一樣用於任何公式。公式僅由其中一個指令構成的運算式顯示
+                Giac 的結果，而不是其公式。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>指令</th>
+                            <th>結果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>導數(f)</code>, <code>導數(e, v)</code>,
+                                <code>導數(e, v, n)</code>
+                            </td>
+                            <td>導數，對 v 的 n 階導數</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>積分(e)</code>, <code>積分(e, v)</code>
+                            </td>
+                            <td>原函數</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>積分(x^2, 0, a)</code>,
+                                <code>積分(e, v, a, b)</code>
+                            </td>
+                            <td>從 a 到 b 的積分，精確值</td>
+                        </tr>
+                        <tr>
+                            <td><code>因式分解(e)</code></td>
+                            <td>
+                                在有理數範圍內因式分解：<code>x^2 - 2</code>
+                                保持不變
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>實數域因式分解(e)</code></td>
+                            <td>在根式範圍內因式分解：(x − √2)(x + √2)</td>
+                        </tr>
+                        <tr>
+                            <td><code>展開(e)</code>, <code>化簡(e)</code></td>
+                            <td>展開式，化簡式</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>求解(x^2 = 2)</code>,
+                                <code>求解(e, v)</code>
+                            </td>
+                            <td>方程式或等於零的運算式的實數解，依序排列</td>
+                        </tr>
+                        <tr>
+                            <td><code>複數求解(e)</code></td>
+                            <td>複數解</td>
+                        </tr>
+                        <tr>
+                            <td><code>總和(e, k, a, b)</code></td>
+                            <td>k 為從 a 到 b 的整數時 e 的和</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>極限(e, a)</code>,
+                                <code>極限(e, v, a)</code>
+                            </td>
+                            <td>在 a 處的極限，a 可以是 <code>∞</code></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>泰勒多項式(e, a, n)</code>,
+                                <code>泰勒多項式(e, v, a, n)</code>
+                            </td>
+                            <td>在 a 處 n 階泰勒多項式</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                變數 v 為 x、y、z 或
+                t，預設為運算式讀到的第一個。圖形中的函數用其名稱書寫：<code
+                    >g(x) = 導數(f)</code
+                >。
+            </p>
+            <ul>
+                <li>
+                    滑桿對 Giac 而言始終是符號：即使 a 等於 4，<code
+                        >因式分解(x^2 - a)</code
+                    >
+                    也顯示 x² − a。因此移動滑桿不會向 Giac
+                    要求任何計算：運動過程中只是重新求值。
+                </li>
+                <li>
+                    例外：泰勒多項式的階 n，以及沒有簡單形式的和的上下限（<code
+                        >總和(1/k, k, 1, n)</code
+                    >），按其數值讀取：滑桿的每個整數值對應一個結果。
+                </li>
+                <li>
+                    <code>積分(f, a, b)</code>（f 為函數名稱）仍是<a
+                        href="commandes.html"
+                        >繪製面積</a
+                    >的指令；<code>積分(x^2, 0, 1)</code> 或
+                    <code>積分(e, v, a, b)</code> 計算精確值。
+                </li>
+                <li>
+                    在結果到達之前，物件保留其最後的值。DocGeo
+                    無法讀取的結果使物件未定義。等待 Giac 時，導數由 DocGeo
+                    自行計算。
+                </li>
+            </ul>
+
+            <h2 id="vue">CAS 檢視</h2>
+            <p>
+                與 GeoGebra
+                的相同：帶編號的計算列，位於圖形旁邊或其自己的分頁中。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>方法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>新增檢視</td>
+                            <td>
+                                <strong>檔案 › 檢視 › 新增 CAS 檢視</strong>
+                                （每個圖形一個），或
+                                <strong>檔案 › 新增 CAS 分頁</strong>
+                                （「CAS1」、「CAS2」…）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>計算一列</td>
+                            <td>
+                                在最後一個空列中輸入，然後按
+                                <kbd>Enter</kbd>：顯示結果，並出現新的一列
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>修改一列</td>
+                            <td>
+                                點選該列，然後按 <kbd>Enter</kbd>；<kbd
+                                    >Esc</kbd
+                                >
+                                恢復之前的文字，<kbd>↑</kbd> 和
+                                <kbd>↓</kbd> 在列之間移動
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>刪除一列</td>
+                            <td>
+                                清空該列，然後按
+                                <kbd>Enter</kbd>：後面的編號隨之前移
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>刪除檢視</td>
+                            <td>
+                                <strong>檔案 › 檢視 › 刪除 CAS 檢視</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                每次修改都可以用<strong>復原</strong>復原。無法理解的列會被拒絕，顯示為紅色。
+            </p>
+
+            <h3 id="lignes">書寫一列</h3>
+            <ul>
+                <li>
+                    一列就是一個公式，可以有指令也可以沒有：<code
+                        >sqrt(12) - sqrt(3)</code
+                    >
+                    得到 √3，<code>因式分解(x^4 - 1)</code> 得到其因式分解。
+                </li>
+                <li>
+                    <code>$2</code> 是第 2 列的結果。刪除一列時，<code>$n</code>
+                    會重新編號，對已刪除列的參照會被替換為其公式。
+                </li>
+                <li>
+                    <code>b := 3</code> 和
+                    <code>h(x) := x^2 + 1</code>
+                    為後續各列定義一個數或一個函數。
+                </li>
+                <li>
+                    圖形的物件按其目前的值讀取：a = 2 時，<code>a^2</code> 得到
+                    4。移動這些物件時，讀取它們的列會重新計算。不是物件的字母是自由變數：<code
+                        >b^2</code
+                    >
+                    仍為 b²。
+                </li>
+                <li>
+                    <code>pi</code> 和 <code>ln</code> 的寫法與 GeoGebra
+                    相同，<code>∞</code> 也可寫作
+                    <code>inf</code
+                    >。角度始終以弧度計，即使在以度為單位的圖形中也是如此。
+                </li>
+                <li>
+                    <code>近似數(e)</code>、<code>近似數(e, n)</code>
+                    給出近似值（n 位數字）；<code>保留原式(e)</code> 原樣顯示
+                    e，不作計算。引號中的一列，<code>"精確計算"</code>，是普通文字。
+                </li>
+                <li>
+                    <code>?</code> 代替 Giac 沒有給出或 DocGeo 無法讀取的結果。
+                </li>
+            </ul>
+
+            <h3 id="souris">用滑鼠指定</h3>
+            <p>
+                在輸入已開始的一列時，點選圖形中的物件會寫入其名稱；點選另一列會寫入其
+                <code>$n</code>。在空列上，圖形照常回應。
+            </p>
+
+            <h3 id="definir">定義圖形的物件</h3>
+            <p>
+                只讀取圖形物件的定義也會建立該物件，並在構造中產生其列：<code
+                    >m(x) := x^2 + a</code
+                >
+                繪製函數 m。讀取自由變數、<code>$n</code>
+                或僅在檢視中定義的名稱的定義（<code>n := b^2</code
+                >）只屬於該檢視。
+            </p>
+            <p>在播放器中，各列以瀏覽器的語言顯示。</p>
+
+            <h2 id="courbes">代數曲線</h2>
+            <p>
+                在構造中輸入的任意次數或非多項式的方程式是一條曲線：<code
+                    >f = x^3 + y^3 = 3x y</code
+                >（笛卡兒葉形線），<code>c = sin(x) = y</code
+                >。它在穿過視窗的地方繪製，並在移動視窗時跟隨視窗；可以在其上放置點，並與其他物件求交。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>指令</th>
+                            <th>結果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>軌跡方程(M, P)</code></td>
+                            <td>
+                                當物件上的點 P 在其物件上移動時，點 M
+                                描出的整條曲線
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>包絡(d, P)</code></td>
+                            <td>
+                                當 P 在其物件上移動時，與直線 d
+                                的各個位置相切的整條曲線
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                與 GeoGebra
+                一樣，這是整個方程式及其所有分支，而不僅是經過的部分：沿線段移動的點的
+                <code>軌跡方程</code> 給出整條直線。等待 Giac
+                時，或對於它無法轉換的構造（巨集、角平分線、內切圓、以滑桿為驅動、空間），顯示的是
+                <a href="commandes.html">軌跡</a> 經過的軌跡。
+            </p>
+
+            <h2 id="prouver">證明</h2>
+            <p>
+                六個述詞（每個參數都是物件的名稱）判斷某個性質在目前圖形中是否成立：<code
+                    >true</code
+                >
+                或 <code>false</code>。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>述詞</th>
+                            <th>為真，當</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>是否共線(A, B, C)</code></td>
+                            <td>三點共線</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>是否平行(d, e)</code>,
+                                <code>是否垂直(d, e)</code>
+                            </td>
+                            <td>直線、線段或射線平行、垂直</td>
+                        </tr>
+                        <tr>
+                            <td><code>是否共圓(A, B, C, D)</code></td>
+                            <td>四點在同一個圓（或同一條直線）上</td>
+                        </tr>
+                        <tr>
+                            <td><code>是否共點(d, e, f)</code></td>
+                            <td>三條直線經過同一點（或互相平行）</td>
+                        </tr>
+                        <tr>
+                            <td><code>是否相等(a, b)</code></td>
+                            <td>
+                                兩個點、兩條直線或兩個圓重合；兩條線段長度相等；兩個數相等
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <code>證明(p)</code>（p
+                為這些述詞之一）判斷它是否<em>一般地</em>成立：對於自由點和物件上的點的所有位置，退化情形除外。設
+                G = <code>重心(A, B, C)</code>，把 C 放到 (AB) 上時
+                <code>是否共線(A, B, G)</code> 變為真，但
+                <code>證明(是否共線(A, B, G))</code> 仍為假。Giac 像 GeoGebra
+                一樣把構造轉換為方程式：結果最多幾秒鐘就會得到，並儲存在圖形中。
+            </p>
+            <ul>
+                <li>
+                    計算同時涵蓋所有交點：要討論經過點 A
+                    的直線與圓的第二個交點，請用
+                    <code>另一交點(c, d, A)</code> 構造它。
+                </li>
+                <li>
+                    對於無法轉換的構造（<a href="#courbes">軌跡方程</a>
+                    無法轉換的那些，或不是簡單分數的角度、比或半徑，例如 60°
+                    的旋轉），以及在 CAS 檢視中，<code>證明</code> 保持未定義。
+                </li>
+                <li>
+                    參數是名稱：請先構造並命名直線，<code
+                        >證明(是否平行(d, e))</code
+                    >。
+                </li>
+            </ul>
+
+            <h2 id="geogebra">GeoGebra 圖形</h2>
+            <p>
+                匯入時會保留公式中的符號運算指令、GeoGebra 的 CAS
+                檢視中的列、其計算機套件（Suite）中的列、<code>LocusEquation</code>、<code>Envelope</code>、<code
+                    >Prove</code
+                >
+                以及各述詞。使用 DocGeo 沒有的指令的儲存格會被回報。
+            </p>
+        </main>
+    </body>
+</html>

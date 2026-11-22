@@ -103,21 +103,24 @@ const MANDELBROT = readFileSync(
 async function spreadsheet({ page, button }) {
     await button("close_history");
     await page.waitForTimeout(600);
-    await page.evaluate(async (bytes) => {
-        const transfer = new DataTransfer();
-        transfer.items.add(
-            new File([new Uint8Array(bytes)], "mandelbrot.dgo"),
-        );
-        document.body.dispatchEvent(
-            new DragEvent("drop", {
-                dataTransfer: transfer,
-                clientX: 600,
-                clientY: 300,
-                bubbles: true,
-                cancelable: true,
-            }),
-        );
-    }, [...MANDELBROT]);
+    await page.evaluate(
+        async (bytes) => {
+            const transfer = new DataTransfer();
+            transfer.items.add(
+                new File([new Uint8Array(bytes)], "mandelbrot.dgo"),
+            );
+            document.body.dispatchEvent(
+                new DragEvent("drop", {
+                    dataTransfer: transfer,
+                    clientX: 600,
+                    clientY: 300,
+                    bubbles: true,
+                    cancelable: true,
+                }),
+            );
+        },
+        [...MANDELBROT],
+    );
     await page.waitForFunction(
         () =>
             document.querySelector(".docgeo-sheet iframe")?.contentWindow
@@ -131,6 +134,40 @@ async function spreadsheet({ page, button }) {
     await page.waitForTimeout(2500);
     const box = await page.locator(".docgeo-sheet iframe").boundingBox();
     await page.mouse.click(box.x + 200, box.y + 265);
+}
+
+// A function, its derivative by Giac, and a computer algebra view beside
+// them, made by the File menu, its lines typed in its fields (English
+// names, shown in the editor's language). Giac's answers awaited.
+async function algebra({ page, type, t }) {
+    await type([
+        "a = Slider(-3, 3, 1)",
+        "f(x) = x^3 - a x",
+        "g(x) = Derivative(f)",
+    ]);
+    await page.click(
+        `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+    );
+    for (const key of ["view_section", "new_cas_view"])
+        await page
+            .locator(".dge-menu-popup > button", { hasText: await t(key) })
+            .first()
+            .click();
+    for (const line of [
+        "Factor(x^4 - 1)",
+        "f(x)",
+        "Derivative($2)",
+        "Solve($3 = 0)",
+        "Integral(f(x), 0, 2)",
+        "Sum(k^2, k, 1, n)",
+        "Limit(sin(x) / x, 0)",
+    ]) {
+        await page.locator(".dge-cas-line").last().fill(line);
+        await page.locator(".dge-cas-line").last().press("Enter");
+        await page.waitForTimeout(300);
+    }
+    await page.locator(".dge-cas-line").last().blur();
+    await page.waitForTimeout(4000);
 }
 
 export const SHOTS = [
@@ -385,6 +422,11 @@ export const SHOTS = [
         file: "tableur.webp",
         page: "editor.html",
         run: spreadsheet,
+    },
+    {
+        file: "calcul-formel.webp",
+        page: "editor.html",
+        run: algebra,
     },
     {
         file: "integrer-lien.webp",
