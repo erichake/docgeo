@@ -15,7 +15,9 @@ débloque :
 - aucune dépendance nouvelle ;
 - réutiliser le moteur existant (`dgp_formula.ts`, objets DGP) plutôt que
   d'ajouter du code parallèle ;
-- pas de calcul formel : dériver ou intégrer numériquement ;
+- calcul formel : seulement par le module Giac chargé à la demande
+  (chantier `CAS.md`), jamais dans le moteur ; sans lui, dériver ou
+  intégrer numériquement comme aujourd'hui ;
 - renoncer à une fonctionnalité rare dont le coût en taille est élevé.
 
 ## Périmètre
@@ -26,9 +28,13 @@ plus que les précédentes et alourdit le build.
 
 Hors périmètre, définitivement :
 
-- le calcul formel (CAS) ;
 - le JavaScript des figures, ignoré et signalé (voir `AGENTS.md`) ;
 - les commandes qui dépendent d'un service extérieur.
+
+Le calcul formel (CAS), longtemps exclu, est rentré dans le périmètre le
+2026-11-22 par décision de l'auteur : il passe par Giac, module séparé
+chargé à la demande (`CAS.md`), et ses commandes (`IFactor`, `CSolve`…)
+sont traduites à l'étape 4 de ce chantier, la mesure du corpus mise à jour.
 
 Tout le reste est dans le périmètre, y compris les scripts GeoGebra
 (GgbScript), traduits en programmes qui s'ouvrent en blocs, les statistiques
@@ -556,7 +562,8 @@ cause.
       éléments non importés 2889 → 2844 ; build +1,3 Ko. Les 3 figures à
       `Mode` s'ouvrent dans l'état enregistré : leurs listes déroulantes ne
       sont pas dessinées et `SelectedIndex` garde sa valeur enregistrée.
-      `CSolve` et `IFactor` relèvent du calcul formel (écarté).
+      `CSolve` et `IFactor` relèvent du calcul formel (repris par
+      l'étape 4 de `CAS.md`).
 - [x] **21. Calques** : le `layer` d'un élément (0 à 9, dans 79 figures
       du corpus sur 470) était ignoré. Fait : il devient le style `l`, le
       calque de DGPad (`construction_object.level`) : un objet est peint

@@ -46,6 +46,22 @@ manipulation ; la création et la suppression des vues et pages tableur
 relèvent de l'éditeur. Le poids du lecteur est mesuré à chaque étape. Lire
 ce mémo avant d'y toucher.
 
+Exception : le calcul formel (commandes de calcul formel dans les
+formules, vue CAS, puis raisonnement automatique), décrit dans `CAS.md`,
+est un chantier ouvert. Giac, sous GPL, est un module séparé (sa copie
+compilée dans `giac_MAIN`, livrée dans `public/apps/giac` de DocTools),
+chargé dans un Web Worker seulement quand une page montrée a besoin d'un
+calcul dont le résultat n'est pas connu ; jamais embarqué dans le build
+de DocGeo. Son chargeur, son cache et la relecture de ses réponses vont
+dans le moteur, puisque le lecteur doit ouvrir les figures qui en
+emploient, dans un budget de 10 Ko mesuré à chaque étape ; la saisie dans
+la vue CAS relève de l'éditeur. Aucun texte de la figure n'est passé tel
+quel à Giac : chaque appel est construit depuis un arbre validé, avec une
+liste fermée de commandes. Le chantier se fait dans `docgeo_CAS`, sur la
+branche `cas` (exception à la règle des commits sur `master`), sans
+`npm run build` ni `zz_*.command`, qui écrivent en production. Lire ce
+mémo avant d'y toucher.
+
 ### Format natif `.dgo`
 
 `.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement

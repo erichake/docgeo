@@ -1,7 +1,8 @@
 # Calcul formel (Giac) dans DocGeo — mémo de chantier
 
-Ouvert le 2026-11-22. Étape 0 (essai) faite ; décisions de l'auteur
-prises le même jour (« Décisions de l'auteur »).
+Ouvert le 2026-11-22. Étapes 0 (essai), M (mise en place), 1 (module
+Giac) et 2 (Giac dans DocGeo) faites ; décisions de l'auteur prises le même jour (« Décisions de
+l'auteur »).
 
 Objectif : donner à DocGeo ce que Giac donne à GeoGebra, c'est-à-dire des
 commandes de calcul formel dans les formules de la figure, une vue CAS
@@ -392,6 +393,10 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 5. **Noms des commandes traduits** dans les 12 langues, comme toutes les
    commandes de DocGeo.
 6. **Pas de contact** avec Bernard Parisse.
+7. **Mémoire de Giac fixe**, 64 Mo (réglage de GeoGebra) : un calcul
+   énorme donne `crash` et le Worker est relancé (compte rendu de
+   l'étape 1).
+8. **Exception d'`AGENTS.md`** validée telle que rédigée à l'étape 2.
 
 ## Étapes
 
@@ -406,7 +411,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
     sable.
   - Essayer de recompiler Giac depuis ses sources avec Emscripten.
   - Rapport, puis décisions 1 et 2.
-- [ ] **Étape M (MAIN) — mise en place** :
+- [x] **Étape M (MAIN) — mise en place** :
   - avec l'accord de l'auteur, commit de `CAS.md` sur `master` (un mémo,
     sans effet sur la production) ;
   - `git worktree add ../docgeo_CAS -b cas`, puis `npm install` dans
@@ -419,7 +424,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
     référence, mesures), `git init` ;
   - la session dit ensuite à l'auteur d'ouvrir `giac_MAIN` dans VS Code
     pour l'étape 1.
-- [ ] **Étape 1 (Giac) — copie, compilation et module générique.**
+- [x] **Étape 1 (Giac) — copie, compilation et module générique.**
   - Script reproductible vers `dist/`, code réseau de Giac retiré
     (`read` d'une adresse), réponses vérifiées identiques à celles de
     l'étape 0.
@@ -432,7 +437,7 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
   - Une page de test dans `giac_MAIN`, et le script d'installation dans
     `doctools_MAIN/public/apps/giac`, qui ne sera lancé qu'à la fin du
     chantier.
-- [ ] **Étape 2 (CAS) — Giac dans DocGeo**, sans commande visible :
+- [x] **Étape 2 (CAS) — Giac dans DocGeo**, sans commande visible :
   middleware de développement (`/giac/` → `../giac_MAIN/dist`), chargement
   à la demande par la bibliothèque du module, cache des résultats et
   recalcul des objets à leur arrivée, message si Giac est absent, tests
@@ -460,9 +465,11 @@ Giac est un interpréteur complet. Une figure peut venir de n'importe où
 
 ## Point de reprise
 
-Étape 0 faite le 2026-11-22 (compte rendu ci-dessous). Prochaine action :
-étape M, dans une session ouverte sur `docgeo_MAIN` (décisions 1 à 6
-prises).
+Étapes 0, M, 1 et 2 faites le 2026-11-22 (comptes rendus ci-dessous).
+Étape 2 committée sur la branche `cas` ; `giac_MAIN` n'a encore aucun
+commit (à demander par l'auteur dans une session de `giac_MAIN`).
+Prochaine action : étape 3, dans une session VS Code ouverte sur
+`docgeo_CAS` (« lis CAS.md et fais ce qu'il dit »).
 
 ## Comptes rendus des étapes
 
@@ -551,3 +558,204 @@ et 2).
 2. Le dépôt de la copie de Giac contient les sources du miroir, un script
    de compilation (`emcc` direct, comme à l'étape 0) et le fichier
    `COPYING`. Il produit `giac.wasm` (7,6 Mo) et son `giac.js` (70 Ko).
+
+### Étape M : ce qui est fait
+
+Fait le 2026-11-22.
+
+- `CAS.md` committé sur `master` (`a37eb516`), avec l'accord de l'auteur.
+- `docgeo_CAS` : `git worktree add ../docgeo_CAS -b cas`, `npm install`.
+  Le mémo vit désormais ici (branche `cas`).
+- Mémoire de Claude : les dossiers `-Users-erichake-Desktop-BV-html-docgeo-CAS`
+  et `-Users-erichake-Desktop-BV-html-giac-MAIN` de `~/.claude/projects/`
+  ont un lien `memory` vers celle de `docgeo_MAIN` (`giac_MAIN` aussi, pour
+  que ses sessions gardent les préférences de l'auteur).
+- `giac_MAIN` (`git init`, branche `master`, rien de committé) :
+  - `upstream/` (17 Mo) : copie non modifiée de la partie utile du miroir
+    `geogebra/giac`, révision `19a710a` (2026-10-12) notée dans
+    `UPSTREAM.md` : `src/giac/` (C++, en-têtes, grammaires flex et bison),
+    `src/giac.js/js/time.js`, GMP et MPFR précompilés, `README.md` ;
+    `update_upstream.sh <révision>` la remplace ;
+  - `patches/` : nos correctifs, un fichier daté par correctif, appliqués
+    par `build.sh` sur une copie (`build/src`) ; vide pour l'instant ;
+  - `build.sh` : commande de l'étape 0 (`emcc` direct, réglages de
+    GeoGebra, `-Oz`, compilation parallèle) vers `dist/giac.js` (69 Ko) et
+    `dist/giac.wasm` (7,6 Mo, 2,7 Mo gzip, 1,9 Mo brotli), en 48 s ;
+    `--original` compile sans correctif (la référence) ;
+  - Emscripten 4.0.7 dans `emsdk/` ; `emsdk/`, `build/`, `dist/` ignorés
+    par git ;
+  - `COPYING` (GPL v3), `README.md` (anglais, pour le dépôt public),
+    `AGENTS.md` (+ `CLAUDE.md`) : organisation, licence, correctifs petits
+    et isolés, mesurer d'abord, Giac d'origine comme oracle, sécurité,
+    module générique.
+- Vérifié sous Node : `factor`, `diff`, `integrate`, `solve` (`√2`, mode
+  GeoGebra) et `ifactor(2^128+1)` répondent comme à l'étape 0.
+- Aucun code de DocGeo touché : ni tests ni build du lecteur à mesurer.
+
+### Étape 1 : ce qui est fait
+
+Fait le 2026-11-22 dans `giac_MAIN` (organisation décrite dans son
+`AGENTS.md`). Aucun code de DocGeo touché : ni tests ni build du lecteur à
+mesurer.
+
+**Correctifs** (`patches/`, un fichier daté chacun) :
+- `01-no-network.patch` : sous Emscripten, `fetch()` de Giac (appelé par
+  `read("…")`, `csv2gen`…) renvoie `"ERROR"` sans JavaScript, et
+  `system_browser_command` (`window.open`) ne fait plus rien. Le seul
+  JavaScript appelable depuis Giac est désormais `Date.now` et un `alert`
+  inerte (`UI.warnpy`) ; `build.sh` échoue s'il reste `XMLHttpRequest`,
+  `window` ou `fetch` dans ce code. Le reste de `giac.js` (runtime
+  d'Emscripten : chargement du `.wasm`, fichiers paresseux) n'est pas
+  atteignable depuis Giac.
+- `02-no-history.patch` : **trouvé en mesurant**. `caseval` gardait chaque
+  entrée et chaque résultat dans l'historique du contexte, jamais libéré
+  (`restart` ne le vide pas). La mémoire de la compilation est fixe
+  (64 Mo, réglage de GeoGebra : `ALLOW_MEMORY_GROWTH` n'est pas passé à
+  l'édition de liens) : environ 620 résultats de `expand((x+y+z+1)^12)`
+  suffisaient à arrêter Giac. Sans historique, 20 000 passent. DocGeo n'en
+  a pas besoin (les `$n` de la vue CAS seront gérés par DocGeo) ; seuls
+  `ans()`, `quest()`, `entry()` sont touchés.
+
+**Compilation** : `./build.sh` (≈ 55 s) → `dist/`, `./build.sh --original`
+→ `dist_original/` (la référence, côte à côte pour l'oracle).
+
+| Fichier          | Brut      | gzip      | brotli    |
+| ---------------- | --------- | --------- | --------- |
+| `giac.wasm`      | 7 582 348 | 2 656 722 | 1 947 481 |
+| `giac.js`        | 68 399    | 19 072    | 17 083    |
+| `giac_worker.js` | 2 326     | 1 069     | 889       |
+| `giac_host.js`   | 4 123     | 1 569     | 1 349     |
+
+Deux compilations d'une même source diffèrent de quelques centaines
+d'octets (ordre de blocs d'exceptions WebAssembly, même taille) ; leurs
+réponses sont identiques.
+
+**Oracle** : `tools/oracle.sh` compare `dist/` à `dist_original/` sous Node
+sur `test/inputs.txt` (128 commandes : banc de l'étape 0, commandes
+usuelles) et des entrées au hasard reproductibles (`factor`, `expand`,
+`diff`, `integrate`, `solve`, `limit`, `taylor`, `partfrac`, `gcd`…).
+Réponses **identiques** sur 3 128, puis 10 128 entrées (deux graines),
+en 2 à 3 s ; une seule erreur Giac sur 3 128. Le banc exécuté dans le
+navigateur donne exactement les réponses de l'originale (donc celles de
+GeoGebra, étape 0).
+
+**Module générique** (`module/`, copié dans `dist/`) :
+- `giac_host.js` (module ES, 1,3 Ko brotli) : `createGiac({timeout})`
+  rend `{ load, eval(expr, {timeout}), stop }`. `eval` résout
+  `{ value, ms, log }` ou rejette une `GiacError` de code `giac` (message
+  de Giac), `timeout`, `crash`, `load`, `protocol` ou `stopped`. Rien
+  n'est chargé avant le premier `load`/`eval`. La page compile le
+  `.wasm` (`compileStreaming`, ou `compile` si le serveur ne donne pas
+  `application/wasm`) et transmet le `WebAssembly.Module` au Worker : un
+  Worker arrêté (délai, plantage, `stop`) est relancé sans retélécharger
+  ni recompiler. Une évaluation à la fois, en file ; le délai court à
+  partir de l'envoi au Worker. Les variables de Giac sont perdues à la
+  relance : DocGeo doit envoyer des requêtes autonomes (ce qui va avec le
+  cache par texte de requête).
+- `giac_worker.js` : charge `giac.js`, puis retire de sa portée `fetch`,
+  `XMLHttpRequest`, `importScripts`, `WebSocket`, `WebSocketStream`,
+  `EventSource`, `WebTransport`, `Worker`, `SharedWorker` et `caches`
+  (et vérifie qu'ils sont absents, sinon il refuse de démarrer). Le code
+  est enfermé dans une fonction : `giac.js` déclare des globales (`run`
+  remplaçait la fonction du Worker, trouvé à l'essai).
+- Protocole v1, décrit en tête de `giac_host.js` : `init`, `eval` →
+  `ready`, `result`, `error`, chaque message porte `v`.
+
+**Essais dans le navigateur** (`tools/browser_test.mjs`, page
+`test/index.html`, Chromium et WebKit) :
+
+| Essai                                   | Chromium | WebKit |
+| --------------------------------------- | -------- | ------ |
+| Prêt (téléchargement local compris)     | 41–54 ms | 83 ms  |
+| `read("https://…")`, `read("/…")`       | erreur Giac, **aucune requête** | idem |
+| `while true do od`, délai 500 ms        | `timeout`, puis `2+2` → 4 | idem |
+| Relance après délai (hors délai)        | 11–14 ms | 27 ms  |
+| Mémoire épuisée (`expand(…^30)` à 6 var.) | `crash`, puis relance | idem |
+| `stop()` (en cours + en file)           | `stopped` ×2, puis relance | idem |
+| Erreur de syntaxe                       | `giac`   | `giac` |
+
+Requêtes de la page : la page, `giac_host.js`, `giac.wasm` **une fois**,
+puis `giac_worker.js` et `giac.js` à chaque (re)lancement.
+
+**Script d'installation** `install_doctools.sh` (non lancé) : refuse si le
+dépôt a des modifications non committées, n'a pas de dépôt public
+(`origin`) ou si le commit n'y est pas poussé ; recompile les deux
+versions, passe l'oracle, copie `giac.js`, `giac.wasm`, `giac_worker.js`,
+`giac_host.js`, `COPYING` dans `doctools_MAIN/public/apps/giac` et écrit
+`SOURCE.txt` (adresse du dépôt, commit, révision du miroir, correctifs).
+
+**Pour l'étape 2** : DocGeo charge la bibliothèque par
+`import(/* @vite-ignore */ '../giac/giac_host.js')` (son `import.meta.url`
+situe le reste) ; le middleware de développement doit servir `.wasm` en
+`application/wasm` (sinon compilation plus lente, mais fonctionne).
+La file ne retire pas une requête dépassée : la règle « une requête par
+objet » se tient dans DocGeo, avant l'envoi.
+
+**Questions pour l'auteur.**
+1. Mémoire de Giac : fixe à 64 Mo (réglage de GeoGebra, gardé) ou
+   extensible (`ALLOW_MEMORY_GROWTH` à l'édition de liens) ? Fixe : un
+   calcul énorme donne `crash` et le Worker est relancé, la mémoire de
+   l'onglet reste bornée (utile sur tablette). Extensible : ces calculs
+   aboutissent, mais un calcul emballé peut prendre jusqu'à 2 Go avant
+   son délai. Recommandation : garder 64 Mo.
+2. Au déploiement : vérifier que le serveur de DocTools compresse
+   `giac.wasm` (1,9 Mo en brotli, 2,7 Mo en gzip, 7,6 Mo sans).
+
+### Étape 2 : ce qui est fait
+
+Fait le 2026-11-22 dans `docgeo_CAS`. Aucune commande visible : le module
+n'est encore importé par aucun code du moteur.
+
+- **Middleware** (`doccells.config.ts`) : un `serve(préfixe, dossier)`
+  commun sert `/doccells/` (inchangé) et `/giac/` → `../giac_MAIN/dist`,
+  `.wasm` en `application/wasm`, au serveur de développement et aux tests
+  navigateur. À la fin du chantier, `/giac/` lira
+  `../doctools_MAIN/public/apps/giac`, comme DocCells.
+- **Cache** (`src/cas_cache.ts`, classe `CasCache` sans dépendance,
+  testable sous Node) : `read(site, requête, lecteur)` rend
+  synchroniquement la réponse connue, sinon le dernier résultat du site
+  (`undefined` s'il n'en a jamais eu), et demande la requête.
+  - Le **site** est l'endroit d'une formule qui demande (son nœud, à
+    l'étape 3) ; le **lecteur**, l'objet recalculé à l'arrivée.
+  - Une requête à la fois vers Giac ; la file de DocGeo ne garde que la
+    dernière requête de chaque site : une requête dépassée et attendue par
+    personne n'est jamais envoyée (« une requête par objet », que la file
+    du module ne fait pas).
+  - Erreur de Giac, délai dépassé, mémoire épuisée (`giac`, `timeout`,
+    `crash`) : réponse `null` gardée, la requête n'est pas redemandée.
+    Toute autre erreur (module absent, protocole) : Giac est **absent**
+    pour la session, plus rien n'est demandé, les résultats connus
+    restent lus.
+  - 2 000 réponses gardées au plus, les plus anciennement lues retirées.
+- **Moteur** (`src/cas.ts`) : le singleton `cas` charge
+  `../giac/giac_host.js` relativement à la **page** (`document.baseURI`,
+  pas au module : le moteur est dans `assets/`), à la première requête,
+  délai de 5 s ; à l'arrivée d'une réponse, `invalidateGeometry` de ses
+  lecteurs, comme après une manipulation. `readCas(site, requête)` prend
+  pour lecteur l'objet en cours de calcul (`reading.object`, comme
+  `readCells`). Giac absent : un « ⚠ Giac » discret, en bas à gauche de la
+  page, sans langue (c'est un nom).
+- **Tests** : `tests/unit/cas.test.ts` (6 tests, Giac simulé : réponse
+  synchrone et recalcul, dernier résultat gardé, requête dépassée
+  remplacée, requête encore attendue envoyée, erreurs gardées, Giac
+  absent) ; `tests/browser/cas.test.ts` (vrai Giac servi sous `/giac/` :
+  chargement à la demande, `factor(x^4-1)`, erreur de syntaxe → `null`,
+  lecteurs recalculés).
+- **Remarque pour l'étape 3** : en mode GeoGebra, Giac répond `undef`
+  (et non une erreur) à certaines entrées mal formées (`factor((`) : la
+  relecture des réponses doit en faire une valeur indéfinie.
+- **Poids** : build du lecteur et de l'éditeur **identique octet pour
+  octet** avant et après (mêmes empreintes de fichiers ; morceaux
+  `engine-*` : 376 181 octets, 121 549 en gzip), puisque rien ne l'importe
+  encore. Coût à venir, quand l'étape 3 l'importera : environ 1,8 Ko
+  minifié (`cas.ts` + `cas_cache.ts`), sur les 10 Ko du budget.
+- **Mémos** : `GGB_IMPORT.md`, exclusion du calcul formel levée (règle
+  « pas de calcul formel » remplacée par « seulement par le module Giac
+  chargé à la demande », `IFactor` et `CSolve` renvoyés à l'étape 4) ;
+  `AGENTS.md`, exception du chantier rédigée, validée par l'auteur
+  (décision 8) (sur le modèle de celle de `TABLEUR.md` : module GPL
+  séparé, chargé à la demande dans un Worker, chargeur et cache dans le
+  moteur sous 10 Ko, aucun texte de la figure passé à Giac, branche
+  `cas` dans `docgeo_CAS`).
+- **Manuel** : rien à couvrir à cette étape (aucune commande visible).
+

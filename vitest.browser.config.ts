@@ -2,7 +2,7 @@ import { playwright } from "@vitest/browser-playwright";
 import type { CDPSession } from "playwright";
 import type { BrowserCommand } from "vitest/node";
 import { defineConfig } from "vitest/config";
-import { serveDocCells } from "./doccells.config.ts";
+import { serveDocCells, serveGiac } from "./doccells.config.ts";
 
 type Position = [number, number];
 
@@ -129,6 +129,7 @@ const keyboard: BrowserCommand<[action: "type" | "press", text: string]> = (
 export default defineConfig({
     plugins: [
         serveDocCells(),
+        serveGiac(),
         {
             // Vitest wraps the pages' dynamic imports (src/start.ts) in a
             // call to its runner, which a page in a test's iframe lacks.

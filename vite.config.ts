@@ -2,7 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { serveDocCells } from "./doccells.config.ts";
+import { serveDocCells, serveGiac } from "./doccells.config.ts";
 
 const now = new Date();
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -60,6 +60,7 @@ export default defineConfig({
         },
         editorServiceWorker(),
         serveDocCells(),
+        serveGiac(),
     ],
 });
 
